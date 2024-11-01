@@ -6,6 +6,8 @@ import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import Login from './views/Login';
 import Mygetaways from './views/Mygetaways';
+import GetawayDetail from './components/GetawayDetail';
+
 function App() {
   return (
     <>
@@ -15,6 +17,7 @@ function App() {
           <Route path="/" element={<Landing />} />
           <Route path="/login" element={<Login />} />
           <Route path="/getaways" element={<Mygetaways />} />
+          <Route path="/getawaydetail" element={<GetawayDetail />} />
         </Routes>
         <Footer/>
       </Router>

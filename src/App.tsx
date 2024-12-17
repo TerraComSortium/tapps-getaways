@@ -7,6 +7,7 @@ import Footer from './components/Footer';
 import Login from './views/Login';
 import Mygetaways from './views/Mygetaways';
 import GetawayDetail from './components/GetawayDetail';
+import BookGetaway from './views/BookGetaway';
 
 function App() {
   return (
@@ -18,6 +19,7 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/getaways" element={<Mygetaways />} />
           <Route path="/getawaydetail" element={<GetawayDetail />} />
+          <Route path="/bookgetaway" element={<BookGetaway />} />
         </Routes>
         <Footer/>
       </Router>

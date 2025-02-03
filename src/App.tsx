@@ -8,7 +8,8 @@ import Login from './views/Login';
 import Mygetaways from './views/Mygetaways';
 import GetawayDetail from './components/GetawayDetail';
 import BookGetaway from './views/BookGetaway';
-
+import Payment from './views/Payment';
+import Paid from './views/Paid';
 function App() {
   return (
     <>
@@ -20,6 +21,8 @@ function App() {
           <Route path="/getaways" element={<Mygetaways />} />
           <Route path="/getawaydetail" element={<GetawayDetail />} />
           <Route path="/bookgetaway" element={<BookGetaway />} />
+          <Route path="/payment" element={<Payment />} />
+          <Route path="/paid" element={<Paid />} />
         </Routes>
         <Footer/>
       </Router>

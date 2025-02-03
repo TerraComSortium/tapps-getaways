@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useForm, Controller } from 'react-hook-form';
 import AdminSideBar from '../components/AdminSidebar';
 
-import { Box, TextField, Button, Divider, RadioGroup, FormControlLabel, Radio, Checkbox } from '@mui/material';
+import { Box, TextField, Button, Typography, Divider, RadioGroup, FormControlLabel, Radio, Checkbox } from '@mui/material';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import Grid from '@mui/material/Grid2';
@@ -72,7 +72,7 @@ export default function BookGetaway() {
           <h2 className='title'>Getaway reservation</h2>
           <Box sx={{ width: 1000, maxWidth: '100%', padding: '7px' }}>
             <form onSubmit={handleSubmit(onSubmit)}>
-              <h5 className='purpleLabel'>Payment & contact info</h5>
+              <Typography variant="h6" className='purpleLabel' sx={{ m: '1 0', fontSize: '14px', fontWeight:"bold" }}> Payment & contact info </Typography>
               <TextField label="Player Name"
                 margin="dense" fullWidth disabled defaultValue=""
               />
@@ -92,7 +92,8 @@ export default function BookGetaway() {
                 disabled
               />
               <br />
-              <h5 className='purpleLabel'>Lodging Options*</h5>
+              <br/>
+              <Typography variant="h6" className='purpleLabel' sx={{ m: '1 0', fontSize: '14px', fontWeight:"bold" }}> Lodging Options* </Typography>
               <Divider aria-hidden="true" sx={{ bgcolor: '#00E392' }} />
               <Controller name="lodgingOption"
                 control={control}
@@ -106,8 +107,8 @@ export default function BookGetaway() {
                 )}
               />
               {errors.lodgingOption && <p style={{ color: 'red' }}>{errors.lodgingOption.message}</p>}
-
-              <h5 className='purpleLabel'>Add Ons (Optional)</h5>
+              <br/>
+              <Typography variant="h6" className='purpleLabel' sx={{ m: '1 0', fontSize: '14px', fontWeight:"bold" }}>Add Ons (Optional)</Typography>
               <Divider aria-hidden="true" sx={{ bgcolor: '#00E392' }} />
               <Controller name="amenities.specialDinner"
                 control={control}
@@ -140,16 +141,16 @@ export default function BookGetaway() {
                 )}
               />
               <br/><br/>
-              <h5 className='purpleLabel'>Payment Details</h5>
+              <Typography variant="h6" className='purpleLabel' sx={{ m: '1 0', fontSize: '14px', fontWeight:"bold" }}> Payment Details </Typography>
               <Divider aria-hidden="true" sx={{ bgcolor: '#00E392' }} />
               <p>Taxes: ${taxes.toFixed(2)} USD</p>
               <p>Total: ${total.toFixed(2)} USD</p>
               <p>*The total charged on the next page will be the price quoted above.</p>
 
-              <h3 className='purpleLabel'>Policies*</h3>
+              <Typography variant="h3" className='purpleLabel' sx={{ m: '1 0', fontSize: '16px', fontWeight:"bold" }}> Policies* </Typography>
+              <p>Cancellations outside 30 days incur no penalty. Cancellations inside of 30 days you forfeit all money paid unless you can find someone to take your place. We highly recommend taking out travel insurance for any reason that could cause a last minute cancellation.</p>
               <Controller name="agreePolicy"
-                control={control}
-                defaultValue={false}
+                control={control} defaultValue={false}
                 rules={{ required: 'You must agree to the policy' }}
                 render={({ field }) => (
                   <FormControlLabel
@@ -159,55 +160,45 @@ export default function BookGetaway() {
                 )}
               />
               {errors.agreePolicy && <p style={{ color: 'red' }}>{errors.agreePolicy.message}</p>}
-              <p>Cancellations outside 30 days incur no penalty. Cancellations inside of 30 days you forfeit all money paid unless you can find someone to take your place. We highly recommend taking out travel insurance for any reason that could cause a last minute cancellation.</p>
-
-              <h3 className='purpleLabel'>Terms*</h3>
+              <br/><br/>
+              <Typography variant="h3" className='purpleLabel' sx={{ m: '1 0', fontSize: '16px', fontWeight:"bold" }}> Terms* </Typography>
+              <Box sx={{ backgroundColor: 'white', borderRadius: '8px', padding: '1px 15px', mt:1, mr:2 }}>
+                <p>This facility does not have any indoor or covered courts. We follow the USTA guidelines for playing in cold or hot temperatures. Every player is responsible for their decision regarding medical circumstances they may have limiting their ability to play in outside conditions.
+                  The camp will not be canceled due to rain. If rain does impact our scheduled clinic and match hours, we will do our best to reschedule those hours throughout the week. If rain is persistent, and we are forced to miss on court time, we will add off court activities such as chalk talks, video analysis, and happy hours. We will only be hosting padel clinics and matches on site at the resort location. We will not be traveling to other facilities in the area. Please note that we will refund missed on court hours.</p>
+              </Box>
               <Controller name="agreeTerms"
                 control={control}
                 defaultValue={false}
                 rules={{ required: 'You must agree to the terms' }}
                 render={({ field }) => (
                   <FormControlLabel
-                    control={<Checkbox {...field} checked={field.value} />}
-                    label="I understand and agree to the terms"
+                  control={<Checkbox {...field} checked={field.value} />}
+                  label="I understand and agree to the terms"
                   />
                 )}
               />
               {errors.agreeTerms && <p style={{ color: 'red' }}>{errors.agreeTerms.message}</p>}
-              <Box sx={{ backgroundColor: 'white', borderRadius: '8px', padding: '1px 15px', margin: '3 3px' }}>
-                <p>This facility does not have any indoor or covered courts. We follow the USTA guidelines for playing in cold or hot temperatures. Every player is responsible for their decision regarding medical circumstances they may have limiting their ability to play in outside conditions.
-                  The camp will not be canceled due to rain. If rain does impact our scheduled clinic and match hours, we will do our best to reschedule those hours throughout the week. If rain is persistent, and we are forced to miss on court time, we will add off court activities such as chalk talks, video analysis, and happy hours. We will only be hosting padel clinics and matches on site at the resort location. We will not be traveling to other facilities in the area. Please note that we will refund missed on court hours.</p>
-              </Box>
-
-              <Grid container display={{ xs: 'block', md: 'flex' }} alignItems="center" textAlign={{ xs: 'center', md: 'left' }} justifyContent="center" marginTop={'10px'} spacing={6}>
+              <br/>
+              <Box style={{ display: 'flex', justifyContent: 'center', gap: 18,  margin:'20px 0' }}>
                 <Button type="button" startIcon={<ArrowBackIcon />} variant="outlined" disableElevation
                   href="/MyGetaways"
                   sx={{
-                    minWidth: '15vw',
-                    maxWidth: '13vw',
-                    m: 2,
-                    margin: '5 15px',
-                    padding: '5px 15px',
-                    borderRadius: '8px', bgcolor: '#FFF', color: '#3C1C91', fontWeight: 'medium', textTransform: 'none',
+                    width:'135px',
+                    borderRadius: '8px', bgcolor: '#FFF', color: '#3C1C91', fontWeight: 'medium', textTransform: 'none', borderColor:'#3C1C91',
                     ':hover': { bgcolor: '#3C1C91', color: 'white' }
                   }}
                 > Retry </Button>
 
                 <Button
-                  startIcon={<ShoppingCartIcon />}
-                  variant="outlined" disableElevation
                   type="submit"
+                  startIcon={<ShoppingCartIcon />} variant="outlined" disableElevation
                   sx={{
-                    borderRadius: '8px',
-                    minWidth: '18vw',
-                    maxWidth: '20vw',
-                    m: 2,
-                    padding: '5px 12px',
+                    borderRadius: '8px', borderColor:'#3C1C91',
                     bgcolor: '#3C1C91', color: '#FFF', fontWeight: 'medium', textTransform: 'none',
                     ':hover': { bgcolor: 'white', color: '#3C1C91' }
                   }}
                 > Book getaway </Button>
-              </Grid>
+              </Box>
             </form>
           </Box>
         </Grid>

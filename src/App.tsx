@@ -10,6 +10,7 @@ import GetawayDetail from './components/GetawayDetail';
 import BookGetaway from './views/BookGetaway';
 import Payment from './views/Payment';
 import Paid from './views/Paid';
+import Reservations from './views/Reservations';
 function App() {
   return (
     <>
@@ -23,6 +24,7 @@ function App() {
           <Route path="/bookgetaway" element={<BookGetaway />} />
           <Route path="/payment" element={<Payment />} />
           <Route path="/paid" element={<Paid />} />
+          <Route path="/reservations" element={<Reservations />} />
         </Routes>
         <Footer/>
       </Router>

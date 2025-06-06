@@ -15,8 +15,9 @@ import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import LightbulbIcon from '@mui/icons-material/Lightbulb';
 import AdminSidebar from '../components/AdminSidebar';
 import AcademySchedule from '../components/AcademySchedule';
+import TournamentsSchedule from '../components/TournamentsSchedule';
+import LaddersSchedule from '../components/LaddersSchedule';
 import academy from '../assets/RappsIcons/academyLogo.svg';
-
 import { styled } from '@mui/material/styles';
 const VisuallyHiddenInput = styled('input')({
   clip: 'rect(0 0 0 0)',
@@ -410,7 +411,8 @@ export default function CreateGetaway() {
             <p>Add this available Academy&trade; class sessions to your Getaway&trade; for selected dates</p>
             <AcademySchedule/>
             <br/>
-
+            <TournamentsSchedule/>
+            <LaddersSchedule/>
             <Divider sx={{ my: 2 }} />
             <Controller
               name="policies"

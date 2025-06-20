@@ -17,7 +17,7 @@ import AdminSidebar from '../components/AdminSidebar';
 import AcademySchedule from '../components/AcademySchedule';
 import TournamentsSchedule from '../components/TournamentsSchedule';
 import LaddersSchedule from '../components/LaddersSchedule';
-import academy from '../assets/RappsIcons/academyLogo.svg';
+
 import { styled } from '@mui/material/styles';
 const VisuallyHiddenInput = styled('input')({
   clip: 'rect(0 0 0 0)',
@@ -405,12 +405,7 @@ export default function CreateGetaway() {
               Add item
             </Button>
 
-            <Divider textAlign="center" aria-hidden="true">
-              <img src={academy} style={{height:'36px'}} className="logo" alt="Racquets Academy Logo" />
-            </Divider>
-            <p>Add this available Academy&trade; class sessions to your Getaway&trade; for selected dates</p>
             <AcademySchedule/>
-            <br/>
             <TournamentsSchedule/>
             <LaddersSchedule/>
             <Divider sx={{ my: 2 }} />
@@ -477,8 +472,7 @@ export default function CreateGetaway() {
                     ':hover': { color: '#3C1C91', bgcolor: '#fff'  }
                   }}
                   onClick={() => removeLodging(index)}
-                >
-                  Remove
+                > Remove
                 </Button>
               </div>
             ))}
@@ -486,16 +480,14 @@ export default function CreateGetaway() {
               <div style={{ color: 'red', marginBottom: '8px' }}>{errors.lodgingOptions}</div>
             )}
             <Button
-              variant="contained"
-              startIcon={<AddIcon />}
+              startIcon={<AddIcon />} variant="contained"
               sx={{
                 mb: 1, bgcolor: '#00E392', color: '#1A2660', fontWeight: 'bold', borderRadius: '30px', textTransform: 'none',
                 ':hover': { bgcolor: '#3C1C91', color: 'white' }
               }}
               disableElevation
               onClick={() => appendLodging({ name: '' })}
-            >
-              Add item
+            > Add item
             </Button>
             <Divider sx={{ my: 2 }} />
             <h5>Optional Add Ons [name, price]</h5>
@@ -552,16 +544,13 @@ export default function CreateGetaway() {
                 </Button>
               </div>
             ))}
-            <Button
-              variant="contained"
-              startIcon={<AddIcon />}
+            <Button startIcon={<AddIcon />} variant="contained"
               sx={{
                 mb: 1, bgcolor: '#00E392', color: '#1A2660', fontWeight: 'bold', borderRadius: '30px', textTransform: 'none',
                 ':hover': { bgcolor: '#3C1C91', color: 'white' }
               }}
               onClick={() => appendAddOn({ name: '', price: 0 })}
-            >
-              Add item
+            > Add item
             </Button>
 
             <Grid container display={{ xs: 'block', md: 'flex' }} alignItems="center" textAlign={{ xs: 'center', md: 'left' }} justifyContent="center" marginTop={'10px'} spacing={6}>
@@ -576,8 +565,7 @@ export default function CreateGetaway() {
                   ':hover': { bgcolor: '#3C1C91', color: 'white' }
                 }}
                 disableElevation
-              >
-                Retry
+              > Retry
               </Button>
               <Button
                 startIcon={<SaveIcon />}
@@ -589,8 +577,7 @@ export default function CreateGetaway() {
                   ':hover': { bgcolor: 'white', color: '#3C1C91' }
                 }}
                 disableElevation
-              >
-                Save changes
+              > Save changes
               </Button>
             </Grid>
           </form>

@@ -17,10 +17,12 @@ import AdminSidebar from '../components/AdminSidebar';
 import AcademySchedule from '../components/AcademySchedule';
 import TournamentsSchedule from '../components/TournamentsSchedule';
 import LaddersSchedule from '../components/LaddersSchedule';
+import { GalleryPhotoInput } from "../components/GalleryPhotoInput";
+
 // import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 
 const ALPHANUMERIC_REGEX = /^[a-zA-Z0-9\s]*$/;
-// const YOUTUBE_VIMEO_REGEX = /^(https?:\/\/)?(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/|vimeo\.com\/)([a-zA-Z0-9_-]{11,})/;
+const YOUTUBE_VIMEO_REGEX = /^(https?:\/\/)?(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/|vimeo\.com\/)([a-zA-Z0-9_-]{11,})/;
 
 import { styled } from '@mui/material/styles';
 const VisuallyHiddenInput = styled('input')({
@@ -255,6 +257,57 @@ export default function CreateGetaway() {
                 />
               </Grid>
             </Grid>
+
+            <GalleryPhotoInput
+              name="galleryPhotos"
+              control={control}
+              multiple={true}
+              // rules={{ required: "Photo is required" }}
+            />
+
+            <Controller name="caption" defaultValue=""
+              control={control}
+              rules={{
+                validate: (value?: string) =>
+                  !value || ALPHANUMERIC_REGEX.test(value)
+                    ? true
+                    : "Only letters and numbers are allowed.",
+              }}
+              render={({ field }) => (
+                <TextField label="Photo Caption (Optional)" fullWidth margin="dense"
+                  {...field}
+                  error={!!errors.caption}
+                  helperText={
+                    errors.caption
+                      ? errors.caption.message
+                      : "Only letters and numbers allowed."
+                  }
+                />
+              )}
+            />
+
+            <Controller name="galleryVideo" defaultValue=""
+              control={control}
+              rules={{
+                // required: "Video link is required",
+                validate: (value: string) =>
+                  value === "" ||
+                  YOUTUBE_VIMEO_REGEX.test(value) ||
+                  "Please enter a valid YouTube or Vimeo link",
+              }}
+              render={({ field }) => (
+                <TextField label="Youtube or Vimeo link (Optional)" fullWidth margin="dense"
+                  {...field}
+                  error={!!errors.galleryVideo}
+                  helperText={
+                    errors.galleryVideo
+                      ? errors.galleryVideo.message
+                      : "Recommended resolution 1280x720px"
+                  }
+                />
+              )}
+            />
+
             <Controller
               name="price"
               control={control}

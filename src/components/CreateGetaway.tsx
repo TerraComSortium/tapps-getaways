@@ -46,7 +46,7 @@ interface FormData {
   sport: string;
   price: number;
   address: string;
-  galleryPhoto: string;
+  // galleryPhoto: string;
   galleryVideo?: string;
   caption?: string;
   amenities: { name: string }[];
@@ -116,6 +116,9 @@ export default function CreateGetaway() {
     formState: { errors }
   } = useForm<FormData>({
     defaultValues: {
+      title: "",
+      overview: "",
+      // galleryPhotos: null,
       amenities: [{ name: '' }],
       lodgingOptions: [{ name: '' }],
       optionalAddOns: [{ name: '', price: 0 }]

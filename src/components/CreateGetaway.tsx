@@ -18,8 +18,9 @@ import AcademySchedule from '../components/AcademySchedule';
 import TournamentsSchedule from '../components/TournamentsSchedule';
 import LaddersSchedule from '../components/LaddersSchedule';
 import { GalleryPhotoInput } from "../components/GalleryPhotoInput";
-
-// import CloudUploadIcon from '@mui/icons-material/CloudUpload';
+import { ScheduleForm } from '../components/ScheduleForm';
+// import { GetawayFormData, ScheduleRow } from '../types/getaway';
+// import { mapScheduleRowsToApiFormat } from '../utils/dataMappers';
 
 const ALPHANUMERIC_REGEX = /^[a-zA-Z0-9\s]*$/;
 const YOUTUBE_VIMEO_REGEX = /^(https?:\/\/)?(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/|vimeo\.com\/)([a-zA-Z0-9_-]{11,})/;
@@ -465,6 +466,7 @@ export default function CreateGetaway() {
               Add item
             </Button>
 
+            {/* <ScheduleForm rows={scheduleRows} setRows={setScheduleRows} /> */}
             <AcademySchedule/>
             <TournamentsSchedule/>
             <LaddersSchedule/>

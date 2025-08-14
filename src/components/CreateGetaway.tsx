@@ -1,4 +1,4 @@
-// import * as React from 'react';
+import * as React from 'react';
 import { useForm, Controller, useFieldArray, SubmitHandler } from 'react-hook-form';
 // import { yupResolver } from '@hookform/resolvers/yup';
 // import * as yup from 'yup';
@@ -18,9 +18,11 @@ import AcademySchedule from '../components/AcademySchedule';
 import TournamentsSchedule from '../components/TournamentsSchedule';
 import LaddersSchedule from '../components/LaddersSchedule';
 import { GalleryPhotoInput } from "../components/GalleryPhotoInput";
+
 import { ScheduleForm } from '../components/ScheduleForm';
-// import { GetawayFormData, ScheduleRow } from '../types/getaway';
-// import { mapScheduleRowsToApiFormat } from '../utils/dataMappers';
+import { GetawayFormData, ScheduleRow } from '../types/getaway';
+import { mapScheduleRowsToApiFormat } from '../utils/dataMappers';
+import { handleGetawaySubmit } from '../services/getawayApi';
 
 const ALPHANUMERIC_REGEX = /^[a-zA-Z0-9\s]*$/;
 const YOUTUBE_VIMEO_REGEX = /^(https?:\/\/)?(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/|vimeo\.com\/)([a-zA-Z0-9_-]{11,})/;
@@ -64,22 +66,20 @@ const sports = [
 ];
 
 export default function CreateGetaway() {
-  const {
-    handleSubmit,
-    control,
-    formState: { errors }
-  } = useForm<FormData>({
+  const { handleSubmit, control, formState: { errors } } = useForm<GetawayFormData>({
     defaultValues: {
       title: "",
       overview: "",
-      // galleryPhotos: null,
-      amenities: [{ name: '' }],
+      // getawayAddress: { address: "", lat: null, lng: null },
+      galleryPhotos: null,
+      amenities: [{ name: "" }],
+      schedule: [],
       lodgingOptions: [{ name: "", price: 0 }],
       optionalAddOns: [{ name: '', price: 0 }]
     },
     // resolver: yupResolver(schema)
   });
-
+  // const navigate = useNavigate();
   const { fields: amenityFields, append: appendAmenity, remove: removeAmenity } = useFieldArray({
     control,
     name: 'amenities'
@@ -95,16 +95,61 @@ export default function CreateGetaway() {
     name: 'optionalAddOns'
   });
 
-  const onSubmit: SubmitHandler<FormData> = (data) => {
+  const [scheduleRows, setScheduleRows] = React.useState<ScheduleRow[]>([]);
+  const [scheduleError, setScheduleError] = React.useState<string | null>(null);
+
+  const onSubmit: SubmitHandler<GetawayFormData> = async (data) => {
+    if (scheduleRows.length === 0) {
+      setScheduleError("You must add at least one schedule row.");
+      document.getElementById("schedule-section")?.scrollIntoView({ behavior: "smooth" });
+      return;
+    }
+    setScheduleError(null);
+    const apiSchedule = mapScheduleRowsToApiFormat(scheduleRows);
+    const payload: GetawayFormData = {
+      ...data,
+      // title: data.title,
+      // overview: data.overview,
+      // startDate: data.startDate,
+      // endDate: data.endDate,
+      // sport: data.sport,
+      // mainDescription: data.mainDescription,
+      // policies: data.policies,
+      // terms: data.terms,
+      // lodgingOptions: data.lodgingOptions,
+      // optionalAddOns: data.optionalAddOns,
+      // amenities: data.amenities,
+      // caption: data.caption,
+      // galleryVideo: data.galleryVideo,
+      // getawayAddress: data.getawayAddress,
+      schedule: apiSchedule,
+
+      // `galleryPhotos` array validation
+      // galleryPhotos: Array.isArray(data.galleryPhotos)
+      //   ? data.galleryPhotos as File[]
+      //   : data.galleryPhotos ? [data.galleryPhotos as File] : null,
+    };
+    const success = await handleGetawaySubmit(payload);
+
+    if (success) {
+      // navigate('/getaways');
+    } else {
+      console.error("Failed to submit getaway");
+    }
     console.log(data);
   };
+  React.useEffect(() => {
+    if (scheduleRows.length > 0 && scheduleError) {
+      setScheduleError(null);
+    }
+  }, [scheduleRows, scheduleError]);
 
   return (
-    <Grid container rowSpacing={1} columnSpacing={{ xs:1, sm:2}} >
-      <Grid size={{ xs:2 }}><AdminSidebar/></Grid>
-      <Grid size={{ xs:10 }} className='section blueBg'>
+    <Grid container columnSpacing={{ xs:1, sm:2}} >
+      <Grid size={{ xs:1.8 }}><AdminSidebar/></Grid>
+      <Grid size={{ xs:10.2 }} className='section blueBg'>
         <h2 className='title'>Create getaway</h2>
-        <Box sx={{ width: 1000, maxWidth: '100%', padding: '7px' }}>
+        <Box sx={{ width: 1000, maxWidth: '100%', padding: '7px 0px' }}>
           <form onSubmit={handleSubmit(onSubmit)}>
             <Controller name="title" defaultValue=""
               control={control}
@@ -357,7 +402,7 @@ export default function CreateGetaway() {
 
                 <Button startIcon={<DeleteIcon />} variant="outlined" disableElevation size="medium" aria-label="delete"
                   sx={{
-                    p:'5px 20px', m:'0 3px',  borderRadius: "10px", textTransform: "none", bgcolor: '#3C1C91', color: '#fff', fontWeight: 'bold',
+                    p:'5px 16px', m:'0 2px', borderRadius: "10px", textTransform: "none", bgcolor: '#3C1C91', color: '#fff', fontWeight: 'bold',
                     ':hover': { color: '#3C1C91', bgcolor: '#fff'  }
                   }}
                   onClick={() => removeLodging(index)}
@@ -379,75 +424,65 @@ export default function CreateGetaway() {
             <Divider aria-hidden="true" />
 
             {addOnFields.map((field, index) => (
-              <div key={field.id}>
-                <Grid container spacing={2} sx={{pb:'0'}} display="flex" alignItems="center">
-                  <Grid size={{ xs:7 }}>
-                    <Controller
-                      name={`optionalAddOns.${index}.name`}
-                      control={control}
-                      defaultValue={field.name}
-                      rules={{
-                        // required: "Add-on name is required",
-                        validate: (value?: string) =>
-                          !value || ALPHANUMERIC_REGEX.test(value)
-                            ? true
-                            : "Only letters and numbers are allowed.",
-                      }}
-                      render={({ field }) => (
-                        <TextField
-                          {...field}
-                          label={`Optional Add On ${index + 1}`}
-                          fullWidth margin="normal"
-                          error={!!errors.optionalAddOns?.[index]?.name}
-                          helperText={errors.optionalAddOns?.[index]?.name ? errors.optionalAddOns?.[index]?.name.message : ''}
-                        />
-                      )}
+              <div key={field.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'start' }}>
+                <Controller
+                  name={`optionalAddOns.${index}.name`}
+                  control={control}
+                  defaultValue={field.name}
+                  rules={{
+                    // required: "Add-on name is required",
+                    validate: (value?: string) =>
+                      !value || ALPHANUMERIC_REGEX.test(value)
+                        ? true
+                        : "Only letters and numbers are allowed.",
+                  }}
+                    render={({ field }) => (
+                      <TextField
+                        {...field}
+                        label={`Optional Add On ${index + 1}`}
+                        sx={{ maxWidth:'550px', mr:'15px'}} fullWidth margin="normal"
+                        error={!!errors.optionalAddOns?.[index]?.name}
+                        helperText={errors.optionalAddOns?.[index]?.name ? errors.optionalAddOns?.[index]?.name.message : ''}
+                      />
+                    )}
+                  />
+                  <Controller
+                    name={`optionalAddOns.${index}.price`}
+                    control={control}
+                    // defaultValue={field.price}
+                    defaultValue={Number(field.price) || 0}
+                    rules={{
+                    // required: "Add-on price is required"
+                    validate: {
+                      isNumber: (value) => {
+                        const numberValue = parseFloat(String(value));
+                        return !isNaN(numberValue) || 'Price must be a number';
+                      },
+                      isPositive: (value) => {
+                        const numberValue = parseFloat(String(value));
+                        return numberValue >= 0 || 'The price must be a positive number';
+                      }
+                    }
+                  }}
+                  render={({ field }) => (
+                    <TextField
+                      {...field}
+                      label={`Add On ${index + 1} Price`}
+                      type="number" margin="normal" sx={{ maxWidth:'220px', mr:'15px'}}
+                      error={!!errors.optionalAddOns?.[index]?.price}
+                      helperText={errors.optionalAddOns?.[index]?.price ? errors.optionalAddOns?.[index]?.price.message : ''}
                     />
-                  </Grid>
-                  <Grid size={{ xs:3 }}>
-                    <Controller
-                      name={`optionalAddOns.${index}.price`}
-                      control={control}
-                      // defaultValue={field.price}
-                      defaultValue={Number(field.price) || 0}
-                      rules={{
-                        // required: "Add-on price is required"
-                        validate: {
-                          isNumber: (value) => {
-                            const numberValue = parseFloat(String(value));
-                            return !isNaN(numberValue) || 'Price must be a number';
-                          },
-                          isPositive: (value) => {
-                            const numberValue = parseFloat(String(value));
-                            return numberValue >= 0 || 'The price must be a positive number';
-                          }
-                        }
-                      }}
-                      render={({ field }) => (
-                        <TextField
-                          {...field}
-                          label={`Add On ${index + 1} Price`}
-                          type="number" margin="normal"
-                          error={!!errors.optionalAddOns?.[index]?.price}
-                          helperText={errors.optionalAddOns?.[index]?.price ? errors.optionalAddOns?.[index]?.price.message : ''}
-                        />
-                      )}
-                    />
-                  </Grid>
-                  <Grid size={{ xs:2 }}>
-                    <Button startIcon={<DeleteIcon />} variant="outlined" disableElevation size="medium" aria-label="delete"
-                      sx={{
-                        p:'5px 20px',
-                        textTransform: "none", bgcolor: '#3C1C91', color: '#fff', fontWeight: 'bold',
-                        ':hover': { color: '#3C1C91', bgcolor: '#fff'  }
-                      }}
-                      onClick={() => removeAddOn(index)}
-                      // disabled={activeForms.length === 1}
-                    >
-                      Remove
-                    </Button>
-                  </Grid>
-                </Grid>
+                  )}
+                />
+                <Button startIcon={<DeleteIcon />} variant="outlined" disableElevation size="medium" aria-label="delete"
+                  sx={{
+                    p:'5px 16px', m:'0 2px', borderRadius: "10px",
+                    textTransform: "none", bgcolor: '#3C1C91', color: '#fff', fontWeight: 'bold',
+                    ':hover': { color: '#3C1C91', bgcolor: '#fff'  }
+                  }}
+                  onClick={() => removeAddOn(index)}
+                  // disabled={activeForms.length === 1}
+                > Remove </Button>
               </div>
             ))}
 
@@ -463,7 +498,7 @@ export default function CreateGetaway() {
             <Divider aria-hidden="true" sx={{ pt:0, mt: 0 }} />
             {amenityFields.map((field, index) => (
               <div key={field.id}
-                style={{ display: 'flex', alignItems: 'center', marginBottom: "0px", justifyContent: 'space-between' }}
+                style={{ display: 'flex', alignItems: 'center', marginBottom: "0px", justifyContent: ' start' }}
               >
                 <Controller
                   name={`amenities.${index}.name`}
@@ -473,7 +508,8 @@ export default function CreateGetaway() {
                   render={({ field }) => (
                     <TextField
                       {...field}
-                      fullWidth margin="normal" sx={{ mr:'9px' }}
+                      fullWidth margin="normal"
+                      sx={{ maxWidth:'550px', mr:'9px' }}
                       label={`Amenity ${index + 1}`}
                       error={!!errors.amenities?.[index]?.name}
                       helperText={errors.amenities?.[index]?.name ? errors.amenities?.[index]?.name.message : ''}
@@ -482,7 +518,7 @@ export default function CreateGetaway() {
                 />
                 <Button startIcon={<DeleteIcon />} variant="outlined" disableElevation size="medium"
                   sx={{
-                    p:'5px 26px', textTransform: "none",
+                    p:'5px 16px', m:'0 3px', borderRadius: "10px", textTransform: "none",
                     bgcolor: '#3C1C91', color: '#fff', fontWeight: 'bold',
                     ':hover': { color: '#3C1C91', bgcolor: '#fff'  }
                   }}
@@ -499,13 +535,13 @@ export default function CreateGetaway() {
                 }}
               > Add item </Button>
 
-              {/* {scheduleError && (
+              {scheduleError && (
                 <div style={{ color: "red", fontWeight: "bold", marginBottom: 8 }}>
                   {scheduleError}
                 </div>
-              )} */}
+              )}
               <ScheduleForm
-              // rows={scheduleRows} setRows={setScheduleRows}
+              rows={scheduleRows} setRows={setScheduleRows}
               />
 
               <AcademySchedule/>
@@ -550,10 +586,9 @@ export default function CreateGetaway() {
               > Add item </Button>
 
               <Box style={{ display: 'flex', justifyContent: 'center', gap: 16, marginBottom: 5 }}>
-                <Button type="button"
-                // href="/MyGetaways"
-                href="/getaways"
-                startIcon={<ArrowBackIcon />} variant="outlined" disableElevation
+                <Button type="button" href="/getaways"
+                  // href="/getaways"
+                  startIcon={<ArrowBackIcon />} variant="outlined" disableElevation
                   sx={{
                     width:'135px', borderRadius: '8px', bgcolor: '#FFF', color: '#3C1C91', fontWeight: 'medium', textTransform: 'none',
                     ':hover': { bgcolor: '#3C1C91', color: 'white' }
@@ -561,7 +596,7 @@ export default function CreateGetaway() {
                 > Retry </Button>
 
                 <Button type="submit" startIcon={<SaveIcon />} variant="outlined"
-                  href="/getaways"
+                  // href="/getaways"
                   sx={{
                     borderRadius: '8px', bgcolor: '#3C1C91', color: '#FFF', fontWeight: 'medium', textTransform: 'none',
                     ':hover': { bgcolor: 'white', color: '#3C1C91' }

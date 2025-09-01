@@ -11,18 +11,19 @@ import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 import SaveIcon from '@mui/icons-material/Save';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-// import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import LightbulbIcon from '@mui/icons-material/Lightbulb';
+
 import AdminSidebar from '../components/AdminSidebar';
+import { AddressAutocompleteField } from '../components/AddressAutocompleteField';
 import AcademySchedule from '../components/AcademySchedule';
 import TournamentsSchedule from '../components/TournamentsSchedule';
 import LaddersSchedule from '../components/LaddersSchedule';
 import { GalleryPhotoInput } from "../components/GalleryPhotoInput";
-
 import { ScheduleForm } from '../components/ScheduleForm';
 import { GetawayFormData, ScheduleRow } from '../types/getaway';
 import { mapScheduleRowsToApiFormat } from '../utils/dataMappers';
 import { handleGetawaySubmit } from '../services/getawayApi';
+import { useAppConfig } from "../contexts/AppConfigContext";
 
 const ALPHANUMERIC_REGEX = /^[a-zA-Z0-9\s]*$/;
 const YOUTUBE_VIMEO_REGEX = /^(https?:\/\/)?(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/|vimeo\.com\/)([a-zA-Z0-9_-]{11,})/;
@@ -40,24 +41,24 @@ const VisuallyHiddenInput = styled('input')({
   width: 1,
 });
 
-interface FormData {
-  title: string;
-  overview: string;
-  mainDescription: string;
-  startDate: string;
-  endDate: string;
-  sport: string;
-  price: number;
-  address: string;
-  // galleryPhoto: string;
-  galleryVideo?: string;
-  caption?: string;
-  amenities: { name: string }[];
-  policies: string;
-  terms: string;
-  lodgingOptions: { name: string; price: number }[];
-  optionalAddOns: { name: string; price: number }[];
-}
+// interface FormData {
+//   title: string;
+//   overview: string;
+//   mainDescription: string;
+//   startDate: string;
+//   endDate: string;
+//   sport: string;
+//   price: number;
+//   address: string;
+//   // galleryPhoto: string;
+//   galleryVideo?: string;
+//   caption?: string;
+//   amenities: { name: string }[];
+//   policies: string;
+//   terms: string;
+//   lodgingOptions: { name: string; price: number }[];
+//   optionalAddOns: { name: string; price: number }[];
+// }
 
 const sports = [
   { value: '1', label: 'Tennis' },
@@ -66,6 +67,7 @@ const sports = [
 ];
 
 export default function CreateGetaway() {
+  const { googleMapsApiKey } = useAppConfig();
   const { handleSubmit, control, formState: { errors } } = useForm<GetawayFormData>({
     defaultValues: {
       title: "",
@@ -259,12 +261,19 @@ export default function CreateGetaway() {
               </Grid>
             </Grid>
 
-              <GalleryPhotoInput
-                name="galleryPhotos"
-                control={control}
-                multiple={true}
-                rules={{ required: "Photo is required" }}
-              />
+            <AddressAutocompleteField
+              control={control}
+              name="getawayAddress"
+              apiKey={googleMapsApiKey}
+            />
+
+            <GalleryPhotoInput
+              name="galleryPhotos"
+              control={control}
+              multiple={true}
+              rules={{ required: "Photo is required" }}
+            />
+
               <Controller name="caption" defaultValue=""
               control={control}
               rules={{
@@ -345,7 +354,7 @@ export default function CreateGetaway() {
                 />
               )}
             />
-            <Typography variant="h6" color="#3C1C91" sx={{ m: '1 0', fontSize: '14px', fontWeight:"bold"  }}> Lodging options </Typography>
+            <Typography variant="h6" color="#3C1C91" sx={{ m: '1 0', fontSize: '14px', fontWeight:"bold" }}> Lodging options(Single or double occupancy)</Typography>
             <Divider aria-hidden="true"/>
             {lodgingFields.map((field, index) => (
               <div key={field.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'start' }} >
@@ -587,7 +596,6 @@ export default function CreateGetaway() {
 
               <Box style={{ display: 'flex', justifyContent: 'center', gap: 16, marginBottom: 5 }}>
                 <Button type="button" href="/getaways"
-                  // href="/getaways"
                   startIcon={<ArrowBackIcon />} variant="outlined" disableElevation
                   sx={{
                     width:'135px', borderRadius: '8px', bgcolor: '#FFF', color: '#3C1C91', fontWeight: 'medium', textTransform: 'none',
@@ -596,7 +604,6 @@ export default function CreateGetaway() {
                 > Retry </Button>
 
                 <Button type="submit" startIcon={<SaveIcon />} variant="outlined"
-                  // href="/getaways"
                   sx={{
                     borderRadius: '8px', bgcolor: '#3C1C91', color: '#FFF', fontWeight: 'medium', textTransform: 'none',
                     ':hover': { bgcolor: 'white', color: '#3C1C91' }

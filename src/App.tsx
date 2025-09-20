@@ -15,31 +15,41 @@ import Reservations from './views/Reservations';
 import CreateGetaway from './components/CreateGetaway';
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { AppConfigProvider } from "./contexts/AppConfigContext";
+import { FormDataProvider, useFormData } from './contexts/FormDataContext';
+import DataView from './views/DataView';
 
+const DataViewWrapper: React.FC = () => {
+  const { submissionData } = useFormData();
+  if (!submissionData) {
+    return <div>No data available. Fill the form first.</div>;
+  }
+  return <DataView result={submissionData} />;
+};
 function App() {
   return (
     <>
-      <ErrorBoundary>
-      <AppConfigProvider>
-          <Router>
-            <Navbar/>
-            <Routes>
-              <Route path="/" element={<Landing />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/getaways" element={<Mygetaways />} />
-              <Route path="/getawaydetail" element={<GetawayDetail />} />
-              <Route path="/bookgetaway" element={<BookGetaway />} />
-              <Route path="/payment" element={<Payment />} />
-              <Route path="/paid" element={<Paid />} />
-              <Route path="/reservations" element={<Reservations />} />
-              <Route path="/creategetaway" element={
-                <CreateGetaway/>
-              } />
-            </Routes>
-            <Footer/>
-          </Router>
-        </AppConfigProvider>
-      </ErrorBoundary>
+      <FormDataProvider>
+        <ErrorBoundary>
+        <AppConfigProvider>
+            <Router>
+              <Navbar/>
+              <Routes>
+                <Route path="/" element={<Landing />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/getaways" element={<Mygetaways />} />
+                <Route path="/getawaydetail" element={<GetawayDetail />} />
+                <Route path="/bookgetaway" element={<BookGetaway />} />
+                <Route path="/payment" element={<Payment />} />
+                <Route path="/paid" element={<Paid />} />
+                <Route path="/reservations" element={<Reservations />} />
+                <Route path="/creategetaway" element={ <CreateGetaway/> } />
+                <Route path="/data-view" element={<DataViewWrapper />} />
+              </Routes>
+              <Footer/>
+            </Router>
+          </AppConfigProvider>
+        </ErrorBoundary>
+      </FormDataProvider>
     </>
   )
 }

@@ -1,9 +1,9 @@
 import * as React from 'react';
 import { useForm, Controller, useFieldArray, SubmitHandler } from 'react-hook-form';
-// import { yupResolver } from '@hookform/resolvers/yup';
-// import * as yup from 'yup';
+import { useFormData } from '../contexts/FormDataContext';
+import { useNavigate } from 'react-router-dom';
 
-import { TextField, Box, Button, Divider, Card, Typography} from '@mui/material';
+import { Box, TextField, Button, Divider, Typography, Card} from '@mui/material';
 import MenuItem from '@mui/material/MenuItem';
 import Grid from '@mui/material/Grid2';
 
@@ -13,53 +13,21 @@ import SaveIcon from '@mui/icons-material/Save';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import LightbulbIcon from '@mui/icons-material/Lightbulb';
 
-import AdminSidebar from '../components/AdminSidebar';
-import { AddressAutocompleteField } from '../components/AddressAutocompleteField';
+import AdminSidebar from './AdminSidebar';
+import { GalleryPhotoInput } from "../components/GalleryPhotoInput";
 import AcademySchedule from '../components/AcademySchedule';
 import TournamentsSchedule from '../components/TournamentsSchedule';
 import LaddersSchedule from '../components/LaddersSchedule';
-import { GalleryPhotoInput } from "../components/GalleryPhotoInput";
+import { AddressAutocompleteField } from '../components/AddressAutocompleteField';
+
 import { ScheduleForm } from '../components/ScheduleForm';
 import { GetawayFormData, ScheduleRow } from '../types/getaway';
 import { mapScheduleRowsToApiFormat } from '../utils/dataMappers';
 import { handleGetawaySubmit } from '../services/getawayApi';
 import { useAppConfig } from "../contexts/AppConfigContext";
 
-const ALPHANUMERIC_REGEX = /^[a-zA-Z0-9\s]*$/;
+const ALPHANUMERIC_REGEX = /^[a-zA-Z0-9\s,._'-]*$/;
 const YOUTUBE_VIMEO_REGEX = /^(https?:\/\/)?(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/|vimeo\.com\/)([a-zA-Z0-9_-]{11,})/;
-
-import { styled } from '@mui/material/styles';
-const VisuallyHiddenInput = styled('input')({
-  clip: 'rect(0 0 0 0)',
-  clipPath: 'inset(50%)',
-  height: 1,
-  overflow: 'hidden',
-  position: 'absolute',
-  bottom: 0,
-  left: 0,
-  whiteSpace: 'nowrap',
-  width: 1,
-});
-
-// interface FormData {
-//   title: string;
-//   overview: string;
-//   mainDescription: string;
-//   startDate: string;
-//   endDate: string;
-//   sport: string;
-//   price: number;
-//   address: string;
-//   // galleryPhoto: string;
-//   galleryVideo?: string;
-//   caption?: string;
-//   amenities: { name: string }[];
-//   policies: string;
-//   terms: string;
-//   lodgingOptions: { name: string; price: number }[];
-//   optionalAddOns: { name: string; price: number }[];
-// }
-
 const sports = [
   { value: '1', label: 'Tennis' },
   { value: '2', label: 'Padel' },
@@ -68,20 +36,23 @@ const sports = [
 
 export default function CreateGetaway() {
   const { googleMapsApiKey } = useAppConfig();
+  // const { setFormData } = useFormData();
+  const { setSubmissionData } = useFormData();
+  const navigate = useNavigate();
+
   const { handleSubmit, control, formState: { errors } } = useForm<GetawayFormData>({
     defaultValues: {
       title: "",
       overview: "",
-      // getawayAddress: { address: "", lat: null, lng: null },
-      galleryPhotos: null,
+      getawayAddress: { address: "", lat: null, lng: null },
+      galleryPhotos: [],
+      lodgingOptions: [{ name: "", price: 0 }],
+      optionalAddOns: [{ name: "", price: 0 }],
       amenities: [{ name: "" }],
       schedule: [],
-      lodgingOptions: [{ name: "", price: 0 }],
-      optionalAddOns: [{ name: '', price: 0 }]
-    },
-    // resolver: yupResolver(schema)
+    }
   });
-  // const navigate = useNavigate();
+
   const { fields: amenityFields, append: appendAmenity, remove: removeAmenity } = useFieldArray({
     control,
     name: 'amenities'
@@ -110,36 +81,13 @@ export default function CreateGetaway() {
     const apiSchedule = mapScheduleRowsToApiFormat(scheduleRows);
     const payload: GetawayFormData = {
       ...data,
-      // title: data.title,
-      // overview: data.overview,
-      // startDate: data.startDate,
-      // endDate: data.endDate,
-      // sport: data.sport,
-      // mainDescription: data.mainDescription,
-      // policies: data.policies,
-      // terms: data.terms,
-      // lodgingOptions: data.lodgingOptions,
-      // optionalAddOns: data.optionalAddOns,
-      // amenities: data.amenities,
-      // caption: data.caption,
-      // galleryVideo: data.galleryVideo,
-      // getawayAddress: data.getawayAddress,
-      schedule: apiSchedule,
-
-      // `galleryPhotos` array validation
-      // galleryPhotos: Array.isArray(data.galleryPhotos)
-      //   ? data.galleryPhotos as File[]
-      //   : data.galleryPhotos ? [data.galleryPhotos as File] : null,
+      schedule: apiSchedule
     };
-    const success = await handleGetawaySubmit(payload);
-
-    if (success) {
-      // navigate('/getaways');
-    } else {
-      console.error("Failed to submit getaway");
-    }
-    console.log(data);
+    const result = await handleGetawaySubmit(payload);
+    setSubmissionData(result);
+    navigate('/data-view');
   };
+
   React.useEffect(() => {
     if (scheduleRows.length > 0 && scheduleError) {
       setScheduleError(null);
@@ -156,7 +104,7 @@ export default function CreateGetaway() {
             <Controller name="title" defaultValue=""
               control={control}
               rules={{
-                required: "Getaway title is required",
+                // required: "Getaway title is required",
                 validate: (value?: string) =>
                   !value || ALPHANUMERIC_REGEX.test(value)
                     ? true
@@ -271,31 +219,31 @@ export default function CreateGetaway() {
               name="galleryPhotos"
               control={control}
               multiple={true}
-              rules={{ required: "Photo is required" }}
+              // rules={{ required: "Photo is required" }}
             />
 
-              <Controller name="caption" defaultValue=""
+            <Controller name="caption" defaultValue=""
               control={control}
               rules={{
                 validate: (value?: string) =>
                   !value || ALPHANUMERIC_REGEX.test(value)
                     ? true
                     : "Only letters and numbers are allowed.",
-                }}
-                render={({ field }) => (
-                  <TextField label="Photo Caption (Optional)" fullWidth margin="dense"
-                    {...field}
-                    error={!!errors.caption}
-                    helperText={
-                      errors.caption
-                        ? errors.caption.message
-                        : "Only letters and numbers allowed."
-                    }
-                  />
-                )}
-              />
+              }}
+              render={({ field }) => (
+                <TextField label="Photo Caption (Optional)" fullWidth margin="dense"
+                  {...field}
+                  error={!!errors.caption}
+                  helperText={
+                    errors.caption
+                      ? errors.caption.message
+                      : "Only letters and numbers allowed."
+                  }
+                />
+              )}
+            />
 
-              <Controller name="galleryVideo" defaultValue=""
+            <Controller name="galleryVideo" defaultValue=""
               control={control}
               rules={{
                 // required: "Video link is required",
@@ -354,7 +302,8 @@ export default function CreateGetaway() {
                 />
               )}
             />
-            <Typography variant="h6" color="#3C1C91" sx={{ m: '1 0', fontSize: '14px', fontWeight:"bold" }}> Lodging options(Single or double occupancy)</Typography>
+
+            <Typography variant="h6" color="#3C1C91" sx={{ m: '1 0', fontSize: '14px', fontWeight:"bold"  }}> Lodging options(Single or double occupancy)</Typography>
             <Divider aria-hidden="true"/>
             {lodgingFields.map((field, index) => (
               <div key={field.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'start' }} >
@@ -411,7 +360,7 @@ export default function CreateGetaway() {
 
                 <Button startIcon={<DeleteIcon />} variant="outlined" disableElevation size="medium" aria-label="delete"
                   sx={{
-                    p:'5px 16px', m:'0 2px', borderRadius: "10px", textTransform: "none", bgcolor: '#3C1C91', color: '#fff', fontWeight: 'bold',
+                    p:'5px 16px', m:'0 2px',  borderRadius: "10px", textTransform: "none", bgcolor: '#3C1C91', color: '#fff', fontWeight: 'bold',
                     ':hover': { color: '#3C1C91', bgcolor: '#fff'  }
                   }}
                   onClick={() => removeLodging(index)}
@@ -445,22 +394,22 @@ export default function CreateGetaway() {
                         ? true
                         : "Only letters and numbers are allowed.",
                   }}
-                    render={({ field }) => (
-                      <TextField
-                        {...field}
-                        label={`Optional Add On ${index + 1}`}
-                        sx={{ maxWidth:'550px', mr:'15px'}} fullWidth margin="normal"
-                        error={!!errors.optionalAddOns?.[index]?.name}
-                        helperText={errors.optionalAddOns?.[index]?.name ? errors.optionalAddOns?.[index]?.name.message : ''}
-                      />
-                    )}
-                  />
-                  <Controller
-                    name={`optionalAddOns.${index}.price`}
-                    control={control}
-                    // defaultValue={field.price}
-                    defaultValue={Number(field.price) || 0}
-                    rules={{
+                  render={({ field }) => (
+                    <TextField
+                      {...field}
+                      label={`Optional Add On ${index + 1}`}
+                      sx={{ maxWidth:'550px', mr:'15px'}} fullWidth margin="normal"
+                      error={!!errors.optionalAddOns?.[index]?.name}
+                      helperText={errors.optionalAddOns?.[index]?.name ? errors.optionalAddOns?.[index]?.name.message : ''}
+                    />
+                  )}
+                />
+                <Controller
+                  name={`optionalAddOns.${index}.price`}
+                  control={control}
+                  // defaultValue={field.price}
+                  defaultValue={Number(field.price) || 0}
+                  rules={{
                     // required: "Add-on price is required"
                     validate: {
                       isNumber: (value) => {
@@ -536,83 +485,83 @@ export default function CreateGetaway() {
                 > Remove </Button>
               </div>
             ))}
-              <Button startIcon={<AddIcon />} variant="contained" aria-label="Add amenity" disableElevation
-                onClick={() => appendAmenity({ name: "" })}
-                sx={{
-                  mb: 3, bgcolor: '#00E392', color: '#1A2660', borderRadius: '30px', fontWeight: 'bold', textTransform: 'none',
-                  ':hover': { bgcolor: '#3C1C91', color: 'white' }
-                }}
-              > Add item </Button>
+            <Button startIcon={<AddIcon />} variant="contained" aria-label="Add amenity" disableElevation
+              onClick={() => appendAmenity({ name: "" })}
+              sx={{
+                mb: 3, bgcolor: '#00E392', color: '#1A2660', borderRadius: '30px', fontWeight: 'bold', textTransform: 'none',
+                ':hover': { bgcolor: '#3C1C91', color: 'white' }
+              }}
+            > Add item </Button>
 
-              {scheduleError && (
-                <div style={{ color: "red", fontWeight: "bold", marginBottom: 8 }}>
-                  {scheduleError}
-                </div>
+            {scheduleError && (
+              <div style={{ color: "red", fontWeight: "bold", marginBottom: 8 }}>
+                {scheduleError}
+              </div>
+            )}
+            <ScheduleForm
+            rows={scheduleRows} setRows={setScheduleRows}
+            />
+
+            <AcademySchedule/>
+            <TournamentsSchedule/>
+            <LaddersSchedule/>
+
+            <Controller name="policies" defaultValue=""
+              control={control}
+              // rules={{ required: "Policies are required" }}
+              render={({ field }) => (
+                <TextField label="Policies" fullWidth margin="normal" multiline maxRows={3}
+                  {...field} id={field.name}
+                  error={!!errors.policies}
+                  helperText={errors.policies ? errors.policies.message : ''}
+                />
               )}
-              <ScheduleForm
-              rows={scheduleRows} setRows={setScheduleRows}
-              />
+            />
+            <Button type="submit" startIcon={<AddIcon />} variant="contained" disableElevation
+              sx={{
+                mb: 2, bgcolor: '#00E392', color: '#1A2660', fontWeight: 'bold', borderRadius: '30px', textTransform: 'none',
+                ':hover': { bgcolor: '#3C1C91', color: 'white' }
+              }}
+            > Add item </Button>
 
-              <AcademySchedule/>
-              <TournamentsSchedule/>
-              <LaddersSchedule/>
-              <Divider sx={{ my: 2 }} />
+            <Controller name="terms" defaultValue=""
+              control={control}
+              // rules={{ required: "Terms are required" }}
+              render={({ field }) => (
+                <TextField label="Terms" multiline maxRows={7} fullWidth margin="normal"
+                  {...field} id={field.name}
+                  error={!!errors.terms}
+                  helperText={errors.terms ? errors.terms.message : ''}
+                />
+              )}
+            />
+            <Button type="submit" startIcon={<AddIcon />} variant="contained" disableElevation
+              sx={{
+                mb: 2, bgcolor: '#00E392', color: '#1A2660', fontWeight: 'bold', borderRadius: '30px', textTransform: 'none',
+                ':hover': { bgcolor: '#3C1C91', color: 'white' }
+              }}
+            > Add item </Button>
 
-              <Controller name="policies" defaultValue=""
-                control={control}
-                // rules={{ required: "Policies are required" }}
-                render={({ field }) => (
-                  <TextField label="Policies" fullWidth margin="normal" multiline maxRows={3}
-                    {...field}
-                    error={!!errors.policies}
-                    helperText={errors.policies ? errors.policies.message : ''}
-                  />
-                )}
-              />
-              <Button type="submit" startIcon={<AddIcon />}       variant="contained" disableElevation
+            <Box style={{ display: 'flex', justifyContent: 'center', gap: 16, marginBottom: 5 }}>
+              <Button type="button" href="/getaways"
+              startIcon={<ArrowBackIcon />} variant="outlined" disableElevation
                 sx={{
-                  mb: 2, bgcolor: '#00E392', color: '#1A2660', fontWeight: 'bold', borderRadius: '30px', textTransform: 'none',
+                  width:'135px', borderRadius: '8px', bgcolor: '#FFF', color: '#3C1C91', fontWeight: 'medium', textTransform: 'none',
                   ':hover': { bgcolor: '#3C1C91', color: 'white' }
                 }}
-              > Add item </Button>
+              > Retry </Button>
 
-              <Controller name="terms" defaultValue=""
-                control={control}
-                // rules={{ required: "Terms are required" }}
-                render={({ field }) => (
-                  <TextField label="Terms" multiline maxRows={7} fullWidth margin="normal"
-                    {...field}
-                    error={!!errors.terms}
-                    helperText={errors.terms ? errors.terms.message : ''}
-                  />
-                )}
-              />
-              <Button type="submit" startIcon={<AddIcon />} variant="contained" disableElevation
+              <Button type="submit" startIcon={<SaveIcon />} variant="outlined"
                 sx={{
-                  mb: 2, bgcolor: '#00E392', color: '#1A2660', fontWeight: 'bold', borderRadius: '30px', textTransform: 'none',
-                  ':hover': { bgcolor: '#3C1C91', color: 'white' }
+                  width:'135px',
+                  borderRadius: '8px', bgcolor: '#3C1C91', color: '#FFF', fontWeight: 'medium', textTransform: 'none',
+                  ':hover': { bgcolor: 'white', color: '#3C1C91' }
                 }}
-              > Add item </Button>
-
-              <Box style={{ display: 'flex', justifyContent: 'center', gap: 16, marginBottom: 5 }}>
-                <Button type="button" href="/getaways"
-                  startIcon={<ArrowBackIcon />} variant="outlined" disableElevation
-                  sx={{
-                    width:'135px', borderRadius: '8px', bgcolor: '#FFF', color: '#3C1C91', fontWeight: 'medium', textTransform: 'none',
-                    ':hover': { bgcolor: '#3C1C91', color: 'white' }
-                  }}
-                > Retry </Button>
-
-                <Button type="submit" startIcon={<SaveIcon />} variant="outlined"
-                  sx={{
-                    borderRadius: '8px', bgcolor: '#3C1C91', color: '#FFF', fontWeight: 'medium', textTransform: 'none',
-                    ':hover': { bgcolor: 'white', color: '#3C1C91' }
-                  }}
-                > Save changes </Button>
-              </Box>
-            </form>
-          </Box>
-        </Grid>
+              > Save changes </Button>
+            </Box>
+          </form>
+        </Box>
+      </Grid>
     </Grid>
   );
 }

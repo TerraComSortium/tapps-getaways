@@ -1,9 +1,12 @@
-import type { GetawayFormData,
-  // Getaway
+import type {
+  GetawayFormData,
+  Getaway,
+  // SubmissionResult
 } from '../types/getaway';
 import type { SubmissionResult } from '../contexts/FormDataContext';
 
 const API_URL = "/api/getaways";
+
 async function isBackendAvailable(url: string): Promise<boolean> {
   try {
     const res = await fetch(url, { method: "HEAD" });
@@ -56,20 +59,38 @@ export async function handleGetawaySubmit(payload: GetawayFormData): Promise<Sub
   }
 }
 
-export async function getGetaways(): Promise< Getaway[] > {
+export async function getGetaways(): Promise<Getaway[]> {
   try {
+    console.log("Trying to get getaways from server...");
     const response = await fetch(API_URL);
 
     if (!response.ok) {
-      //(error 500)
-      throw new Error(`Error: ${response.status}`);
+      throw new Error(`Backend Error: ${response.status}`);
     }
 
-    const data = await response.json();
+    const data: Getaway[] = await response.json();
+    console.log("Getaways successfully retrieved from the backend");
     return data;
 
   } catch (error) {
-    console.error("Failed to fetch getaways:", error);
+    //FallbacklocalStorage
+    console.warn("Backend failed or is unavailable. Searching localStorage...");
+
+    const localDataString = localStorage.getItem('getaways');
+    if (localDataString) {
+      const localData: GetawayFormData[] = JSON.parse(localDataString);
+      console.log("Displaying locally saved getaways", localData);
+
+      const mappedData: Getaway[] = localData.map((item, index) => ({
+        ...item,
+        _id: `local-${index}`, //provisional id
+        galleryPhotos: [],
+      }));
+
+      return mappedData;
+    }
+
+    console.error("No offers were found in the backend or in localStorage");
     throw error;
   }
 }

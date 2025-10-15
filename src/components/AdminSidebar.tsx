@@ -21,7 +21,7 @@ export default function AdminSideBar() {
             type="link"
             disableElevation
             variant="contained"
-            href="/my_getaways"
+            href="/getaways"
             sx={{
               mb: 2, padding: '5px 0px',
               width: '160px',

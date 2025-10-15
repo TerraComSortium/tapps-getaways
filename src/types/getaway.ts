@@ -25,14 +25,13 @@ export interface ApiScheduleEntry {
   location: string;
 }
 
-export interface GetawayFormData {
+export interface GetawayBase {
   title: string;
   overview: string;
   startDate: string;
   endDate: string;
   sport: string;
   getawayAddress: LocationEntry;
-  galleryPhotos: File[] | null;
   caption?: string;
   galleryVideo: string;
   mainDescription: string;
@@ -42,4 +41,12 @@ export interface GetawayFormData {
   schedule: ApiScheduleEntry[];
   policies: string;
   terms: string;
+}
+
+export interface GetawayFormData extends GetawayBase {
+  galleryPhotos: File[] | null;
+}
+export interface Getaway extends GetawayBase{
+  _id: string;
+  galleryPhotos: string[];
 }

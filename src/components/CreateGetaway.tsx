@@ -26,7 +26,7 @@ import { mapScheduleRowsToApiFormat } from '../utils/dataMappers';
 import { handleGetawaySubmit } from '../services/getawayApi';
 import { useAppConfig } from "../contexts/AppConfigContext";
 
-const ALPHANUMERIC_REGEX = /^[a-zA-Z0-9\s,._'-]*$/;
+const ALPHANUMERIC_REGEX = /^[a-zA-Z0-9\s,._'";:()!/|-]*$/;
 const YOUTUBE_VIMEO_REGEX = /^(https?:\/\/)?(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/|vimeo\.com\/)([a-zA-Z0-9_-]{11,})/;
 const sports = [
   { value: '1', label: 'Tennis' },

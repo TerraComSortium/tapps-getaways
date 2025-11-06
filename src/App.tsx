@@ -1,8 +1,8 @@
-import { BrowserRouter, Routes, Route } from "react-router";
+import { BrowserRouter, Route, Routes } from "react-router";
+import Create from "./views/Create";
+import Getaways from "./views/Getaways";
 import Login from "./views/Login";
 import Store from "./views/Store";
-import Getaways from "./views/Getaways";
-import CreateGetaway from "./views/CreateGetaway";
 
 function App() {
   return (
@@ -11,7 +11,7 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/store" element={<Store />} />
         <Route path="/getaways" element={<Getaways />} />
-        <Route path="/create" element={<CreateGetaway />} />
+        <Route path="/create" element={<Create />} />
       </Routes>
     </BrowserRouter>
   );

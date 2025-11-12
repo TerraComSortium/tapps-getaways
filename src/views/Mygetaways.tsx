@@ -46,6 +46,8 @@ export default function Mygetaways() {
     setPage(value);
   };
 
+  console.log(getaways)
+
   //render
   if (loading) {
     return (
@@ -71,13 +73,14 @@ export default function Mygetaways() {
             {getaways.length > 0 && (
               getaways.map((getaway) => (
                 <GetawayItem
-                  key={getaway._id}
-                  name={getaway.title}
+                  key={getaway.id}
+                  name={getaway.getawayTitle}
+                  price={getaway.price}
                   dates={`${getaway.startDate} - ${getaway.endDate}`}
                   lodgingOptions={getaway.lodgingOptions || []}
                   // description={getaway.overview}
                   sport={sportMap[getaway.sport] || 'No available'}
-                  galleryPhotos={getaway.galleryPhotos || []}
+                  galleryPhotos={getaway.galleryPhoto || []}
                   onViewDetails={() => handleViewDetails(getaway)}
                   onBookNow={() => handleBookNow(getaway)}
                 />

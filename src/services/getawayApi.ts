@@ -2,10 +2,11 @@ import type {
   GetawayFormData,
   Getaway,
   // SubmissionResult
-} from '../types/getaway';
-import type { SubmissionResult } from '../contexts/FormDataContext';
+} from "../types/getaway";
+import type { SubmissionResult } from "../contexts/FormDataContext";
 
 const API_URL = "/api/getaways";
+const token = localStorage.getItem("token");
 
 async function isBackendAvailable(url: string): Promise<boolean> {
   try {
@@ -16,13 +17,15 @@ async function isBackendAvailable(url: string): Promise<boolean> {
   }
 }
 
-export async function handleGetawaySubmit(payload: GetawayFormData): Promise<SubmissionResult> {
+export async function handleGetawaySubmit(
+  payload: GetawayFormData
+): Promise<SubmissionResult> {
   const backendAvailable = await isBackendAvailable(API_URL);
   if (backendAvailable) {
     const apiFormData = new FormData();
 
     if (payload.galleryPhotos && Array.isArray(payload.galleryPhotos)) {
-      payload.galleryPhotos.forEach(file => {
+      payload.galleryPhotos.forEach((file) => {
         apiFormData.append("galleryPhotos", file);
       });
     }
@@ -30,39 +33,49 @@ export async function handleGetawaySubmit(payload: GetawayFormData): Promise<Sub
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { galleryPhotos: _galleryPhotos, ...payloadWithoutFiles } = payload;
 
-    apiFormData.append('data', JSON.stringify(payloadWithoutFiles));
+    apiFormData.append("data", JSON.stringify(payloadWithoutFiles));
 
     try {
       const response = await fetch(API_URL, {
-        method: 'POST',
+        method: "POST",
         body: apiFormData,
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       });
 
       if (response.ok) {
-        return { payload, status: 'SUCCESS', statusCode: response.status };
+        return { payload, status: "SUCCESS", statusCode: response.status };
       } else {
         console.error("API Error:", response.status, await response.text());
-        return { payload, status: 'API_ERROR', statusCode: response.status };
+        return { payload, status: "API_ERROR", statusCode: response.status };
       }
     } catch (error) {
       console.error("Network or submission error:", error);
-      return { payload, status: 'NETWORK_ERROR', statusCode: null };
+      return { payload, status: "NETWORK_ERROR", statusCode: null };
     }
   } else {
     console.warn("Unavailable Backend, payload saved on localStorage.");
     // console.log(payload);
-    localStorage.setItem('getaways', JSON.stringify([
-      ...JSON.parse(localStorage.getItem('getaways') || '[]'),
-      payload
-    ]));
-    return { payload, status: 'LOCAL_SAVE', statusCode: null };
+    localStorage.setItem(
+      "getaways",
+      JSON.stringify([
+        ...JSON.parse(localStorage.getItem("getaways") || "[]"),
+        payload,
+      ])
+    );
+    return { payload, status: "LOCAL_SAVE", statusCode: null };
   }
 }
 
 export async function getGetaways(): Promise<Getaway[]> {
   try {
     console.log("Trying to get getaways from server...");
-    const response = await fetch(API_URL);
+    const response = await fetch(API_URL, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
 
     if (!response.ok) {
       throw new Error(`Backend Error: ${response.status}`);
@@ -71,12 +84,11 @@ export async function getGetaways(): Promise<Getaway[]> {
     const data: Getaway[] = await response.json();
     console.log("Getaways successfully retrieved from the backend");
     return data;
-
   } catch (error) {
     //FallbacklocalStorage
     console.warn("Backend failed or is unavailable. Searching localStorage...");
 
-    const localDataString = localStorage.getItem('getaways');
+    const localDataString = localStorage.getItem("getaways");
     if (localDataString) {
       const localData: GetawayFormData[] = JSON.parse(localDataString);
       console.log("Displaying locally saved getaways", localData);
@@ -98,7 +110,9 @@ export async function getGetaways(): Promise<Getaway[]> {
 export async function getGetaway(): Promise<GetawayFormData | null> {
   // console.log("fetch api");
   try {
-    const savedGetaways: GetawayFormData[] = JSON.parse(localStorage.getItem('getaways') || '[]');
+    const savedGetaways: GetawayFormData[] = JSON.parse(
+      localStorage.getItem("getaways") || "[]"
+    );
 
     if (savedGetaways.length > 0) {
       // console.log("getawayID", savedGetaways[0]);

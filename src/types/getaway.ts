@@ -26,13 +26,17 @@ export interface ApiScheduleEntry {
 }
 
 export interface GetawayBase {
+  id: string;
   title: string;
+  price: number;
+  getawayTitle: string;
   overview: string;
   startDate: string;
   endDate: string;
   sport: string;
   getawayAddress: LocationEntry;
   caption?: string;
+  galleryPhoto: [];
   galleryVideo: string;
   mainDescription: string;
   lodgingOptions: { name: string, price: number }[];

@@ -7,6 +7,10 @@ html {
   font-style: normal;
 }
 
+:root {
+  font-family: Montserrat, Inter, Avenir, Helvetica,  sans-serif;
+}
+
 @theme {
   --font-Inter: "Inter", sans-serif;
   --color-purple: #3c1c91;

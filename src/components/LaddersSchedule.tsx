@@ -1,15 +1,19 @@
 import * as React from "react";
 import { styled } from "@mui/material/styles";
-import { Box, Divider, Paper, Stack } from '@mui/material';
+import {
+  Box, Divider, Paper, Stack, Button, Typography,
+  Card, CardContent, CardActions
+} from '@mui/material';
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
 import TableCell, { tableCellClasses } from "@mui/material/TableCell";
 import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
-
+import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
+import DeleteIcon from '@mui/icons-material/Delete';
 import laddersLogo from '../assets/RappsIcons/laddersLogo.svg';
-//ladder row
+
 export interface LadderRow {
   id: number;
   tournamentName: string;
@@ -64,6 +68,9 @@ const StyledTableRow = styled(TableRow)(({ theme }) => ({
 export default function LaddersTable() {
   const [rows, setRows] = React.useState<LadderRow[]>(initialRows);
 
+  //Conditional table rendering state
+  const [showTable, setShowTable] = React.useState(false);
+
   const handleIncludeChange = (id: number) => {
     setRows((prevRows) =>
       prevRows.map((row) =>
@@ -72,46 +79,87 @@ export default function LaddersTable() {
     );
   };
 
+  const handleResetTable = () => {
+    setRows(initialRows);
+    setShowTable(false);
+  };
+
   return (
     <Box sx={{ width:'100%', margin:'25px 0' }}>
       <Divider textAlign="center" aria-hidden="true">
         <img src={laddersLogo} style={{height:'36px'}} className="logo" alt="Racquets Ladders Logo" />
       </Divider>
-      <p>You can add this available Ladders&trade; sessions in this Getaway&trade;</p>
-      <TableContainer component={Paper}>
-        <Table sx={{ minWidth:700 }} aria-label="customized table">
-          <TableHead>
-            <TableRow>
-              <StyledTableCell align="left">Ladders Tournament</StyledTableCell>
-              <StyledTableCell align="left">Price</StyledTableCell>
-              <StyledTableCell align="center">Include</StyledTableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {rows.map((row) => (
-              <StyledTableRow key={row.id}>
-                <StyledTableCell component="th" scope="row">
-                  <Stack direction="column" spacing={0.5}>
-                    <strong>{row.tournamentName} | {row.location}</strong>
-                    <span>Fechas: {row.dates}</span>
-                    <span>Tipo ranking: {row.rankingType}</span>
-                    <span>Modalidad: {row.modality}</span>
-                  </Stack>
-                </StyledTableCell>
-                <StyledTableCell align="left">{row.price}</StyledTableCell>
-                <StyledTableCell align="center">
-                  <input id={`ladderOption-${row.id}`} 
-                    type="checkbox"
-                    checked={row.included}
-                    onChange={() => handleIncludeChange(row.id)}
-                    aria-label={`Include ${row.tournamentName}`}
-                  />
-                </StyledTableCell>
-              </StyledTableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
+      {showTable ? (
+        <>
+          <p>You can add this available Ladders&trade; sessions in this Getaway&trade;</p>
+          <TableContainer component={Paper}>
+            <Table sx={{ minWidth:700 }} aria-label="customized table">
+              <TableHead>
+                <TableRow>
+                  <StyledTableCell align="left">Ladders Tournament</StyledTableCell>
+                  <StyledTableCell align="left">Price</StyledTableCell>
+                  <StyledTableCell align="center">Include</StyledTableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {rows.map((row) => (
+                  <StyledTableRow key={row.id}>
+                    <StyledTableCell component="th" scope="row">
+                      <Stack direction="column" spacing={0.5}>
+                        <strong>{row.tournamentName} | {row.location}</strong>
+                        <span>Fechas: {row.dates}</span>
+                        <span>Tipo ranking: {row.rankingType}</span>
+                        <span>Modalidad: {row.modality}</span>
+                      </Stack>
+                    </StyledTableCell>
+                    <StyledTableCell align="left">{row.price}</StyledTableCell>
+                    <StyledTableCell align="center">
+                      <input id={`ladderOption-${row.id}`} 
+                        type="checkbox"
+                        checked={row.included}
+                        onChange={() => handleIncludeChange(row.id)}
+                        aria-label={`Include ${row.tournamentName}`}
+                      />
+                    </StyledTableCell>
+                  </StyledTableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+
+          {/* Hide table and reset */}
+          <Button  variant="contained" startIcon={<DeleteIcon />}
+            onClick={handleResetTable}
+            // color="primary"
+            sx={{ mt:2,
+              bgcolor: '#3C1C91',
+              textTransform: 'none',
+              borderRadius: '20px',
+              px: 4
+            }}
+          > Remove Selection
+          </Button>
+        </>
+      ) : (
+        <Card variant="outlined" sx={{
+            p: 3, textAlign: 'center',
+            bgcolor: '#F8F9FA', border: '1px dashed #bdbdbd'
+          }}>
+          <CardContent>
+            <Typography variant="h6" component="div" gutterBottom sx={{ fontWeight: 'bold', color: '#3C1C91' }}> Enhance your Getaway </Typography>
+            <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
+              Do you want to see available <strong>Racquets Ladders&trade;</strong> sessions for these dates?
+            </Typography>
+          </CardContent>
+          <CardActions sx={{ justifyContent: 'center' }}>
+            <Button startIcon={<CheckCircleOutlineIcon />} variant="contained"  size="large"
+              onClick={() => setShowTable(true)}
+              sx={{ px: 4, borderRadius: '20px', bgcolor: '#3C1C91', textTransform: 'none' }}
+            > Show available sessions
+            </Button>
+          </CardActions>
+        </Card>
+      )}
     </Box>
   );
 }

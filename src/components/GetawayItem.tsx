@@ -3,6 +3,7 @@ import { Card, CardContent, CardMedia, Typography, Button, Box } from '@mui/mate
 import SportsTennisIcon from '@mui/icons-material/SportsTennis';
 import prevPhoto from '../assets/backgrounds/hotel.jpg';
 import '../App.css';
+import Chip from '@mui/material/Chip';
 
 const isPhotoUrl = (url: string): boolean => {
   if (!url) return false;
@@ -39,7 +40,7 @@ function GetawayItem({ name, dates, lodgingOptions, sport, galleryPhotos, onView
       const firstPhoto = galleryPhotos[0];
       // img validation
       if (isPhotoUrl(firstPhoto)) {
-        return firstPhoto; //pick first img
+        return firstPhoto;
       }
     }
     return prevPhoto; //default img
@@ -65,6 +66,12 @@ function GetawayItem({ name, dates, lodgingOptions, sport, galleryPhotos, onView
                {' Getaway name unavailable'}
               {/* } */}
             </Typography>
+
+            <Chip
+              label={sport}
+              icon={ <SportsTennisIcon sx={{ p:'0 2px' }} /> }
+              sx={{ padding:'0 0.5rem', m:'3px 0' }}
+            ></Chip>
 
             <Typography variant="subtitle2" sx={{ color: 'text.secondary', fontWeight: 'normal'}}>
               Dates: {dates}
@@ -107,18 +114,6 @@ function GetawayItem({ name, dates, lodgingOptions, sport, galleryPhotos, onView
                 fontVariantCaps: 'normal', textTransform: 'none',
               }}
             > Reservations </Button>
-            <Button variant="outlined"
-              sx={{
-                width: 120,
-                padding:'0 2', m: '0 0.5rem',
-                display: 'flex', alignItems: 'center',
-                borderRadius: '30px', borderColor:  '#3C1C91', bgcolor: '#fff'
-              }}>
-              <SportsTennisIcon sx={{ color: '#3C1C91', pr:'3px' }} />
-              <Typography variant="subtitle2" sx={{ color: '#3C1C91', fontWeight: 'bold',  textTransform: 'none' }}>
-                {sport}
-              </Typography>
-            </Button>
           </Box>
         </CardContent>
         <Box sx={{ width: 300, flexShrink: 0, position: 'relative'}}>

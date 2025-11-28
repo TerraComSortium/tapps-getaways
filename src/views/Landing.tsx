@@ -1,4 +1,3 @@
-// import React from 'react';
 import { Box, Button, Typography, Card, CardContent, CardMedia } from '@mui/material';
 import Grid from '@mui/material/Grid2';
 
@@ -8,19 +7,30 @@ import mapSample from '../assets/backgrounds/mapSample.png';
 import clubView1 from '../assets/backgrounds/clubView1.png';
 import '../App.css';
 import '../index.css';
-
+import SearchBar from '../components/SearchBar';
 const LandingPage = () => {
   return (
     <>
-      <Box>
-        <img src={background1}
-          alt="tennis player"
+      <Box sx={{ width: '100%', height: 'auto', position: 'relative', overflow: 'hidden' }} >
+        <Box
+          sx={{
+            display: 'flex', justifyContent: 'center', position: 'absolute',
+            top:  0, left: 0, right: 0, zIndex: 10, pt: 3,
+            background: 'linear-gradient(to bottom, rgba(0,0,0,0.3), transparent)'
+          }}
+        > <SearchBar />
+        </Box>
+
+        <img alt="tennis player" src={background1}
           style={{
-            width:'100%',
-            position: 'relative'
+            display: 'block', width: '100%', height: 'auto%',
+            objectFit: 'cover', objectPosition: 'top',
+            clipPath: 'inset( 40px 0px)',
+            transform: 'translateY(-40px)'
           }}
         />
       </Box>
+
       <section className='section'>
         <h2 className='title'> Destinos más populares en Los Angeles </h2>
         <div className='cards'>
@@ -102,14 +112,10 @@ const LandingPage = () => {
                 <li>Disfruta de beneficios únicos</li>
                 <br/>
                 <p className='label'>¡Regístrate y explora paquetes increíbles!</p>
-                <Button
-                  type="submit"
-                  variant="contained"
-                  sx={{ mt: 2, mb: 5, bgcolor: '#C9F305', color: '#1A2660', fontWeight: 'bold', borderRadius:'30px'
-                  }}
-                  disableElevation
-                >
-                  Acceder
+
+                <Button type="submit" variant="contained" disableElevation
+                  sx={{ mt: 2, mb: 5, bgcolor: '#C9F305', color: '#1A2660', fontWeight: 'bold',  borderRadius:'30px' }}
+                > Acceder
                 </Button>
               </ul>
             </section>

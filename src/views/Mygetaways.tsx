@@ -6,6 +6,7 @@ import GetawayItem from '../components/GetawayItem';
 import { useNavigate } from 'react-router-dom';
 import { getGetaways } from '../services/getawayApi';
 import type { Getaway } from '../types/getaway';
+import SearchBar from '../components/SearchBar';
 
 const sportMap: { [key: string]: string } = {
   '1': 'Tennis',
@@ -46,7 +47,6 @@ export default function Mygetaways() {
     setPage(value);
   };
 
-  //render
   if (loading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
@@ -58,10 +58,11 @@ export default function Mygetaways() {
     <>
       <Grid container rowSpacing={1} columnSpacing={{ xs: 1, sm: 2, md: 3 }}>
         <AdminSideBar />
-        <Grid size={{ xs:10 }} spacing={2} justifyContent="center" className="section blueBg">
-          <Box sx={{ textAlign: 'center' }}>
-            <Box sx={{ textAlign: 'center', mb: 3 }}>
-              <h2 className="title">My getaways</h2>
+        <Grid size={{ xs:10 }} spacing={1} className="section blueBg">
+          <SearchBar/>
+          <Box>
+            <Box  sx={{ mb: 3 }}>
+              <h3>My getaways</h3>
               {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
               <Typography sx={{ mb: 1 }}>
                 {getaways.length > 0 ? `You have ${getaways.length} getaways registered` : 'No offers registered'}

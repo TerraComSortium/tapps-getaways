@@ -18,7 +18,7 @@ const LandingPage = () => {
             top:  0, left: 0, right: 0, zIndex: 10, pt: 3,
             background: 'linear-gradient(to bottom, rgba(0,0,0,0.3), transparent)'
           }}
-        > <SearchBar />
+        ><SearchBar/>
         </Box>
 
         <img alt="tennis player" src={background1}
@@ -32,7 +32,10 @@ const LandingPage = () => {
       </Box>
 
       <section className='section'>
-        <h2 className='title'> Destinos más populares en Los Angeles </h2>
+        <h2 className='title'>
+          {/* Destinos más populares en Los Angeles */}
+          Most popular destinations in Los Angeles
+        </h2>
         <div className='cards'>
           <div className='card1'>
             <Card sx={{ width: 250, margin: '0 20px' }}>
@@ -43,7 +46,8 @@ const LandingPage = () => {
               />
               <CardContent className='purpBtn2'>
                 <Typography gutterBottom variant="body2" component="div">
-                  Club Campestre Cañaveral
+                  {/*rcnetName */}
+                  Cañaveral Country Club
                 </Typography>
               </CardContent>
             </Card>
@@ -57,7 +61,7 @@ const LandingPage = () => {
               />
               <CardContent className='purpBtn2'>
                 <Typography gutterBottom variant="body2" component="div">
-                  Club Campestre Cañaveral
+                  Cañaveral Country Club
                 </Typography>
               </CardContent>
             </Card>
@@ -67,7 +71,7 @@ const LandingPage = () => {
               <CardMedia
                 sx={{ height: 150 }}
                 image={clubView1}
-                title="getaway 2"
+                title="getaway 3"
               />
               <CardContent className='purpBtn2'>
                 <Typography gutterBottom variant="body2" className='purpBtn2' component="div">
@@ -80,8 +84,14 @@ const LandingPage = () => {
       </section>
       <center className='blueBg rcnets'>
         <section className='section '>
-          <h2 className='title'>RCnets ofreciendo Getaways Tours&trade;</h2>
-          <p> ¡Únete y disfruta de beneficios exclusivos! </p>
+          <h2 className='title'>
+            {/* RCnets ofreciendo Getaways Tours&trade; */}
+            RCnets offering Getaways Tours&trade;
+          </h2>
+          <p>
+            {/* ¡Únete y disfruta de beneficios exclusivos!  */}
+            Join us and enjoy exclusive benefits!
+          </p>
         </section>
         <Grid container direction="row" justifyContent="center" alignItems="center" spacing={2}>
           <Grid size={{ xs:2 }}>
@@ -100,22 +110,39 @@ const LandingPage = () => {
       </center>
       <section className='section blueBg' >
         <h2 className='title'>
-          Destinos cercanos en tu zona
+          {/* Destinos cercanos en tu zona */}
+          Nearby destinations in your area
         </h2>
         <Grid container rowSpacing={1} columnSpacing={{ xs: 1, sm: 2, md: 3 }}>
           <Grid>
             <section className='section'>
               <ul>
-                <li>Encuentra los mejores destinos de racquets en tu zona</li>
-                <li>Accede a clubes de alta calidad</li>
-                <li>Participa en eventos exclusivos </li>
-                <li>Disfruta de beneficios únicos</li>
+                <li>
+                  Find the best Racquets!&trade; destinations in your area
+                  {/* Encuentra los mejores destinos de racquets en tu zona */}
+                </li>
+                <li>
+                  Get access to high-quality clubs
+                  {/* Accede a clubes de alta calidad */}
+                </li>
+                <li>
+                  Take part in exclusive events
+                  {/* Participa en eventos exclusivos */}
+                </li>
+                <li>
+                  Enjoy unique benefits
+                  {/* Disfruta de beneficios únicos */}
+                </li>
                 <br/>
-                <p className='label'>¡Regístrate y explora paquetes increíbles!</p>
+                <p className='label'>
+                  Sign in and explore incredible packages!
+                  {/* ¡Regístrate y explora paquetes increíbles! */}
+                </p>
 
                 <Button type="submit" variant="contained" disableElevation
                   sx={{ mt: 2, mb: 5, bgcolor: '#C9F305', color: '#1A2660', fontWeight: 'bold',  borderRadius:'30px' }}
-                > Acceder
+                > Explore Getaways
+                  {/* Acceder */}
                 </Button>
               </ul>
             </section>
@@ -128,7 +155,10 @@ const LandingPage = () => {
         </Grid>
       </section>
       <Box className='benefitsSection'>
-        <h2 className='title2'>Descubre todos los beneficios que puedes tener</h2>
+        <h2 className='title2'>
+          {/* Descubre todos los beneficios que puedes tener */}
+          Discover all the benefits you can enjoy
+        </h2>
         <section className='benefits'>
           <Box sx={{ minWidth: 450 }}>
             <Card variant="outlined"
@@ -138,20 +168,34 @@ const LandingPage = () => {
               }}>
               <CardContent sx={{ bgcolor: '#fff' }}>
                 <Typography variant="h5">
-                  Beneficios para jugadores y turistas
+                  {/* Beneficios para jugadores y turistas */}
+                  Benefits for players
                 </Typography>
                 <Typography variant="body2">
                   <ul>
-                    <li>Accede a la d/TC turística de tu preferencia para disfrutar tu estadía</li>
-                    <li>Explora diversas ofertas en cualquier parte del mundo</li>
-                    <li>Selecciona el Getaway que mejor se adapte a tu presupuesto</li>
-                    <li>Mejora tu experiencia de viaje usando nuestras aplicaciones Racquets! AppSuite&trade;</li>
+                    <li>
+                      {/* Accede a la d/TC turística de tu preferencia para disfrutar tu estadía */}
+                      Access the Getaway&trade; offer of your choice to enjoy your stay.
+                    </li>
+                    <li>
+                      {/* Explora diversas ofertas cercanas a ti */}
+                      Explore various offers near you
+                    </li>
+                    <li>
+                      {/* Selecciona el Getaway que mejor se adapte a tu presupuesto */}
+                      Select the Getaway that best suits your budget
+                    </li>
+                    <li>
+                      {/* Mejora tu experiencia de viaje usando nuestras aplicaciones Racquets! AppSuite&trade; */}
+                      Enhance your travel experience by using our Racquets! AppSuite&trade; applications
+                    </li>
                   </ul>
                 </Typography>
                 <center>
                   <Button
                     sx={{ mb: 1, padding: '5px 15px', bgcolor: '#C9F305', color: '#1A2660', fontWeight: 'bold', borderRadius:'30px', textTransform: 'none', justifyContent: "center" }}
-                    > Ver paquetes
+                  > Explore Getaways&trade;
+                    {/* Ver paquetes */}
                   </Button>
                 </center>
               </CardContent>
@@ -164,13 +208,23 @@ const LandingPage = () => {
               }}>
               <CardContent sx={{ bgcolor: '#fff' }}>
                 <Typography variant="h5">
-                  Beneficios para RCnets
+                  {/* Beneficios para RCnets */}
+                  Benefits for RCnets
                 </Typography>
                 <Typography variant="body2" component="div">
                   <ul>
-                    <li>Oferta tus mejores planes para conectar con jugadores en su geografía local</li>
-                    <li>Logra un incremento exponencial en la participación de jugadores/turistas en tu d/TC</li>
-                    <li>Personaliza tus ofertas dentro de la plataforma Racquets! Getaways&trade;</li>
+                    <li>
+                      {/* Oferta tus mejores planes para conectar con jugadores en su geografía local */}
+                      Offer your best plans to connect with players in their local area.
+                    </li>
+                    <li>
+                      {/* Logra un incremento exponencial en la participación de jugadores/turistas en tu d/TC */}
+                      Achieve an exponential increase in player/tourist participation
+                    </li>
+                    <li>
+                      {/* Personaliza tus ofertas dentro de la plataforma Racquets! Getaways&trade; */}
+                      Customize your offers within the Racquets! Getaways&trade; platform
+                    </li>
                   </ul>
                 </Typography>
               </CardContent>

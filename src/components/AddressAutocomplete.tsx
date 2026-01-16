@@ -187,7 +187,7 @@ export function AddressAutocomplete({
   if (!isLoaded) return <Typography>Loading Maps...</Typography>;
 
   return (
-    <Box sx={{ width: '100%', display: 'flex', alignItems: 'flex-start', gap: 2, flexWrap: 'wrap', ...containerSx }}>
+    <Box sx={{ width: '100%', display: 'flex', alignItems: 'flex-start', gap: 1, flexWrap: 'wrap', ...containerSx }}>
       <Box sx={{ flex: 1, minWidth: '250px' }}>
         {label && (
           <FormLabel error={!!error} sx={{ fontWeight: 400, color: error ? undefined : labelColor }}>
@@ -222,7 +222,9 @@ export function AddressAutocomplete({
           disableElevation
           //custom props
           $hasLabel={!!label}
-          $height={height}
+          // $height={height}
+          $height={'35px'}
+          sx={{ ml: 0, mb: 2 }}
         >
           {isLoadingGeo ? "Locating..." : "My position"}
         </LocationButton>

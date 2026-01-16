@@ -24,7 +24,6 @@ import { ScheduleForm } from '../components/ScheduleForm';
 import { GetawayFormData, ScheduleRow } from '../types/getaway';
 import { mapScheduleRowsToApiFormat } from '../utils/dataMappers';
 import { handleGetawaySubmit } from '../services/getawayApi';
-import { useAppConfig } from "../contexts/AppConfigContext";
 
 const ALPHANUMERIC_REGEX = /^[a-zA-Z0-9\s,._'";:()!/|-]*$/;
 const YOUTUBE_VIMEO_REGEX = /^(https?:\/\/)?(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/|vimeo\.com\/)([a-zA-Z0-9_-]{11,})/;
@@ -35,7 +34,6 @@ const sports = [
 ];
 
 export default function CreateGetaway() {
-  const { googleMapsApiKey } = useAppConfig();
   // const { setFormData } = useFormData();
   const { setSubmissionData } = useFormData();
   const navigate = useNavigate();
@@ -212,7 +210,6 @@ export default function CreateGetaway() {
             <AddressAutocompleteField
               control={control}
               name="getawayAddress"
-              apiKey={googleMapsApiKey}
             />
 
             <GalleryPhotoInput
@@ -542,7 +539,7 @@ export default function CreateGetaway() {
               }}
             > Add item </Button>
 
-            <Box style={{ display: 'flex', justifyContent: 'center', gap: 16, marginBottom: 5 }}>
+            <Box style={{ display: 'flex', justifyContent: 'center', gap: 18, margin:'20px 0' }}>
               <Button type="button" href="/getaways"
               startIcon={<ArrowBackIcon />} variant="outlined" disableElevation
                 sx={{
@@ -553,7 +550,7 @@ export default function CreateGetaway() {
 
               <Button type="submit" startIcon={<SaveIcon />} variant="outlined"
                 sx={{
-                  width:'135px',
+                  width:'150px',
                   borderRadius: '8px', bgcolor: '#3C1C91', color: '#FFF', fontWeight: 'medium', textTransform: 'none',
                   ':hover': { bgcolor: 'white', color: '#3C1C91' }
                 }}

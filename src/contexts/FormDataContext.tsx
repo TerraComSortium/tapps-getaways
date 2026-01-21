@@ -1,8 +1,8 @@
 import React, { createContext, useState, useContext, ReactNode } from 'react';
-import type { GetawayFormData } from '../types/getaway';
+import type { GetawayPayload } from '../types/getaway';
 
 export interface SubmissionResult {
-  payload: GetawayFormData;
+  payload: GetawayPayload;
   status: 'SUCCESS' | 'API_ERROR' | 'NETWORK_ERROR' | 'LOCAL_SAVE';
   statusCode: number | null;
 }

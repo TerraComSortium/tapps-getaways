@@ -1,11 +1,12 @@
-import type {
-  GetawayFormData,
-  Getaway,
-  // SubmissionResult
+import type { GetawayPayload,
+  // Getaway
 } from '../types/getaway';
 import type { SubmissionResult } from '../contexts/FormDataContext';
-
-const API_URL = "/api/getaways";
+const BASE_URL = "/api/getaways";
+const ENDPOINTS = {
+  CREATE: `${BASE_URL}/create`,
+  LIST: `${BASE_URL}/`, //getGetaways
+};
 
 async function isBackendAvailable(url: string): Promise<boolean> {
   try {
@@ -16,8 +17,8 @@ async function isBackendAvailable(url: string): Promise<boolean> {
   }
 }
 
-export async function handleGetawaySubmit(payload: GetawayFormData): Promise<SubmissionResult> {
-  const backendAvailable = await isBackendAvailable(API_URL);
+export async function handleGetawaySubmit(payload: GetawayPayload): Promise<SubmissionResult> {
+  const backendAvailable = await isBackendAvailable(ENDPOINTS.CREATE);
   if (backendAvailable) {
     const apiFormData = new FormData();
 
@@ -26,14 +27,14 @@ export async function handleGetawaySubmit(payload: GetawayFormData): Promise<Sub
         apiFormData.append("galleryPhotos", file);
       });
     }
-
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { galleryPhotos: _galleryPhotos, ...payloadWithoutFiles } = payload;
-
+    const payloadWithoutFiles = { ...payload };
+    //@ts-expect-error to exclude galleryPhotos
+    delete payloadWithoutFiles.galleryPhotos;
+    //send clean JSON data
     apiFormData.append('data', JSON.stringify(payloadWithoutFiles));
 
     try {
-      const response = await fetch(API_URL, {
+      const response = await fetch(ENDPOINTS.CREATE, {
         method: 'POST',
         body: apiFormData,
       });
@@ -50,58 +51,30 @@ export async function handleGetawaySubmit(payload: GetawayFormData): Promise<Sub
     }
   } else {
     console.warn("Unavailable Backend, payload saved on localStorage.");
-    // console.log(payload);
-    localStorage.setItem('getaways', JSON.stringify([
-      ...JSON.parse(localStorage.getItem('getaways') || '[]'),
-      payload
-    ]));
+    const cleanPayload = { ...payload };
+
+    // @ts-expect-error to ignore galleryPhotos
+    delete cleanPayload.galleryPhotos;
+    const localItem = {
+      ...cleanPayload,
+      _id: `local_${Date.now()}`,
+      galleryPhotos: []
+    };
+
+    const existingData = JSON.parse(localStorage.getItem('getaways') || '[]');
+    localStorage.setItem('getaways', JSON.stringify([...existingData, localItem]));
+
     return { payload, status: 'LOCAL_SAVE', statusCode: null };
   }
 }
 
-export async function getGetaways(): Promise<Getaway[]> {
+
+export async function getGetaway(): Promise<GetawayPayload | null> {
   try {
-    console.log("Trying to get getaways from server...");
-    const response = await fetch(API_URL);
-
-    if (!response.ok) {
-      throw new Error(`Backend Error: ${response.status}`);
-    }
-
-    const data: Getaway[] = await response.json();
-    console.log("Getaways successfully retrieved from the backend");
-    return data;
-
-  } catch (error) {
-    //FallbacklocalStorage
-    console.warn("Backend failed or is unavailable. Searching localStorage...");
-
-    const localDataString = localStorage.getItem('getaways');
-    if (localDataString) {
-      const localData: GetawayFormData[] = JSON.parse(localDataString);
-      console.log("Displaying locally saved getaways", localData);
-
-      const mappedData: Getaway[] = localData.map((item, index) => ({
-        ...item,
-        _id: `local-${index}`, //provisional id
-        galleryPhotos: [],
-      }));
-
-      return mappedData;
-    }
-
-    console.error("No offers were found in the backend or in localStorage");
-    throw error;
-  }
-}
-
-export async function getGetaway(): Promise<GetawayFormData | null> {
-  // console.log("fetch api");
-  try {
-    const savedGetaways: GetawayFormData[] = JSON.parse(localStorage.getItem('getaways') || '[]');
+    const savedGetaways: GetawayPayload[] = JSON.parse(localStorage.getItem('getaways') || '[]');
 
     if (savedGetaways.length > 0) {
-      // console.log("getawayID", savedGetaways[0]);
+      //console.log("getawayID", savedGetaways[0]);
       return savedGetaways[0];
     } else {
       console.log("No getaways available");
@@ -112,3 +85,39 @@ export async function getGetaway(): Promise<GetawayFormData | null> {
     return null;
   }
 }
+
+// export async function getGetaways(): Promise<Getaway[]> {
+//   try {
+//     console.log("Trying to get getaways from server...");
+//     const response = await fetch(API_URL);
+
+//     if (!response.ok) {
+//       throw new Error(`Backend Error: ${response.status}`);
+//     }
+
+//     const data: Getaway[] = await response.json();
+//     console.log("Getaways successfully retrieved from the backend");
+//     return data;
+
+//   } catch (error) {
+//     //FallbacklocalStorage
+//     console.warn("Backend failed or is unavailable. Searching localStorage...");
+
+//     const localDataString = localStorage.getItem('getaways');
+//     if (localDataString) {
+//       const localData: GetawayFormData[] = JSON.parse(localDataString);
+//       console.log("Displaying locally saved getaways", localData);
+
+//       const mappedData: Getaway[] = localData.map((item, index) => ({
+//         ...item,
+//         _id: `local-${index}`, //provisional id
+//         galleryPhotos: [],
+//       }));
+
+//       return mappedData;
+//     }
+
+//     console.error("No offers were found in the backend or in localStorage");
+//     throw error;
+//   }
+// }

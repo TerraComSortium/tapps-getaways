@@ -50,3 +50,11 @@ export interface Getaway extends GetawayBase{
   _id: string;
   galleryPhotos: string[];
 }
+
+export interface GetawayPayload extends Omit<GetawayFormData, 'getawayAddress'> {
+  address: string;
+  location: {
+    lat: number;
+    lng: number;
+  }
+}

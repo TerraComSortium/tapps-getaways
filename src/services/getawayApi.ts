@@ -1,5 +1,6 @@
-import type { GetawayPayload,
-  // Getaway
+import type {
+  GetawayPayload,
+  Getaway
 } from '../types/getaway';
 import type { SubmissionResult } from '../contexts/FormDataContext';
 const BASE_URL = "/api/getaways";
@@ -86,38 +87,30 @@ export async function getGetaway(): Promise<GetawayPayload | null> {
   }
 }
 
-// export async function getGetaways(): Promise<Getaway[]> {
-//   try {
-//     console.log("Trying to get getaways from server...");
-//     const response = await fetch(API_URL);
+export async function getGetaways(): Promise<Getaway[]> {
+  try {
+    console.log("Trying to get getaways from server...");
+    const response = await fetch(ENDPOINTS.LIST);
 
-//     if (!response.ok) {
-//       throw new Error(`Backend Error: ${response.status}`);
-//     }
+    if (!response.ok) {
+      throw new Error(`Backend Error: ${response.status}`);
+    }
+    const data: Getaway[] = await response.json();
+    console.log("Getaways successfully retrieved from the backend");
+    return data;
 
-//     const data: Getaway[] = await response.json();
-//     console.log("Getaways successfully retrieved from the backend");
-//     return data;
+  } catch (error) {
+    //Fallback to localStorage
+    console.warn("The backend failed or is unavailable. Searching localStorage...");
 
-//   } catch (error) {
-//     //FallbacklocalStorage
-//     console.warn("Backend failed or is unavailable. Searching localStorage...");
+    const localDataString = localStorage.getItem('getaways');
+    if (localDataString) {
+      const localData = JSON.parse(localDataString) as Getaway[];
+      console.log("Displaying locally saved getaways.", localData);
+      return localData;
+    }
 
-//     const localDataString = localStorage.getItem('getaways');
-//     if (localDataString) {
-//       const localData: GetawayFormData[] = JSON.parse(localDataString);
-//       console.log("Displaying locally saved getaways", localData);
-
-//       const mappedData: Getaway[] = localData.map((item, index) => ({
-//         ...item,
-//         _id: `local-${index}`, //provisional id
-//         galleryPhotos: [],
-//       }));
-
-//       return mappedData;
-//     }
-
-//     console.error("No offers were found in the backend or in localStorage");
-//     throw error;
-//   }
-// }
+    console.error("No offers were found in the backend or in localStorage.");
+    throw error;
+  }
+}

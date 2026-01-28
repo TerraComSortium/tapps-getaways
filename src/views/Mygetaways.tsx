@@ -11,7 +11,8 @@ import SearchBar from '../components/SearchBar';
 const sportMap: { [key: string]: string } = {
   '1': 'Tennis',
   '2': 'Padel',
-  '3': 'Pickleball'
+  '3': 'Pickleball',
+  '4': 'Other'
 };
 
 export default function Mygetaways() {
@@ -47,6 +48,17 @@ export default function Mygetaways() {
     setPage(value);
   };
 
+  const getSportLabel = (sportKey: string) => {
+    // Intenta buscar en el mapa, si no, devuelve el valor original (por si ya dice "Tennis")
+    return sportMap[sportKey] || sportKey || 'Not available';
+  };
+
+  const getValidImages = (photos: string[] | undefined) => {
+    if (!photos || !Array.isArray(photos) || photos.length === 0) return [];
+    //filter corrupted imgs
+    return photos.filter(url => url && typeof url === 'string' && url.length > 5);
+  };
+
   if (loading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
@@ -77,8 +89,8 @@ export default function Mygetaways() {
                   dates={`${getaway.startDate} - ${getaway.endDate}`}
                   lodgingOptions={getaway.lodgingOptions || []}
                   // description={getaway.overview}
-                  sport={sportMap[getaway.sport] || 'No available'}
-                  galleryPhotos={getaway.galleryPhotos || []}
+                  sport={getSportLabel(getaway.sport)}
+                  galleryPhotos={getValidImages(getaway.galleryPhotos)}
                   onViewDetails={() => handleViewDetails(getaway)}
                   onBookNow={() => handleBookNow(getaway)}
                 />

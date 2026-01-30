@@ -8,6 +8,30 @@ import { getGetaways } from '../services/getawayApi';
 import type { Getaway } from '../types/getaway';
 import SearchBar from '../components/SearchBar';
 
+const normalizeGetawayData = (raw: any): Getaway => {
+  return {
+    _id: raw._id || raw.id || `temp_${Math.random()}`,
+    title: raw.title || raw.getawayTitle || "Untitled Offer",
+    overview: raw.overview || raw.getawayOverview || "",
+    startDate: raw.startDate || "",
+    endDate: raw.endDate || "",
+    sport: raw.sport || "",
+    galleryPhotos: raw.galleryPhotos || raw.galleryPhoto || [],
+
+    lodgingOptions: raw.lodgingOptions || [],
+    optionalAddOns: raw.optionalAddOns || [],
+    amenities: raw.amenities || [],
+    schedule: raw.schedule || [],
+    caption: raw.caption || "",
+    galleryVideo: raw.galleryVideo || "",
+    mainDescription: raw.mainDescription || raw.getawayOverview || "",
+    policies: raw.policies || "",
+    terms: raw.terms || "",
+
+    getawayAddress: raw.getawayAddress || { address: raw.address || "", lat: raw.location?.lat || 0, lng: raw.location?.lng || 0 }
+  };
+};
+
 const sportMap: { [key: string]: string } = {
   '1': 'Tennis',
   '2': 'Padel',
@@ -20,6 +44,8 @@ export default function Mygetaways() {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
+  const ITEMS_PER_PAGE = 10;
+
   const navigate = useNavigate();
 
   const handleViewDetails = (getaway: Getaway) => {
@@ -30,13 +56,17 @@ export default function Mygetaways() {
     navigate('/bookgetaway', { state: { getawayData: getaway } });
   };
 
-
   useEffect(() => {
     const fetchGetaways = async () => {
       try {
-        const data = await getGetaways();
-        setGetaways(data);
+        const rawData = await getGetaways();
+        console.log("initialData:", rawData);
+        
+        const cleanData = rawData.map(normalizeGetawayData);
+        console.log("cleanData:", cleanData);
+        setGetaways(cleanData);
       } catch (err) {
+        console.error(err);
         setError("Getaways could not be loaded. Please try again later.");
       } finally {
         setLoading(false);
@@ -49,13 +79,12 @@ export default function Mygetaways() {
   };
 
   const getSportLabel = (sportKey: string) => {
-    // Intenta buscar en el mapa, si no, devuelve el valor original (por si ya dice "Tennis")
     return sportMap[sportKey] || sportKey || 'Not available';
   };
 
   const getValidImages = (photos: string[] | undefined) => {
     if (!photos || !Array.isArray(photos) || photos.length === 0) return [];
-    //filter corrupted imgs
+    // filter
     return photos.filter(url => url && typeof url === 'string' && url.length > 5);
   };
 
@@ -84,10 +113,11 @@ export default function Mygetaways() {
             {getaways.length > 0 && (
               getaways.map((getaway) => (
                 <GetawayItem
-                  key={getaway._id}
-                  name={getaway.title}
+                  key={getaway._id || `fallback-key-${index}`}
+                  name={getaway.title || "Untitled Offer"}
                   dates={`${getaway.startDate} - ${getaway.endDate}`}
                   lodgingOptions={getaway.lodgingOptions || []}
+
                   // description={getaway.overview}
                   sport={getSportLabel(getaway.sport)}
                   galleryPhotos={getValidImages(getaway.galleryPhotos)}
@@ -102,7 +132,7 @@ export default function Mygetaways() {
             <Stack spacing={2} sx={{ mt: 4, alignItems: 'center' }}>
               <Pagination
                 shape="rounded"
-                count={Math.ceil(getaways.length / 10)}
+                count={Math.ceil(getaways.length / ITEMS_PER_PAGE)}
                 page={page}
                 onChange={handleChange}
               />

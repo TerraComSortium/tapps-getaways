@@ -78,6 +78,11 @@ export default function Mygetaways() {
     setPage(value);
   };
 
+  const paginatedGetaways = getaways.slice(
+    (page - 1) * ITEMS_PER_PAGE,
+    page * ITEMS_PER_PAGE
+  );
+
   const getSportLabel = (sportKey: string) => {
     return sportMap[sportKey] || sportKey || 'Not available';
   };
@@ -111,7 +116,7 @@ export default function Mygetaways() {
             </Box>
 
             {getaways.length > 0 && (
-              getaways.map((getaway) => (
+              paginatedGetaways.map((getaway, index) => (
                 <GetawayItem
                   key={getaway._id || `fallback-key-${index}`}
                   name={getaway.title || "Untitled Offer"}

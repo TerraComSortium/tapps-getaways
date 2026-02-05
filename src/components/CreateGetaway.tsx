@@ -21,7 +21,7 @@ import LaddersSchedule from '../components/LaddersSchedule';
 import { AddressAutocompleteField } from '../components/AddressAutocompleteField';
 
 import { ScheduleForm } from '../components/ScheduleForm';
-import { GetawayFormData, ScheduleRow } from '../types/getaway';
+import { GetawayFormData, GetawayPayload, ScheduleRow } from '../types/getaway';
 import { mapScheduleRowsToApiFormat } from '../utils/dataMappers';
 import { handleGetawaySubmit } from '../services/getawayApi';
 
@@ -34,7 +34,6 @@ const sports = [
 ];
 
 export default function CreateGetaway() {
-  // const { setFormData } = useFormData();
   const { setSubmissionData } = useFormData();
   const navigate = useNavigate();
 
@@ -70,6 +69,10 @@ export default function CreateGetaway() {
   const [scheduleError, setScheduleError] = React.useState<string | null>(null);
 
   const onSubmit: SubmitHandler<GetawayFormData> = async (data) => {
+    if (!data.getawayAddress.lat || !data.getawayAddress.lng) {
+      alert("Please select a valid location");
+      return;
+    }
     if (scheduleRows.length === 0) {
       setScheduleError("You must add at least one schedule row.");
       document.getElementById("schedule-section")?.scrollIntoView({ behavior: "smooth" });
@@ -77,10 +80,17 @@ export default function CreateGetaway() {
     }
     setScheduleError(null);
     const apiSchedule = mapScheduleRowsToApiFormat(scheduleRows);
-    const payload: GetawayFormData = {
+    const payload: GetawayPayload = {
       ...data,
-      schedule: apiSchedule
+      address: data.getawayAddress.address,
+      location: {
+        lat: data.getawayAddress.lat,
+        lng: data.getawayAddress.lng
+      },
+      schedule: apiSchedule,
     };
+    // @ts-expect-error to ignore getawayAddress value
+    delete payload.getawayAddress;
     const result = await handleGetawaySubmit(payload);
     setSubmissionData(result);
     navigate('/data-view');
@@ -523,7 +533,7 @@ export default function CreateGetaway() {
 
             <Controller name="terms" defaultValue=""
               control={control}
-              // rules={{ required: "Terms are required" }}
+              //rules={{ required: "Terms are required" }}
               render={({ field }) => (
                 <TextField label="Terms" multiline maxRows={7} fullWidth margin="normal"
                   {...field} id={field.name}

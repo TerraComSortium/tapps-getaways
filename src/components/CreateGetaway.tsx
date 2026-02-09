@@ -19,8 +19,8 @@ import AcademySchedule from '../components/AcademySchedule';
 import TournamentsSchedule from '../components/TournamentsSchedule';
 import LaddersSchedule from '../components/LaddersSchedule';
 import { AddressAutocompleteField } from '../components/AddressAutocompleteField';
-
 import { ScheduleForm } from '../components/ScheduleForm';
+import DiscountForm from '../components/DiscountForm';
 import { GetawayFormData, GetawayPayload, ScheduleRow } from '../types/getaway';
 import { mapScheduleRowsToApiFormat } from '../utils/dataMappers';
 import { handleGetawaySubmit } from '../services/getawayApi';
@@ -47,6 +47,7 @@ export default function CreateGetaway() {
       optionalAddOns: [{ name: "", price: 0 }],
       amenities: [{ name: "" }],
       schedule: [],
+      discounts: []
     }
   });
 
@@ -65,6 +66,11 @@ export default function CreateGetaway() {
     name: 'optionalAddOns'
   });
 
+  const { fields: discountFields, append: appendDiscount, remove: removeDiscount } = useFieldArray({
+    control,
+    name: 'discounts'
+  });
+
   const [scheduleRows, setScheduleRows] = React.useState<ScheduleRow[]>([]);
   const [scheduleError, setScheduleError] = React.useState<string | null>(null);
 
@@ -80,6 +86,7 @@ export default function CreateGetaway() {
     }
     setScheduleError(null);
     const apiSchedule = mapScheduleRowsToApiFormat(scheduleRows);
+
     const payload: GetawayPayload = {
       ...data,
       address: data.getawayAddress.address,
@@ -509,6 +516,39 @@ export default function CreateGetaway() {
             rows={scheduleRows} setRows={setScheduleRows}
             />
 
+            <Box
+              sx={{
+                borderRadius: '0 24px', m: '25px 0', p: '30px 25px',
+                bgcolor: '#3C1C91', color:'white', fontWeight: 'medium', textTransform: 'none',
+                ':hover': { bgcolor: '#300e8eff' }
+              }}
+            >
+              <Typography variant="h3" color="#fff" sx={{ m: '1 0', fontSize: '16px', fontWeight:"medium"  }}> Discount management </Typography>
+              {discountFields.map((field, index) => (
+                <DiscountForm
+                  key={field.id}
+                  control={control}
+                  index={index}
+                  remove={removeDiscount}
+                  // errors={errors}
+                />
+              ))}
+
+              <Button startIcon={<AddIcon />} variant="contained" aria-label="Add discount" disableElevation
+                onClick={() => appendDiscount({
+                  couponCode: "",
+                  startDate: "",
+                  endDate: "",
+                  description: "",
+                  amount: 0,
+                  isActive: true
+                })}
+                sx={{
+                  mt: 2, mb: 3, bgcolor: '#fff', color: '#1A2660', borderRadius: '30px', fontWeight: 'bold', textTransform: 'none',
+                  ':hover': { bgcolor: '#3C1C91', color: 'white' }
+                }}
+              > Add item </Button>
+            </Box>
             <AcademySchedule/>
             <TournamentsSchedule/>
             <LaddersSchedule/>

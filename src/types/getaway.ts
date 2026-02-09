@@ -58,3 +58,12 @@ export interface GetawayPayload extends Omit<GetawayFormData, 'getawayAddress'> 
     lng: number;
   }
 }
+
+export interface Discount {
+  couponCode: string;
+  startDate: string;
+  endDate: string;
+  description?: string;
+  amount: number;
+  isActive: boolean;
+}

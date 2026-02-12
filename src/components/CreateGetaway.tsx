@@ -20,10 +20,10 @@ import TournamentsSchedule from '../components/TournamentsSchedule';
 import LaddersSchedule from '../components/LaddersSchedule';
 import { AddressAutocompleteField } from '../components/AddressAutocompleteField';
 import { ScheduleForm } from '../components/ScheduleForm';
-import DiscountForm from '../components/DiscountForm';
-import { GetawayFormData, GetawayPayload, ScheduleRow } from '../types/getaway';
+import  DiscountForm  from '../components/DiscountForm';
+import { GetawayFormData, GetawayPayload, ScheduleRow, CouponPayload } from '../types/getaway';
 import { mapScheduleRowsToApiFormat } from '../utils/dataMappers';
-import { handleGetawaySubmit } from '../services/getawayApi';
+import { handleGetawaySubmit, handleCouponSubmit } from '../services/getawayApi';
 
 const ALPHANUMERIC_REGEX = /^[a-zA-Z0-9\s,._'";:()!/|-]*$/;
 const YOUTUBE_VIMEO_REGEX = /^(https?:\/\/)?(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/|vimeo\.com\/)([a-zA-Z0-9_-]{11,})/;
@@ -75,6 +75,7 @@ export default function CreateGetaway() {
   const [scheduleError, setScheduleError] = React.useState<string | null>(null);
 
   const onSubmit: SubmitHandler<GetawayFormData> = async (data) => {
+    console.log("Address data to send:", data.getawayAddress);
     if (!data.getawayAddress.lat || !data.getawayAddress.lng) {
       alert("Please select a valid location");
       return;
@@ -87,8 +88,11 @@ export default function CreateGetaway() {
     setScheduleError(null);
     const apiSchedule = mapScheduleRowsToApiFormat(scheduleRows);
 
+    const { discounts, ...getawayData } = data;
+
+    //Initial getawayPayload (without discounts)
     const payload: GetawayPayload = {
-      ...data,
+      ...getawayData,
       address: data.getawayAddress.address,
       location: {
         lat: data.getawayAddress.lat,
@@ -98,9 +102,30 @@ export default function CreateGetaway() {
     };
     // @ts-expect-error to ignore getawayAddress value
     delete payload.getawayAddress;
-    const result = await handleGetawaySubmit(payload);
-    setSubmissionData(result);
-    navigate('/data-view');
+    try {
+      const result = await handleGetawaySubmit(payload);
+      if (result.status === 'SUCCESS' && result.getawayId ){
+        if (discounts && discounts.length > 0){
+          const couponPromises = discounts.map((discount => {
+            const couponPayload: CouponPayload = {
+              ...discount,
+              getawayId: result.getawayId!
+            };
+            return handleCouponSubmit(couponPayload);
+          }));
+          await Promise.all(couponPromises);
+        }
+      } else if (result.status !== 'SUCCESS'){
+        alert("There was a problem creating the offer");
+        return;
+      }
+
+      setSubmissionData(result);
+      navigate('/data-view');
+    } catch(error){
+      console.log("Submit error", error);
+      alert("An unexpected error occured while processsing the request");
+    }
   };
 
   React.useEffect(() => {

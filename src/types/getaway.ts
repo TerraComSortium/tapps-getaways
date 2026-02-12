@@ -39,6 +39,7 @@ export interface GetawayBase {
   optionalAddOns: { name: string, price: number }[];
   amenities: { name: string }[];
   schedule: ApiScheduleEntry[];
+  discounts?: Discount[];
   policies: string;
   terms: string;
 }
@@ -66,4 +67,8 @@ export interface Discount {
   description?: string;
   amount: number;
   isActive: boolean;
+}
+
+export interface CouponPayload extends Discount {
+  getawayId: string;
 }

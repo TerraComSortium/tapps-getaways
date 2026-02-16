@@ -28,10 +28,14 @@ export async function handleGetawaySubmit(payload: GetawayPayload): Promise<Subm
 
   //send clean JSON data
   apiFormData.append('data', JSON.stringify(payloadWithoutFiles));
+  const token = localStorage.getItem('token');
 
   try {
     const response = await fetch(ENDPOINTS.CREATE, {
       method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      },
       body: apiFormData,
     });
 

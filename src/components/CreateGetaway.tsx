@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { useState } from 'react';
 import { useForm, Controller, useFieldArray, SubmitHandler } from 'react-hook-form';
 import { useFormData } from '../contexts/FormDataContext';
 import { useNavigate } from 'react-router-dom';
@@ -73,38 +74,45 @@ export default function CreateGetaway() {
 
   const [scheduleRows, setScheduleRows] = React.useState<ScheduleRow[]>([]);
   const [scheduleError, setScheduleError] = React.useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   const onSubmit: SubmitHandler<GetawayFormData> = async (data) => {
-    console.log("Address data to send:", data.getawayAddress);
-    if (!data.getawayAddress.lat || !data.getawayAddress.lng) {
-      alert("Please select a valid location");
-      return;
-    }
-    if (scheduleRows.length === 0) {
-      setScheduleError("You must add at least one schedule row.");
-      document.getElementById("schedule-section")?.scrollIntoView({ behavior: "smooth" });
-      return;
-    }
-    setScheduleError(null);
-    const apiSchedule = mapScheduleRowsToApiFormat(scheduleRows);
+    setIsLoading(true);
 
-    const { discounts, ...getawayData } = data;
-
-    //Initial getawayPayload (without discounts)
-    const payload: GetawayPayload = {
-      ...getawayData,
-      address: data.getawayAddress.address,
-      location: {
-        lat: data.getawayAddress.lat,
-        lng: data.getawayAddress.lng
-      },
-      schedule: apiSchedule,
-    };
-    // @ts-expect-error to ignore getawayAddress value
-    delete payload.getawayAddress;
     try {
+      //initial validations
+      console.log("Address data to send:", data.getawayAddress);
+      if (!data.getawayAddress.lat || !data.getawayAddress.lng) {
+        alert("Please select a valid location");
+        return;
+      }
+
+      if (scheduleRows.length === 0) {
+        setScheduleError("You must add at least one schedule row.");
+        document.getElementById("schedule-section")?.scrollIntoView({ behavior: "smooth" });
+        return;
+      }
+      setScheduleError(null);
+      const apiSchedule = mapScheduleRowsToApiFormat(scheduleRows);
+
+      const { discounts, ...getawayData } = data;
+
+      //Initial getawayPayload (without discounts)
+      const payload: GetawayPayload = {
+        ...getawayData,
+        address: data.getawayAddress.address,
+        location: {
+          lat: data.getawayAddress.lat,
+          lng: data.getawayAddress.lng
+        },
+        schedule: apiSchedule,
+      };
+      // @ts-expect-error to ignore getawayAddress value
+      delete payload.getawayAddress;
+
       const result = await handleGetawaySubmit(payload);
       if (result.status === 'SUCCESS' && result.getawayId ){
+
         if (discounts && discounts.length > 0){
           const couponPromises = discounts.map((discount => {
             const couponPayload: CouponPayload = {
@@ -115,16 +123,17 @@ export default function CreateGetaway() {
           }));
           await Promise.all(couponPromises);
         }
-      } else if (result.status !== 'SUCCESS'){
-        alert("There was a problem creating the offer");
-        return;
+        alert("getaway created successfully!");
+        setSubmissionData(result);
+        navigate('/data-view');
+      } else {
+        alert("Connection error. Check your internet connection and try again.");
       }
-
-      setSubmissionData(result);
-      navigate('/data-view');
     } catch(error){
       console.log("Submit error", error);
       alert("An unexpected error occured while processsing the request");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -624,12 +633,15 @@ export default function CreateGetaway() {
               > Retry </Button>
 
               <Button type="submit" startIcon={<SaveIcon />} variant="outlined"
+                disabled={isLoading}
+                // className={`className ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
                 sx={{
                   width:'150px',
                   borderRadius: '8px', bgcolor: '#3C1C91', color: '#FFF', fontWeight: 'medium', textTransform: 'none',
                   ':hover': { bgcolor: 'white', color: '#3C1C91' }
                 }}
-              > Save changes </Button>
+              > {isLoading ? 'Saving...' : 'Save changes '}
+              </Button>
             </Box>
           </form>
         </Box>

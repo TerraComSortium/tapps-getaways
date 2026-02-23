@@ -60,10 +60,11 @@ const LocationButton = styled(Button)<{ $hasLabel?: boolean; $height?: string | 
 
 interface CustomPlace {
   formattedAddress: string;
-  location: {
-    lat: number;
-    lng: number;
+  location?: {
+    lat: number | (() => number);
+    lng: number | (() => number);
   };
+  fetchFields: (options: { fields: string[] }) => Promise<void>;
 }
 
 interface GooglePlaceAutocompleteElement extends HTMLElement {
@@ -87,10 +88,11 @@ interface AddressAutocompleteProps {
   labelColor?: string;
   inputTextColor?: string;
 }
-
+const GOOGLE_MAPS_LIBRARIES: ("places")[] = ["places"];
 export function AddressAutocomplete({
   apiKey,
   onChange,
+  value,
   label,
   error = false,
   errorMessage,
@@ -108,7 +110,7 @@ export function AddressAutocomplete({
 
   const { isLoaded } = useJsApiLoader({
     googleMapsApiKey: apiKey,
-    libraries: ['places'],
+    libraries: GOOGLE_MAPS_LIBRARIES,
   });
 
   // Listener for Google component
@@ -116,24 +118,62 @@ export function AddressAutocomplete({
     const autocompleteElement = autocompleteRef.current;
     if (!autocompleteElement) return;
 
-    const handlePlaceChange = (event: Event) => {
+    const handlePlaceSelect = async (event: Event) => {
       const target = event.target as GooglePlaceAutocompleteElement;
       const place = target?.place;
 
-      if (place?.formattedAddress && place.location) {
-        onChange({
+      console.log("📍 Event triggered. Place received:", place);
+
+      if (!place) {
+        console.warn("📍 Object place comes empty");
+        return;
+      }
+
+      try {
+        if (typeof place.fetchFields === 'function' && (!place.formattedAddress || !place.location)) {
+          console.log("📍 Requesting additional data from Google...");
+          await place.fetchFields({ fields: ['formattedAddress', 'location'] });
+        }
+
+        console.log("📍 Place after processing:", {
           address: place.formattedAddress,
-          lat: place.location.lat,
-          lng: place.location.lng,
+          location: place.location
         });
+
+        if (place.formattedAddress && place.location) {
+          const latValue = typeof place.location.lat === 'function' ? place.location.lat() : place.location.lat;
+          const lngValue = typeof place.location.lng === 'function' ? place.location.lng() : place.location.lng;
+
+          console.log("Success. Sending to form...:", { lat: latValue, lng: lngValue });
+
+          onChange({
+            address: place.formattedAddress,
+            lat: latValue,
+            lng: lngValue,
+          });
+        } else {
+          console.warn("📍 Address or coordinates data is missing:", place);
+        }
+      } catch (error) {
+        console.error("📍 Error processing the location:", error);
       }
     };
-    autocompleteElement.addEventListener('gmp-placechange', handlePlaceChange);
-    return () => {
-      autocompleteElement.removeEventListener('gmp-placechange', handlePlaceChange);
-    };
-  }, [onChange]);
 
+    autocompleteElement.addEventListener('gmp-placeselect', handlePlaceSelect);
+    autocompleteElement.addEventListener('gmp-placechange', handlePlaceSelect);
+
+    return () => {
+      autocompleteElement.removeEventListener('gmp-placeselect', handlePlaceSelect);
+      autocompleteElement.removeEventListener('gmp-placechange', handlePlaceSelect);
+    };
+  }, [onChange, isLoaded]);
+
+  // Sync initial values
+  useEffect(() => {
+    if (autocompleteRef.current && value?.address) {
+      autocompleteRef.current.value = value.address;
+    }
+  }, [value?.address]);
   const handleMyPositionClick = () => {
     if (!navigator.geolocation) {
       alert("Geolocation is not supported by your browser");

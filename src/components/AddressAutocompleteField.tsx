@@ -25,7 +25,6 @@ export function AddressAutocompleteField<T extends FieldValues>({
   control,
   label = "Getaway address",
 }: AddressAutocompleteFieldProps<T>) {
-
   const { field, fieldState: { error } } = useController({
     name,
     control,
@@ -37,10 +36,13 @@ export function AddressAutocompleteField<T extends FieldValues>({
       apiKey={GOOGLE_API_KEY}
       label={label}
       value={field.value}
-      onChange={(newValue: LocationEntry) => field.onChange(newValue)}
+      showCurrentLocationBtn
+      onChange={(locationData) => {
+        console.log("Data received on intermediary:", locationData);
+        field.onChange(locationData);
+      }}
       error={!!error}
       errorMessage={error?.message}
-      showCurrentLocationBtn
       inputStyle={{
         height: '55px',
         backgroundColor: '#fff',

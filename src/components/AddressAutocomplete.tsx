@@ -1,11 +1,11 @@
-import { useRef, useEffect, useState } from "react";
+import { useRef, useState } from "react";
 import { Button, Box, Typography, FormLabel, SxProps, Theme } from "@mui/material";
-import { useJsApiLoader } from "@react-google-maps/api";
+import { useJsApiLoader, Autocomplete } from "@react-google-maps/api";
 import GpsFixedIcon from '@mui/icons-material/GpsFixed';
 import { styled } from "@mui/material/styles";
 import type { LocationEntry } from '../types/getaway';
 
-const StyledAutocomplete = styled('gmp-place-autocomplete', {
+const StyledAutocomplete = styled('input', {
   shouldForwardProp: (prop) =>
     prop !== '$isError' &&
     prop !== '$height' &&
@@ -58,20 +58,6 @@ const LocationButton = styled(Button)<{ $hasLabel?: boolean; $height?: string | 
   })
 );
 
-interface CustomPlace {
-  formattedAddress: string;
-  location?: {
-    lat: number | (() => number);
-    lng: number | (() => number);
-  };
-  fetchFields: (options: { fields: string[] }) => Promise<void>;
-}
-
-interface GooglePlaceAutocompleteElement extends HTMLElement {
-  place: CustomPlace | null;
-  value: string;
-}
-
 interface AddressAutocompleteProps {
   apiKey: string;
   onChange: (value: LocationEntry) => void;
@@ -105,75 +91,44 @@ export function AddressAutocomplete({
   labelColor,
   inputTextColor = '#000',
 }: AddressAutocompleteProps) {
-  const autocompleteRef = useRef<GooglePlaceAutocompleteElement | null>(null);
   const [isLoadingGeo, setIsLoadingGeo] = useState(false);
+  const [autocompleteInstance, setAutocompleteInstance] = useState<google.maps.places.Autocomplete | null>(null);
 
+  const inputRef = useRef<HTMLInputElement>(null);
   const { isLoaded } = useJsApiLoader({
     googleMapsApiKey: apiKey,
     libraries: GOOGLE_MAPS_LIBRARIES,
   });
 
-  // Listener for Google component
-  useEffect(() => {
-    const autocompleteElement = autocompleteRef.current;
-    if (!autocompleteElement) return;
+  const onLoad = (autocomplete: google.maps.places.Autocomplete) => {
+    setAutocompleteInstance(autocomplete);
+  };
 
-    const handlePlaceSelect = async (event: Event) => {
-      const target = event.target as GooglePlaceAutocompleteElement;
-      const place = target?.place;
+  const onPlaceChanged = () => {
+    if (autocompleteInstance !== null) {
+      const place = autocompleteInstance.getPlace();
+      console.log("Google response:", place);
 
-      console.log("📍 Event triggered. Place received:", place);
-
-      if (!place) {
-        console.warn("📍 Object place comes empty");
+      if (!place || !place.geometry || !place.geometry.location) {
+        console.warn("Places don't return coordinates, try again");
         return;
       }
 
-      try {
-        if (typeof place.fetchFields === 'function' && (!place.formattedAddress || !place.location)) {
-          console.log("📍 Requesting additional data from Google...");
-          await place.fetchFields({ fields: ['formattedAddress', 'location'] });
-        }
+      const addressStr = place.formatted_address || place.name || "";
+      const latValue = place.geometry.location.lat();
+      const lngValue = place.geometry.location.lng();
 
-        console.log("📍 Place after processing:", {
-          address: place.formattedAddress,
-          location: place.location
-        });
+      console.log("Extracted data:", { address: addressStr, lat: latValue, lng: lngValue });
 
-        if (place.formattedAddress && place.location) {
-          const latValue = typeof place.location.lat === 'function' ? place.location.lat() : place.location.lat;
-          const lngValue = typeof place.location.lng === 'function' ? place.location.lng() : place.location.lng;
-
-          console.log("Success. Sending to form...:", { lat: latValue, lng: lngValue });
-
-          onChange({
-            address: place.formattedAddress,
-            lat: latValue,
-            lng: lngValue,
-          });
-        } else {
-          console.warn("📍 Address or coordinates data is missing:", place);
-        }
-      } catch (error) {
-        console.error("📍 Error processing the location:", error);
-      }
-    };
-
-    autocompleteElement.addEventListener('gmp-placeselect', handlePlaceSelect);
-    autocompleteElement.addEventListener('gmp-placechange', handlePlaceSelect);
-
-    return () => {
-      autocompleteElement.removeEventListener('gmp-placeselect', handlePlaceSelect);
-      autocompleteElement.removeEventListener('gmp-placechange', handlePlaceSelect);
-    };
-  }, [onChange, isLoaded]);
-
-  // Sync initial values
-  useEffect(() => {
-    if (autocompleteRef.current && value?.address) {
-      autocompleteRef.current.value = value.address;
+      //to AddressAutocompleteField
+      onChange({
+        address: addressStr,
+        lat: latValue,
+        lng: lngValue,
+      });
     }
-  }, [value?.address]);
+  };
+
   const handleMyPositionClick = () => {
     if (!navigator.geolocation) {
       alert("Geolocation is not supported by your browser");
@@ -205,8 +160,8 @@ export function AddressAutocomplete({
         }
 
         onChange({ address: addressToSave, lat, lng });
-          if (autocompleteRef.current) {
-            autocompleteRef.current.value = addressToSave;
+          if (inputRef.current) {
+            inputRef.current.value = addressToSave;
           }
 
         } catch (error) {
@@ -234,18 +189,20 @@ export function AddressAutocomplete({
             {label}
           </FormLabel>
         )}
-
-        <StyledAutocomplete
-          ref={autocompleteRef}
-          //style custom props
-          $isError={error}
-          $height={height}
-          $transparent={transparentBackground}
-          $textColor={inputTextColor}
-          //override
-          style={inputStyle}
-        />
-
+        <Autocomplete onLoad={onLoad} onPlaceChanged={onPlaceChanged}>
+          <StyledAutocomplete
+            ref={inputRef}
+            type="text"
+            placeholder="City or RCnet"
+            defaultValue={value?.address || ""}
+            $isError={error}
+            $height={height}
+            $transparent={transparentBackground}
+            $textColor={inputTextColor}
+            //override
+            style={inputStyle}
+          />
+        </Autocomplete>
         {errorMessage && (
           <Typography variant="caption" color="error" sx={{ mt: 0.5, display: 'block' }}>
             {errorMessage}

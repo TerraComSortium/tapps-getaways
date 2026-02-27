@@ -37,8 +37,10 @@ const sports = [
 export default function CreateGetaway() {
   const { setSubmissionData } = useFormData();
   const navigate = useNavigate();
-
-  const { handleSubmit, control, formState: { errors } } = useForm<GetawayFormData>({
+  const {
+    control,
+    handleSubmit,
+    formState: { errors } } = useForm<GetawayFormData>({
     defaultValues: {
       title: "",
       overview: "",
@@ -259,8 +261,8 @@ export default function CreateGetaway() {
             </Grid>
 
             <AddressAutocompleteField
-              control={control}
               name="getawayAddress"
+              control={control}
             />
 
             <GalleryPhotoInput

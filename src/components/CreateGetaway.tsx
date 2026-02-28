@@ -29,9 +29,10 @@ import { handleGetawaySubmit, handleCouponSubmit } from '../services/getawayApi'
 const ALPHANUMERIC_REGEX = /^[a-zA-Z0-9\s,._'";:()!/|-]*$/;
 const YOUTUBE_VIMEO_REGEX = /^(https?:\/\/)?(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/|vimeo\.com\/)([a-zA-Z0-9_-]{11,})/;
 const sports = [
-  { value: '1', label: 'Tennis' },
-  { value: '2', label: 'Padel' },
-  { value: '3', label: 'Pickelball' }
+  { value: 'tennis', label: 'Tennis' },
+  { value: 'padel', label: 'Padel' },
+  { value: 'pickleball', label: 'Pickleball' },
+  { value: 'other', label: 'Other' }
 ];
 
 export default function CreateGetaway() {
@@ -230,21 +231,12 @@ export default function CreateGetaway() {
                 <Controller
                   name="sport"
                   control={control}
-                  defaultValue="1"
-                  rules={{
-                    validate: (value?: string) =>
-                      !value || ALPHANUMERIC_REGEX.test(value)
-                        ? true
-                        : "Only letters and numbers are allowed.",
-                  }}
+                  defaultValue="tennis"
                   render={({ field }) => (
                     <TextField
                       id={field.name}
-                      // name={field.name}
-                      label="Sport"
+                      label="Sport" fullWidth margin="normal"
                       select
-                      fullWidth
-                      margin="normal"
                       {...field}
                       error={!!errors.sport}
                       helperText={errors.sport ? errors.sport.message : 'Please select the sport'}

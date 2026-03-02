@@ -5,8 +5,8 @@ export interface LocationEntry {
 }
 
 export type ScheduleRow = {
-  id: number;
-  day: string;
+  id?: string;
+  date: string;
   startHour: string; // 1 to 12
   startMinute: string; // 00,15,30,45
   startPeriod: string; // AM/PM

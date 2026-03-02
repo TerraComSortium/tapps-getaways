@@ -21,7 +21,7 @@ export function mapScheduleRowsToApiFormat(
   rows: ScheduleRow[]
 ): { date: string; startTime: string; endTime: string; activity: string; location: string; }[] {
   return rows.map(row => {
-    const formattedDate = row.day;
+    const formattedDate = row.date;
 
     const startTime = to24h(row.startHour, row.startMinute, row.startPeriod);
     const endTime = to24h(row.endHour, row.endMinute, row.endPeriod);

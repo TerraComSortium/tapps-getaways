@@ -3,8 +3,7 @@ import { styled } from "@mui/material/styles";
 import {
   Box, Paper, Typography, Button,
   TextField, Select, MenuItem, FormControl, FormHelperText,
-  Table, TableBody, TableContainer, TableHead, TableRow,
-  // InputLabel,
+  Table, TableBody, TableContainer, TableHead, TableRow
 } from '@mui/material';
 import TableCell, { tableCellClasses } from "@mui/material/TableCell";
 import { SelectChangeEvent } from '@mui/material/Select';
@@ -26,16 +25,14 @@ const StyledTableCell = styled(TableCell)(({ theme }) => ({
 }));
 
 const StyledTableRow = styled(TableRow)(({ theme }) => ({
-  backgroundColor: '#fff',
+  backgroundColor: theme.palette.background.paper,
   "&:last-child td, &:last-child th": {
     border: 0,
   },
 }));
 
-const daysOfWeek = [ "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday" ];
-
 type RowError = {
-  day?: string;
+  date?: string;
   startHour?: string;
   startMinute?: string;
   endHour?: string;
@@ -53,12 +50,13 @@ type ScheduleFormProps = {
 const hourOptions = Array.from({ length: 12 }, (_, i) => (i + 1).toString());
 const minuteOptions = ["00", "15", "30", "45"];
 const periodOptions = ["AM", "PM"];
+const generateId = () => Math.random().toString(36).substr(2, 9);
 
 export function ScheduleForm({ rows, setRows }: ScheduleFormProps) {
   const [activeForms, setActiveForms] = useState<ScheduleRow[]>([
     {
-      id: Date.now(),
-      day: "",
+      id: generateId(),
+      date: "",
       startHour: "",
       startMinute: "",
       startPeriod: "AM",
@@ -69,12 +67,12 @@ export function ScheduleForm({ rows, setRows }: ScheduleFormProps) {
       location: ""
     },
   ]);
-  const [errors, setErrors] = useState<RowError[]>([{}]);
+  const [localErrors, setLocalErrors] = useState<RowError[]>([{}]);
   const [touched, setTouched] = useState<boolean[]>([false]);
 
   function validateFormRow(form: ScheduleRow): RowError {
     const error: RowError = {};
-    if (!form.day) error.day = "Required";
+    if (!form.date) error.date = "Required";
     if (!form.startHour) error.startHour = "Required";
     if (!form.startMinute) error.startMinute = "Required";
     if (!form.endHour) error.endHour = "Required";
@@ -108,8 +106,8 @@ export function ScheduleForm({ rows, setRows }: ScheduleFormProps) {
     setActiveForms((forms) => [
       ...forms,
       {
-        id: Date.now(),
-        day: "",
+        id: generateId(),
+        date: "",
         startHour: "",
         startMinute: "",
         startPeriod: "AM",
@@ -120,7 +118,7 @@ export function ScheduleForm({ rows, setRows }: ScheduleFormProps) {
         location: ""
       }
     ]);
-    setErrors((errs) => [...errs, {}]);
+    setLocalErrors((errs) => [...errs, {}]);
     setTouched((t) => [...t, false]);
   };
 
@@ -128,19 +126,20 @@ export function ScheduleForm({ rows, setRows }: ScheduleFormProps) {
     const form = activeForms[idx];
     const validation = validateFormRow(form);
     setTouched((prev) => prev.map((t, i) => (i === idx ? true : t)));
-    setErrors((errs) => errs.map((e, i) => (i === idx ? validation : e)));
-    const isComplete = !!form.day && !!form.startHour && !!form.startMinute && !!form.endHour && !!form.endMinute && !!form.activity && !!form.location;
-    const hasNoError = Object.values(validation).every((v) => !v);
-    if (isComplete && hasNoError) {
+    setLocalErrors((errs) => errs.map((e, i) => (i === idx ? validation : e)));
+
+    const hasNoError = Object.keys(validation).length === 0;
+    if (hasNoError) {
+      console.log("Row toSave:", form);
       setRows((prev) => [...prev, form]);
       setActiveForms((forms) => forms.filter((_, i) => i !== idx));
-      setErrors((errs) => errs.filter((_, i) => i !== idx));
+      setLocalErrors((errs) => errs.filter((_, i) => i !== idx));
       setTouched((t) => t.filter((_, i) => i !== idx));
     }
   };
 
-  const handleRemoveRow = (idx: number) => {
-    setRows((rows) => rows.filter((_, i) => i !== idx));
+  const handleRemoveRow = (idToRemove: string) => {
+    setRows((rows) => rows.filter((row) => row.id !== idToRemove));
   };
 
   return (
@@ -150,7 +149,7 @@ export function ScheduleForm({ rows, setRows }: ScheduleFormProps) {
         <Table sx={{ minWidth: 500 }}>
           <TableHead>
             <StyledTableRow>
-              <StyledTableCell sx={{ p:'1 0 1 1', width:'90px', minWidth:'90px',}}> Day </StyledTableCell>
+              <StyledTableCell sx={{ p:'1 0 1 1', width:'90px', minWidth:'90px',}}> Date </StyledTableCell>
               <StyledTableCell sx={{ p:'0', pl:1, width: '110px' }}> Start time </StyledTableCell>
               <StyledTableCell sx={{ p:'0', minWidth: '50px' }}> End time </StyledTableCell>
               <StyledTableCell sx={{ p:'0', minWidth: '150px'}}> Activity </StyledTableCell>
@@ -160,27 +159,19 @@ export function ScheduleForm({ rows, setRows }: ScheduleFormProps) {
           </TableHead>
           <TableBody>
             {activeForms.map((form, idx) => (
-              <StyledTableRow
-                key={form.id}
-              >
-                <StyledTableCell sx={{ p:'0 2px 0 10px' }} >
-                  <FormControl fullWidth size="small" error={!!(touched[idx] && errors[idx]?.day)}>
-                    {/* <InputLabel id={`day-label-${idx}`}>  Day </InputLabel> */}
-                    <Select name="day" sx={{ width: 132, pr:'0' }}
-                      label="Day"
-                      labelId={`day-label-${idx}`}
-                      value={form.day}
+              <StyledTableRow key={form.id}>
+                <StyledTableCell sx={{ p:'0 2px 0 10px'}} >
+                  <FormControl size="small" error={!!(touched[idx] && localErrors[idx]?.date )}>
+                    <TextField 
+                      sx={{ width: 157 }}
+                      name="date" type="date" size="small" value={form.date || ''}
+                      placeholder="DD/MM/YY"
                       onChange={e => handleFormChange(idx, e)}
-                      // required
-                    >
-                      <MenuItem value="">Select day</MenuItem>
-                      {daysOfWeek.map(day => (
-                        <MenuItem key={day} value={day}>{day}</MenuItem>
-                      ))}
-                    </Select>
+                      InputLabelProps={{ shrink: true }}
+                      error={!!(touched[idx] && localErrors[idx]?.date)}
+                    />
                     <FormHelperText>
-                      {/* {errors[idx]?.day || " "} */}
-                      {touched[idx] && errors[idx]?.day ? errors[idx]?.day : " "}
+                      {touched[idx] && localErrors[idx]?.date ? localErrors[idx]?.date : " "}
                     </FormHelperText>
                   </FormControl>
                 </StyledTableCell>
@@ -188,11 +179,10 @@ export function ScheduleForm({ rows, setRows }: ScheduleFormProps) {
                 {/* Start time */}
                 <StyledTableCell sx={{ padding:'0 5px 0 5px'}} >
                   <Box sx={{ display: 'flex', alignItems: 'start' }}>
-                    <FormControl size="small" sx={{ width: 60, minHeight: 60 }} error={!!(touched[idx] && errors[idx]?.startHour)}>
-                      <Select name="startHour" displayEmpty sx={{ borderRadius: '10px 0 0 10px'}}
+                    <FormControl size="small" sx={{ width: 60, minHeight: 60 }} error={!!(touched[idx] && localErrors[idx]?.startHour)}>
+                      <Select name="startHour" displayEmpty sx={{ borderRadius: '4px 0 0 4px'}}
                         value={form.startHour}
                         onChange={e => handleFormChange(idx, e)}
-                        //required
                       >
                         <MenuItem value="">Hr</MenuItem>
                         {hourOptions.map(hr => (
@@ -202,12 +192,10 @@ export function ScheduleForm({ rows, setRows }: ScheduleFormProps) {
                     </FormControl>
 
                     <FormControl size="small" sx={{ maxWidth:70, minHeight:60 }}
-                      // error={!!errors[idx]?.startMinute}>
-                      error={!!(touched[idx] && errors[idx]?.startMinute)}>
+                      error={!!(touched[idx] && localErrors[idx]?.startMinute)}>
                       <Select name="startMinute" displayEmpty sx={{ borderRadius:'0px'}}
                         value={form.startMinute}
                         onChange={e => handleFormChange(idx, e)}
-                        // required
                       >
                         <MenuItem value="">Min</MenuItem>
                         {minuteOptions.map(min => (
@@ -216,7 +204,7 @@ export function ScheduleForm({ rows, setRows }: ScheduleFormProps) {
                       </Select>
                     </FormControl>
                     <FormControl size="small" sx={{ minHeight:60 }}>
-                      <Select name="startPeriod" sx={{ width:'73px', pl:0, borderRadius:'0px 10px 10px 0' }}
+                      <Select name="startPeriod" sx={{ width:'68px', pl:0, borderRadius:'0px 4px 4px 0' }}
                         value={form.startPeriod}
                         onChange={e => handleFormChange(idx, e)}
                       >
@@ -227,8 +215,8 @@ export function ScheduleForm({ rows, setRows }: ScheduleFormProps) {
                     </FormControl>
                   </Box>
                   <FormHelperText sx={{ color:"#df1010ff", lineHeight:'0.1px', display:'block'}}>
-                    {touched[idx] && (errors[idx]?.startHour || errors[idx]?.startMinute)
-                      ? (errors[idx]?.startHour || errors[idx]?.startMinute)
+                    {touched[idx] && (localErrors[idx]?.startHour || localErrors[idx]?.startMinute)
+                      ? (localErrors[idx]?.startHour || localErrors[idx]?.startMinute)
                       : " "
                       }
                   </FormHelperText>
@@ -238,12 +226,11 @@ export function ScheduleForm({ rows, setRows }: ScheduleFormProps) {
                 <StyledTableCell sx={{ pl:'0', pr:'1px'}}>
                   <Box sx={{ display: 'flex', alignItems: 'start' }}>
                     <FormControl size="small" sx={{ width: 60, minHeight: 60 }}
-                      error={!!(touched[idx] && errors[idx]?.endHour)}
+                      error={!!(touched[idx] && localErrors[idx]?.endHour)}
                       >
-                      <Select name="endHour" displayEmpty sx={{ borderRadius: '10px 0 0 10px'}}
+                      <Select name="endHour" displayEmpty sx={{ borderRadius: '4px 0 0 4px'}}
                         value={form.endHour}
                         onChange={e => handleFormChange(idx, e)}
-                        // required
                       >
                         <MenuItem value="">Hr</MenuItem>
                         {hourOptions.map(hr => (
@@ -252,12 +239,11 @@ export function ScheduleForm({ rows, setRows }: ScheduleFormProps) {
                       </Select>
                     </FormControl>
                     <FormControl size="small" sx={{ maxWidth:70, minHeight:60, p:0 }}
-                      error={!!(touched[idx] && errors[idx]?.endMinute)}
+                      error={!!(touched[idx] && localErrors[idx]?.endMinute)}
                       >
                       <Select name="endMinute" displayEmpty sx={{ borderRadius:'0px' }}
                         value={form.endMinute}
                         onChange={e => handleFormChange(idx, e)}
-                        // required
                       >
                         <MenuItem value="">Min</MenuItem>
                         {minuteOptions.map(min => (
@@ -265,13 +251,12 @@ export function ScheduleForm({ rows, setRows }: ScheduleFormProps) {
                         ))}
                       </Select>
                     </FormControl>
-                    <FormControl size="small" sx={{ width: 73, minHeight: 60 }}
-                      error={!!(touched[idx] && errors[idx]?.endPeriod)}
+                    <FormControl size="small" sx={{ width: 68, minHeight: 60 }}
+                      error={!!(touched[idx] && localErrors[idx]?.endPeriod)}
                       >
-                      <Select name="endPeriod" sx={{ width:'73px', pl:0, p:0, borderRadius: '0px 10px 10px 0'}}
+                      <Select name="endPeriod" sx={{ width:'68px', pl:0, p:0, borderRadius: '0px 4px 4px 0'}}
                         value={form.endPeriod}
                         onChange={e => handleFormChange(idx, e)}
-                        // required
                       >
                         {periodOptions.map(p => (
                           <MenuItem key={p} value={p}>{p}</MenuItem>
@@ -280,7 +265,7 @@ export function ScheduleForm({ rows, setRows }: ScheduleFormProps) {
                     </FormControl>
                   </Box>
                   <FormHelperText sx={{ color:"#df1010ff", lineHeight:'0.1px', display:'block', p:0, }}>
-                    {touched[idx] && errors[idx]?.endPeriod ? errors[idx]?.endPeriod : " "}
+                    {touched[idx] && localErrors[idx]?.endPeriod ? localErrors[idx]?.endPeriod : " "}
                   </FormHelperText>
                 </StyledTableCell>
                 <StyledTableCell sx={{ p:'0 3px 0 0' }}>
@@ -288,11 +273,8 @@ export function ScheduleForm({ rows, setRows }: ScheduleFormProps) {
                     name="activity" placeholder="Activity title"
                     value={form.activity}
                     onChange={e => handleFormChange(idx, e)}
-                    // error={!!errors[idx]?.activity}
-                    // helperText={errors[idx]?.activity || " "}
-                    error={!!(touched[idx] && errors[idx]?.activity)}
-                    helperText={touched[idx] && errors[idx]?.activity ? errors[idx]?.activity : " "}
-                    // required
+                    error={!!(touched[idx] && localErrors[idx]?.activity)}
+                    helperText={touched[idx] && localErrors[idx]?.activity ? localErrors[idx]?.activity : " "}
                   />
                 </StyledTableCell>
                 <StyledTableCell sx={{ width:'150px', pl:0}}>
@@ -300,11 +282,8 @@ export function ScheduleForm({ rows, setRows }: ScheduleFormProps) {
                     name="location" placeholder="Location"
                     value={form.location}
                     onChange={e => handleFormChange(idx, e)}
-                    // error={!!errors[idx]?.location}
-                    // helperText={errors[idx]?.location || " "}
-                    error={!!(touched[idx] && errors[idx]?.location)}
-                    helperText={touched[idx] && errors[idx]?.location ? errors[idx]?.location : " "}
-                    // required
+                    error={!!(touched[idx] && localErrors[idx]?.location)}
+                    helperText={touched[idx] && localErrors[idx]?.location ? localErrors[idx]?.location : " "}
                   />
                 </StyledTableCell>
                 <StyledTableCell sx={{ pl:'0' }} align="center">
@@ -319,9 +298,9 @@ export function ScheduleForm({ rows, setRows }: ScheduleFormProps) {
                 </StyledTableCell>
               </StyledTableRow>
             ))}
-            {rows.map((row, idx) => (
-              <TableRow key={`row-${idx}`}>
-                <StyledTableCell>{row.day}</StyledTableCell>
+            {rows.map((row) => (
+              <TableRow key={`saved-${row.id}`}>
+                <StyledTableCell>{row.date}</StyledTableCell>
                 <StyledTableCell>
                   {row.startHour}:{row.startMinute} {row.startPeriod}
                 </StyledTableCell>
@@ -331,7 +310,7 @@ export function ScheduleForm({ rows, setRows }: ScheduleFormProps) {
                 <StyledTableCell>{row.activity}</StyledTableCell>
                 <StyledTableCell>{row.location}</StyledTableCell>
                 <StyledTableCell align="center" sx={{ p:0.6 }}>
-                  <IconButton onClick={() => handleRemoveRow(idx)} aria-label="delete"><DeleteIcon/></IconButton>
+                  <IconButton onClick={() => handleRemoveRow(row.id as string)} aria-label="delete activity"><DeleteIcon/></IconButton>
                 </StyledTableCell>
               </TableRow>
             ))}
@@ -345,7 +324,7 @@ export function ScheduleForm({ rows, setRows }: ScheduleFormProps) {
             color:'#1A2660', bgcolor:'#00E392', borderRadius:'30px', fontWeight:'bold', textTransform:'none',
             ':hover': { bgcolor:'#3C1C91', color:'white' }
           }}
-        > Add day </Button>
+        > Add activity </Button>
       </Box>
     </Box>
   );

@@ -43,10 +43,11 @@ export async function handleGetawaySubmit(payload: GetawayPayload): Promise<Subm
       // parsing to obtain id
       const responseData = await response.json();
       const newId = responseData.offer?.id || responseData._id || responseData.id;
-
+      console.log("Getaway successfully created with ID:", newId, "Data sent:", payload);
       return { payload, status: 'SUCCESS', statusCode: response.status, getawayId: newId };
     } else {
       console.error("API Error:", response.status, await response.text());
+      console.log("Data attempted to send:", payload);
       return { payload, status: 'API_ERROR', statusCode: response.status };
     }
   } catch (error) {

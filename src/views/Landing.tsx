@@ -3,11 +3,14 @@ import Grid from '@mui/material/Grid2';
 
 import GetawaysLogo from '../components/GetawaysLogo/GetawaysLogo.jpg';
 import background1 from '../assets/backgrounds/tenis.jpg';
-import mapSample from '../assets/backgrounds/mapSample.png';
+// import mapSample from '../assets/backgrounds/mapSample.png';
 import clubView1 from '../assets/backgrounds/clubView1.png';
 import '../App.css';
 import '../index.css';
 import SearchBar from '../components/SearchBar';
+import MainMap from '../components/MainMap';
+
+
 const LandingPage = () => {
   return (
     <>
@@ -149,7 +152,8 @@ const LandingPage = () => {
           </Grid>
           <Grid size={{ xs:6 }}>
             <section>
-              <img src={mapSample} style={{maxHeight:'400px'}} className="logo" alt="locations sample" />
+              {/* <img src={mapSample} style={{maxHeight:'400px'}} className="logo" alt="locations sample" /> */}
+              <MainMap />
             </section>
           </Grid>
         </Grid>
@@ -231,6 +235,7 @@ const LandingPage = () => {
             </Card>
           </Box>
         </section>
+        <MainMap />
       </Box>
     </>
   );

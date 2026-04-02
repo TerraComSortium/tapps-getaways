@@ -11,7 +11,19 @@ const ENDPOINTS = {
   CREATE_COUPONS: `${BASE_URL}/coupons`,
 };
 
+async function isBackendAvailable(url: string): Promise<boolean> {
+    try {
+      const res = await fetch(url, { method: "HEAD" });
+      return res.ok;
+    } catch {
+      return false;
+    }
+  }
+
+
 export async function handleGetawaySubmit(payload: GetawayPayload): Promise<SubmissionResult & { getawayId?: string }> {
+const backendAvailable = await isBackendAvailable(ENDPOINTS.CREATE);
+if (backendAvailable) {
   const apiFormData = new FormData();
 
   if (payload.galleryPhotos && Array.isArray(payload.galleryPhotos)) {
@@ -55,6 +67,24 @@ export async function handleGetawaySubmit(payload: GetawayPayload): Promise<Subm
     return { payload, status: 'NETWORK_ERROR', statusCode: null };
   }
 }
+  else {
+    console.warn("Unavailable Backend, payload saved on localStorage.");
+    const cleanPayload = { ...payload };
+  
+    // @ts-expect-error to ignore galleryPhotos
+    delete cleanPayload.galleryPhotos;
+    const localItem = {
+      ...cleanPayload,
+      _id: `local_${Date.now()}`,
+      galleryPhotos: []
+    };
+  
+    const existingData = JSON.parse(localStorage.getItem('getaways') || '[]');
+    localStorage.setItem('getaways', JSON.stringify([...existingData, localItem]));
+  
+    return { payload, status: 'LOCAL_SAVE', statusCode: null };
+  }
+  }
 
 export async function getGetaway(): Promise<GetawayPayload | null> {
   try {
@@ -87,7 +117,8 @@ export async function getGetaways(): Promise<Getaway[]> {
 
   } catch (error) {
     //Fallback to localStorage
-    console.warn("The backend failed or is unavailable.");
+    // console.warn("The backend failed or is unavailable.");
+    console.warn("The backend failed or is unavailable. Searching localStorage...");
 
     const localDataString = localStorage.getItem('getaways');
     if (localDataString) {

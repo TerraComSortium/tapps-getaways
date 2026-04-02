@@ -9,6 +9,7 @@ import Grid from '@mui/material/Grid2';
 import SearchIcon from '@mui/icons-material/Search';
 import { AddressAutocomplete } from './AddressAutocomplete';
 import type { LocationEntry } from '../types/getaway';
+import { useUserStore } from '../store/useUserStore';
 
 const GOOGLE_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "";
 
@@ -18,6 +19,8 @@ interface SearchBarProps {
 
 export default function SearchBar({ onSearch }: SearchBarProps) {
   const navigate = useNavigate();
+  const userAddress = useUserStore((state) => state.userAddress);
+  const userLocation = useUserStore((state) => state.userLocation);
 
   const [searchLocation, setSearchLocation] = useState<LocationEntry | null>(null);
   const [sport, setSport] = React.useState('');
@@ -46,6 +49,21 @@ export default function SearchBar({ onSearch }: SearchBarProps) {
   const [arrival, setArrival] = React.useState(today);
   const [departure, setDeparture] = React.useState(tomorrow);
 
+  const hasAutoFilled = React.useRef(false); //userLocation's coords filledFlag
+  React.useEffect(() => {
+    if (userAddress && userLocation && !hasAutoFilled.current) {
+      setSearchLocation({
+        address: userAddress,
+        lat: userLocation.lat,
+        lng: userLocation.lng
+      });
+      hasAutoFilled.current = true;
+    }
+  }, [
+    userAddress,
+    userLocation
+  ]);
+
   const handleMapsSearch = (location: LocationEntry) => {
     setSearchLocation(location);
     console.log("Selected Location:", location);
@@ -73,7 +91,7 @@ export default function SearchBar({ onSearch }: SearchBarProps) {
       } else {
         console.log("try search...");
         const params = new URLSearchParams();
-        //add filled params
+        //add filledParams
         if (searchLocation?.address) params.append('city', searchLocation.address);
         if (sport) params.append('sport', sport);
         if (arrival) params.append('startDate', arrival);
@@ -114,6 +132,7 @@ export default function SearchBar({ onSearch }: SearchBarProps) {
           <AddressAutocomplete
             apiKey={GOOGLE_API_KEY}
             onChange={handleMapsSearch}
+            value={searchLocation}
             inputStyle={{
               height: '48px',
               backgroundColor: '#f5f5f5',

@@ -8,6 +8,7 @@ import { getGetaways } from '../services/getawayApi';
 import type { Getaway } from '../types/getaway';
 import SearchBar from '../components/SearchBar';
 import { useWatchLocation } from '../hooks/useWatchLocation';
+import { useUserStore } from '../store/useUserStore';
 
 const normalizeGetawayData = (raw: any): Getaway => {
   return {
@@ -46,12 +47,15 @@ const getSportLabel = (sportKey: string) => {
 
 export default function Mygetaways() {
   useWatchLocation();
-
+  //subscribe to userLocation global state
+  const userLocation = useUserStore((state) => state.userLocation);
+  console.log('userLocation:', userLocation);
   const [getaways, setGetaways] = useState<Getaway[]>([]);
   const [filters, setFilters] = useState({ city: '', sport: '', startDate: '', endDate: '' });
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
+
   const ITEMS_PER_PAGE = 10;
 
   const navigate = useNavigate();
@@ -72,7 +76,7 @@ export default function Mygetaways() {
   const filteredGetaways = getaways.filter((getaway) => {
     let matches = true;
 
-    //city filter (case-insensitive)
+    //filter (case-insensitive)
     if (filters.city) {
       const address = getaway.getawayAddress?.address || '';
       if (!address.toLowerCase().includes(filters.city.toLowerCase())) {
@@ -80,7 +84,6 @@ export default function Mygetaways() {
       }
     }
 
-    //sports filter
     if (filters.sport) {
       const sportLabel = getSportLabel(getaway.sport).toLowerCase();
       if (sportLabel !== filters.sport.toLowerCase()) {

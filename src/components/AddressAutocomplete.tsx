@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { Button, Box, Typography, FormLabel, SxProps, Theme } from "@mui/material";
 import { Autocomplete } from "@react-google-maps/api";
 import GpsFixedIcon from '@mui/icons-material/GpsFixed';
@@ -97,6 +97,23 @@ export function AddressAutocomplete({
 
   const inputRef = useRef<HTMLInputElement>(null);
 
+  const globalAddress = value?.address; //string initial extract
+  useEffect(() => { //to sync global value with inputRef
+    if (inputRef.current && globalAddress) {
+      const inputAddress = `${globalAddress}, `;
+      inputRef.current.value = inputAddress;
+
+      const isDesktop = window.innerWidth > 768;
+      //responsive auto-focus only for desktop
+      if (isDesktop) {
+        inputRef.current.focus();
+        //final cursor position
+        const length = inputAddress.length;
+        inputRef.current.setSelectionRange(length, length);
+      }
+    }
+  }, [globalAddress]);//render at initial load and at value.address change
+
   const isLoaded = useApiIsLoaded();
   const onLoad = (autocomplete: google.maps.places.Autocomplete) => {
     setAutocompleteInstance(autocomplete);
@@ -115,7 +132,6 @@ export function AddressAutocomplete({
       const addressStr = place.formatted_address || place.name || "";
       const latValue = place.geometry.location.lat();
       const lngValue = place.geometry.location.lng();
-
       console.log("Extracted data:", { address: addressStr, lat: latValue, lng: lngValue });
 
       //to AddressAutocompleteField

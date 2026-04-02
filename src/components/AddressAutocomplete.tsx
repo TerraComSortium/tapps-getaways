@@ -1,9 +1,10 @@
 import { useRef, useState } from "react";
 import { Button, Box, Typography, FormLabel, SxProps, Theme } from "@mui/material";
-import { useJsApiLoader, Autocomplete } from "@react-google-maps/api";
+import { Autocomplete } from "@react-google-maps/api";
 import GpsFixedIcon from '@mui/icons-material/GpsFixed';
 import { styled } from "@mui/material/styles";
 import type { LocationEntry } from '../types/getaway';
+import { useApiIsLoaded } from '@vis.gl/react-google-maps';
 
 const StyledAutocomplete = styled('input', {
   shouldForwardProp: (prop) =>
@@ -74,7 +75,7 @@ interface AddressAutocompleteProps {
   labelColor?: string;
   inputTextColor?: string;
 }
-const GOOGLE_MAPS_LIBRARIES: ("places")[] = ["places"];
+
 export function AddressAutocomplete({
   apiKey,
   onChange,
@@ -95,11 +96,8 @@ export function AddressAutocomplete({
   const [autocompleteInstance, setAutocompleteInstance] = useState<google.maps.places.Autocomplete | null>(null);
 
   const inputRef = useRef<HTMLInputElement>(null);
-  const { isLoaded } = useJsApiLoader({
-    googleMapsApiKey: apiKey,
-    libraries: GOOGLE_MAPS_LIBRARIES,
-  });
 
+  const isLoaded = useApiIsLoaded();
   const onLoad = (autocomplete: google.maps.places.Autocomplete) => {
     setAutocompleteInstance(autocomplete);
   };

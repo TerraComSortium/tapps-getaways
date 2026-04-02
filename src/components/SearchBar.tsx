@@ -12,7 +12,11 @@ import type { LocationEntry } from '../types/getaway';
 
 const GOOGLE_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "";
 
-export default function SearchBar() {
+interface SearchBarProps {
+  onSearch?: (filters: { city: string; sport: string; startDate: string; endDate: string }) => void;
+}
+
+export default function SearchBar({ onSearch }: SearchBarProps) {
   const navigate = useNavigate();
 
   const [searchLocation, setSearchLocation] = useState<LocationEntry | null>(null);
@@ -24,7 +28,6 @@ export default function SearchBar() {
   });
   const [loading, setLoading] = React.useState(false);
 
-  //datesHelper: object(date) to string by timezone "YYYY-MM-DD"
   const formatLocalDate = (date: Date): string => {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -60,20 +63,26 @@ export default function SearchBar() {
     setLoading(true);
 
     try {
-      console.log("try search...");
-      const params = new URLSearchParams();
+      if (onSearch) {
+        onSearch({
+          city: searchLocation?.address || '',
+          sport: sport,
+          startDate: arrival,
+          endDate: departure
+        });
+      } else {
+        console.log("try search...");
+        const params = new URLSearchParams();
+        //add filled params
+        if (searchLocation?.address) params.append('city', searchLocation.address);
+        if (sport) params.append('sport', sport);
+        if (arrival) params.append('startDate', arrival);
+        if (departure) params.append('endDate', departure);
 
-      //add filled params
-      if (searchLocation?.address) params.append('city', searchLocation.address);
-      if (sport) params.append('sport', sport);
-      if (arrival) params.append('startDate', arrival);
-      if (departure) params.append('endDate', departure);
-
-      const queryString = params.toString();
-      console.log("finalURL:", `/getaways?${queryString}`);
-
-      navigate(`/getaways?${queryString}`);
-
+        const queryString = params.toString();
+        //console.log("finalURL:", `/getaways?${queryString}`);
+        navigate(`/getaways?${queryString}`);
+      }
     } catch (error) {
       console.error("Connection failed:", error);
       setFeedback({
@@ -84,9 +93,10 @@ export default function SearchBar() {
     } finally {
       setLoading(false);
     }
-    }
+  };
 
   const handleCloseFeedback = () => setFeedback(prev => ({ ...prev, open: false }));
+
   return (
     <Box
       sx={{

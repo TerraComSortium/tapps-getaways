@@ -1,8 +1,9 @@
-import { useState } from 'react';
-import { Map, AdvancedMarker, InfoWindow, useApiIsLoaded } from '@vis.gl/react-google-maps';
+import { useState, useEffect } from 'react';
+import { Map, AdvancedMarker, useMap, InfoWindow, useApiIsLoaded } from '@vis.gl/react-google-maps';
 import { useUserStore } from '../store/useUserStore';
 import { useWatchLocation } from '../hooks/useWatchLocation';
 import getawaysLocation from '../assets/RappsIcons/getawaysLocation.png';
+import { UserLocationButton } from './UserLocationButton';
 
 const MAP_ID = import.meta.env.VITE_GOOGLE_MAPS_ID;
 const DEFAULT_CENTER = { lat: -17.3846397, lng: -66.1461434 };
@@ -15,12 +16,37 @@ const RC_NETS = [
   { id: 6, title: "Padel Central", position:{ lat: -17.3206833, lng: -66.2621544 }},
   { id: 7, title: "Country club", position:{ lat: -17.4023709, lng: -66.1461659 }},
   { id: 8, title: "Padel Club", position:{ lat: -17.3846397, lng: -66.1461434 }},
+  //SCZ offers
+  { id: 9, title: "Country Club Las Palmas", position:{ lat: -17.803063, lng: -63.206812 }},
+  { id: 10, title: "Club de Tenis Santa Cruz🎾", position:{ lat: -17.782187, lng: -63.198313 }},
+  { id: 11, title: "Los Tajibos", position:{ lat: -17.764688, lng: -63.196562 }}
+  //plusCode: 6RP3+4C Santa Cruz de la Sierra
 ];
+
+interface PlacePin {
+  id: number | string;
+  title: string;
+  description?: string;
+  position: {
+    lat: number;
+    lng: number;
+  };
+}
 export default function MainMap() {
   const apiIsLoaded = useApiIsLoaded();
   const userLocation = useUserStore((state) => state.userLocation);
   useWatchLocation();
-  const [selectedNet, setSelectedNet] = useState(null);
+  const [selectedPlacePin, setSelectedPlacePin] = useState<PlacePin | null>(null);
+
+  //map's control
+  const map = useMap();
+  //center at pin selection
+  useEffect(() => {
+    if (map && selectedPlacePin) {
+      map.panTo(selectedPlacePin.position);
+      map.setZoom(16);
+    }
+  }, [map, selectedPlacePin]);
 
   if (!apiIsLoaded) {
     return <p>Loading map...</p>;
@@ -45,25 +71,25 @@ export default function MainMap() {
           }} />
         </AdvancedMarker>
       )}
-
-      {RC_NETS.map((net) => (
+      <UserLocationButton />
+      {RC_NETS.map((placepin) => (
         <AdvancedMarker
-          key={net.id}
-          position={net.position}
-          onClick={() => setSelectedNet(net)}
+          key={placepin.id}
+          position={placepin.position}
+          onClick={() => setSelectedPlacePin(placepin)}
         >
-          <img src={getawaysLocation} height={35} />
+          <img src={getawaysLocation} height={35} alt={placepin.title} style={{ cursor: 'pointer' }} />
         </AdvancedMarker>
       ))}
 
-      {selectedNet && (
+      {selectedPlacePin && (
         <InfoWindow
-          position={selectedNet.position}
-          onCloseClick={() => setSelectedNet(null)} //clean state
+          position={selectedPlacePin.position}
+          onCloseClick={() => setSelectedPlacePin(null)} //clean state
         >
           <div style={{ padding: '5px', color: 'black' }}>
-            <h3 style={{ margin: '0 0 5px 0' }}>{selectedNet.title}</h3>
-            <p style={{ margin: 0, fontSize: '14px' }}>{selectedNet.description}</p>
+            <h3 style={{ margin: '0 0 5px 0' }}>{selectedPlacePin.title}</h3>
+            <p style={{ margin: 0, fontSize: '14px' }}>{selectedPlacePin.description}</p>
           </div>
         </InfoWindow>
       )}

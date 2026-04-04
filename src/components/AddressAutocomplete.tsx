@@ -1,9 +1,10 @@
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { Button, Box, Typography, FormLabel, SxProps, Theme } from "@mui/material";
-import { useJsApiLoader, Autocomplete } from "@react-google-maps/api";
+import { Autocomplete } from "@react-google-maps/api";
 import GpsFixedIcon from '@mui/icons-material/GpsFixed';
 import { styled } from "@mui/material/styles";
 import type { LocationEntry } from '../types/getaway';
+import { useApiIsLoaded } from '@vis.gl/react-google-maps';
 
 const StyledAutocomplete = styled('input', {
   shouldForwardProp: (prop) =>
@@ -74,7 +75,7 @@ interface AddressAutocompleteProps {
   labelColor?: string;
   inputTextColor?: string;
 }
-const GOOGLE_MAPS_LIBRARIES: ("places")[] = ["places"];
+
 export function AddressAutocomplete({
   apiKey,
   onChange,
@@ -95,11 +96,25 @@ export function AddressAutocomplete({
   const [autocompleteInstance, setAutocompleteInstance] = useState<google.maps.places.Autocomplete | null>(null);
 
   const inputRef = useRef<HTMLInputElement>(null);
-  const { isLoaded } = useJsApiLoader({
-    googleMapsApiKey: apiKey,
-    libraries: GOOGLE_MAPS_LIBRARIES,
-  });
 
+  const globalAddress = value?.address; //string initial extract
+  useEffect(() => { //to sync global value with inputRef
+    if (inputRef.current && globalAddress) {
+      const inputAddress = `${globalAddress}, `;
+      inputRef.current.value = inputAddress;
+
+      const isDesktop = window.innerWidth > 768;
+      //responsive auto-focus only for desktop
+      if (isDesktop) {
+        inputRef.current.focus();
+        //final cursor position
+        const length = inputAddress.length;
+        inputRef.current.setSelectionRange(length, length);
+      }
+    }
+  }, [globalAddress]);//render at initial load and at value.address change
+
+  const isLoaded = useApiIsLoaded();
   const onLoad = (autocomplete: google.maps.places.Autocomplete) => {
     setAutocompleteInstance(autocomplete);
   };
@@ -117,7 +132,6 @@ export function AddressAutocomplete({
       const addressStr = place.formatted_address || place.name || "";
       const latValue = place.geometry.location.lat();
       const lngValue = place.geometry.location.lng();
-
       console.log("Extracted data:", { address: addressStr, lat: latValue, lng: lngValue });
 
       //to AddressAutocompleteField

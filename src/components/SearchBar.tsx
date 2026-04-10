@@ -15,8 +15,7 @@ import { sanitizeInput } from '../utils/validations';
 const GOOGLE_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "";
 interface SearchBarProps {
   onSearch?: (filters: {
-    q?: string;
-    // city: string;
+    q?: string; // city: string;
     lat?: number | null;
     lng?: number | null;
     sport: string;

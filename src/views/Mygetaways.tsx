@@ -10,7 +10,7 @@ import type { Getaway } from '../types/getaway';
 import { useWatchLocation } from '../hooks/useWatchLocation';
 import { useUserStore } from '../store/useUserStore';
 
-// import { getGetaways } from '../services/getawayApi';
+import { getGetaways } from '../services/getawayApi';
 import { SearchService } from '../services/searchService';
 
 const normalizeGetawayData = (raw: any): Getaway => {
@@ -93,37 +93,38 @@ export default function Mygetaways() {
 
   //graceful degradation pattern
   useEffect(() => {
-    //await userLocation
-    if( !userLocation?.lat || !userLocation?.lng ){
+    const fetchInitialData = async () => {
       setLoading(true);
-      return;
-    }
-    const fetchInitialGetaways = async () => {
       try {
         setError(null);
         setIsOfflineMode(false);
-        // const rawData = await getGetaways();
-        //search near < 300km
-        const rawData = await SearchService.search({
-          lat: userLocation.lat,
-          lng: userLocation.lng
-        });
-        console.log("initialData:", rawData);
+        let rawData;
+
+        if (userLocation?.lat && userLocation?.lng) {
+          console.log("Position detected: searching nearby offers at 300km...");
+          rawData = await SearchService.search({
+            lat: userLocation.lat,
+            lng: userLocation.lng
+          });
+        } else {
+          console.log("Without usrLocation: receving all offers...");
+          rawData = await getGetaways();
+        }
 
         //Normalize and save data
-        setGetaways(rawData.map(normalizeGetawayData));
-      } catch (err: any) {
-        console.warn("API fail, trying to use LocalStorage as fallback...", err);
-        //console.warn("Getaways could not be loaded. Please try again later.", err);
-        handleFallbackSearch({});
+        const cleanData = rawData.map(normalizeGetawayData);
+        setGetaways(cleanData);
+
+      } catch (err: any) { //(!api || localStorage getGetaways?)
+        console.warn("Error a initial fetch data", err.message);
+        setError("No getaways could be loaded at this time. Please try again later.");
       } finally {
         setLoading(false);
       }
     };
-    // fetchGetaways();
-    fetchInitialGetaways();
-  }, [userLocation]);
 
+    fetchInitialData();
+  }, [userLocation]);
   const handleSearchFromBar = (filters: {
     q?: string;
     lat?: number | null;
@@ -156,7 +157,7 @@ export default function Mygetaways() {
         console.warn("API returned 0 results. Forcing a Fallback to view local data...");
         throw new Error("Force LocalStorage"); //redirect to next .catch()
       }
-      //API returns success
+      //API: success
       setGetaways(rawData.map(normalizeGetawayData));
       setPage(1);
     })
@@ -191,7 +192,7 @@ export default function Mygetaways() {
   const handleBookNow = (getaway: Getaway) => {
     navigate('/bookgetaway', { state: { getawayData: getaway } });
   };
-  //initial search using userLocation
+  //initial search with userLocation
   const handleChange = (_event: React.ChangeEvent<unknown>, value: number) => {
     setPage(value);
   };
@@ -231,7 +232,8 @@ export default function Mygetaways() {
               {isOfflineMode && <Alert severity="warning" sx={{ mb: 2 }}>Showing local preview data. Backend connection failed.</Alert>}
               <Typography sx={{ mb: 1 }}>
                 {getaways.length > 0
-                  ? `${isOfflineMode ? 'Local matches near cityName' : 'Nearest getaways offers'}: ${getaways.length}`
+                  ? `${isOfflineMode ? 'Local matches near cityName' : 'Getaways offers'}: ${getaways.length}`
+                  // at {cityName}
                   : 'No offers match your search'
                 }
                 {/* {getaways.length > 0 ? `You have ${getaways.length} getaways registered` : 'No offers registered'} */}

@@ -5,7 +5,6 @@ import { LoginInput } from "../views/Login";
 export const login = async (authUser: LoginInput) => {
     try {
         const {email, password} = authUser
-        console.log(authUser)
         const userCredential = await signInWithEmailAndPassword(auth, email, password);
         const token = await userCredential.user.getIdToken();
         localStorage.setItem("token", token);

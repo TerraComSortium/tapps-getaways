@@ -43,9 +43,8 @@ const Login: React.FC = () => {
   const navigate = useNavigate();
 
   const onSubmit = async(data: LoginInput) => {
-    const auth = await login(data)
-    console.log(auth)
-    // navigate('/getaways');
+    await login(data)
+    navigate('/getaways');
   };
 
   return (

@@ -1,4 +1,4 @@
-import { signInWithEmailAndPassword } from "firebase/auth";
+import { signInWithEmailAndPassword, signOut } from "firebase/auth";
 import { auth } from "../lib/firebase";
 import { LoginInput } from "../views/Login";
 
@@ -8,7 +8,7 @@ export const login = async (authUser: LoginInput) => {
         console.log(authUser)
         const userCredential = await signInWithEmailAndPassword(auth, email, password);
         const token = await userCredential.user.getIdToken();
-        console.log(token)
+        localStorage.setItem("token", token);
     return token;
     } catch (error: any) {
         console.error("FIREBASE ERROR:", error.code, error.message);
@@ -16,3 +16,8 @@ export const login = async (authUser: LoginInput) => {
          throw error;
     }
 };
+
+export const logout = async() => {
+    await signOut(auth);
+    localStorage.removeItem("token");
+}

@@ -1,4 +1,4 @@
-import * as React from 'react';
+import * as React from 'react';q
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -10,11 +10,18 @@ import SearchIcon from '@mui/icons-material/Search';
 import { AddressAutocomplete } from './AddressAutocomplete';
 import type { LocationEntry } from '../types/getaway';
 import { useUserStore } from '../store/useUserStore';
+import { sanitizeInput } from '../utils/validations';
 
 const GOOGLE_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "";
-
 interface SearchBarProps {
-  onSearch?: (filters: { city: string; sport: string; startDate: string; endDate: string }) => void;
+  onSearch?: (filters: {
+    q?: string; // city: string;
+    lat?: number | null;
+    lng?: number | null;
+    sport: string;
+    startDate?: string;
+    endDate?: string
+  }) => void;
 }
 
 export default function SearchBar({ onSearch }: SearchBarProps) {
@@ -81,18 +88,30 @@ export default function SearchBar({ onSearch }: SearchBarProps) {
     setLoading(true);
 
     try {
+      const safeQuery = sanitizeInput(searchLocation?.address || '');
+
+      const lat = searchLocation?.lat;
+      const lng = searchLocation?.lng;
+
       if (onSearch) {
         onSearch({
-          city: searchLocation?.address || '',
+          q: safeQuery, //searchLocation address reasigned to q
+          // city: searchLocation?.address || '',
+          lat: lat,
+          lng: lng,
           sport: sport,
           startDate: arrival,
           endDate: departure
         });
-      } else {
+      } else { //Redirect to /getaways(results)
         console.log("try search...");
         const params = new URLSearchParams();
         //add filledParams
-        if (searchLocation?.address) params.append('city', searchLocation.address);
+        if (lat !== null && lat !== undefined) params.append('lat', lat.toString());
+        if (lng !== null && lng !== undefined) params.append('lng', lng.toString());
+
+        if (safeQuery) params.append('q', safeQuery);
+        // if (searchLocation?.address) params.append('city', searchLocation.address);
         if (sport) params.append('sport', sport);
         if (arrival) params.append('startDate', arrival);
         if (departure) params.append('endDate', departure);
@@ -105,7 +124,7 @@ export default function SearchBar({ onSearch }: SearchBarProps) {
       console.error("Connection failed:", error);
       setFeedback({
         open: true,
-        message: 'Server connection failed. Please try again later.',
+        message: 'Something went wrong. Please try again later.',
         severity: 'error'
       });
     } finally {

@@ -11,6 +11,7 @@ import '../App.css';
 import { useForm, Controller } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
+import { login } from '../api/authFirebase';
 
 const defaultTheme = createTheme();
 
@@ -29,7 +30,7 @@ const schema = yup.object().shape({
     .required('Password is required'),
 });
 
-interface LoginInput {
+export interface LoginInput {
   email: string;
   password: string;
 }
@@ -41,8 +42,8 @@ const Login: React.FC = () => {
 
   const navigate = useNavigate();
 
-  const onSubmit = (data: LoginInput) => {
-    console.log(data);
+  const onSubmit = async(data: LoginInput) => {
+    await login(data)
     navigate('/getaways');
   };
 

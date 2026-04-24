@@ -77,6 +77,15 @@ export default function SearchBar({ onSearch }: SearchBarProps) {
   };
 
   const handleSearch = async () => {
+    if (arrival && arrival < today) {
+      setFeedback({
+        open: true,
+        message: 'Arrival date is expired',
+        severity: 'warning'
+      });
+      return;
+    }
+
     if (arrival && departure && departure < arrival) {
       setFeedback({
         open: true,

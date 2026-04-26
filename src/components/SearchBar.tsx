@@ -1,4 +1,4 @@
-import * as React from 'react';q
+import * as React from 'react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -53,8 +53,8 @@ export default function SearchBar({ onSearch }: SearchBarProps) {
   tomorrowObj.setDate(tomorrowObj.getDate() + 1);
   const tomorrow = formatLocalDate(tomorrowObj);
 
-  const [arrival, setArrival] = React.useState(today);
-  const [departure, setDeparture] = React.useState(tomorrow);
+  const [arrival, setArrival] = React.useState('');
+  const [departure, setDeparture] = React.useState('');
 
   const hasAutoFilled = React.useRef(false); //userLocation's coords filledFlag
   React.useEffect(() => {
@@ -77,6 +77,15 @@ export default function SearchBar({ onSearch }: SearchBarProps) {
   };
 
   const handleSearch = async () => {
+    if (arrival && arrival < today) {
+      setFeedback({
+        open: true,
+        message: 'Arrival date is expired',
+        severity: 'warning'
+      });
+      return;
+    }
+
     if (arrival && departure && departure < arrival) {
       setFeedback({
         open: true,

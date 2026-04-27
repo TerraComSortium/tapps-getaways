@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Box, Stack, Pagination, Typography, CircularProgress, Alert } from '@mui/material';
 import Grid from '@mui/material/Grid2';
-import AdminSideBar from '../components/AdminSidebar';
+// import AdminSideBar from '../components/AdminSidebar';
 import GetawayItem from '../components/GetawayItem';
 import SearchBar from '../components/SearchBar';
 
@@ -220,16 +220,19 @@ export default function Mygetaways() {
 
   return (
     <>
-      <Grid container rowSpacing={1} columnSpacing={{ xs: 1, sm: 2, md: 3 }}>
-        <AdminSideBar />
-        <Grid size={{ xs:10 }} spacing={1} className="section blueBg">
-          {/* <SearchBar onSearch={handleSearchFromBar} /> */}
+      <Grid container rowSpacing={1} columnSpacing={{ xs: 1, sm: 2, md: 3 }} >
+        {/* <AdminSideBar /> */}
+        <Grid size={{ xs:1 }}/>
+        <Grid size={{ xs:10 }} 
+          spacing={1} 
+          className="section blueBg">
+          <SearchBar onSearch={handleSearchFromBar} />
           <Box>
             <Box sx={{ mb: 3 }}>
-              <h4>My getaways</h4>
+              {/* <h4>My getaways</h4> */}
               {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
               {isOfflineMode && <Alert severity="warning" sx={{ mb: 2 }}>Showing local preview data. Backend connection failed.</Alert>}
-              <Typography sx={{ mb: 1 }}>
+              <Typography variant="subtitle1" sx={{ mt:"20px"}}>
                 {getaways.length > 0
                   ? `${isOfflineMode ? 'Local matches near cityName' : 'Getaways offers'}: ${getaways.length}`
                   // at {cityName}

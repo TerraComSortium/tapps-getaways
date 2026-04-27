@@ -12,6 +12,7 @@ import { ErrorBoundary } from "./components/ErrorBoundary";
 import Landing from './views/Landing'
 import Login from './views/Login';
 import Mygetaways from './views/Mygetaways';
+import Getaways from './views/Getaways';
 import BookGetaway from './views/BookGetaway';
 import Reservations from './views/Reservations';
 import Payment from './views/Payment';
@@ -104,8 +105,10 @@ function App() {
                 <Routes>
                   <Route path="/" element={<Landing />} />
                   <Route path="/login" element={<Login />} />
-                  <Route path="/getaways" element={<Mygetaways />} />
-                  <Route path="/getawaydetail" element={<GetawayDetail />} />
+                  {/* <Route path="/getaways" element={<Mygetaways />} /> */}
+                  <Route path="/getaways" element={<Getaways/>} />
+                  <Route path="/mygetaways" element={<Mygetaways/>}/>
+                  <Route path="/getawaydetail" element={<GetawayDetail/>} />
                   <Route path="/bookgetaway" element={<BookGetaway />} />
                   <Route path="/payment" element={<Payment />} />
                   <Route path="/paid" element={<Paid />} />

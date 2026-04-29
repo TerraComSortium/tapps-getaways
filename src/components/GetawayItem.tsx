@@ -4,6 +4,7 @@ import SportsTennisIcon from '@mui/icons-material/SportsTennis';
 import prevPhoto from '../assets/backgrounds/hotel.jpg';
 import '../App.css';
 import Chip from '@mui/material/Chip';
+import { useAuthRole } from '../hooks/useAuthRole';
 
 const isPhotoUrl = (url: string): boolean => {
   if (!url) return false;
@@ -21,18 +22,20 @@ interface GetawayItemProps {
 }
 
 function GetawayItem({ name, dates, lodgingOptions, sport, galleryPhotos, onViewDetails, onBookNow }: GetawayItemProps) {
+  const { role, isLoading } = useAuthRole();
+  console.log("Estado de carga:", isLoading, "Rol recibido:", role);
   const navigate = useNavigate();
-  // const toGetaway = () => {
-  //   navigate('/getawaydetail');
-  // };
 
+  //handlers de navegacion
   const editGetaway = () => {
     navigate('/creategetaway');
   };
-
   const bookings = () => {
     navigate('/reservations');
   };
+  // const toGetaway = () => {
+    //   navigate('/getawaydetail');
+    // };
 
   //previewImg Check
   const getDisplayImage = (): string => {
@@ -47,6 +50,7 @@ function GetawayItem({ name, dates, lodgingOptions, sport, galleryPhotos, onView
   };
 
   const imageUrl = getDisplayImage();
+  if(isLoading){ return null; }
 
   return (
     <>
@@ -97,23 +101,27 @@ function GetawayItem({ name, dates, lodgingOptions, sport, galleryPhotos, onView
           </Box>
           {/* <Box component="p" sx={{ fontSize: 14, color: "black", m: '10px 0'}}> {description} </Box> */}
           <Box sx={{ display: "flex", alignItems: "center" }}>
-            <Button disableElevation
-              sx={{
-                width: 120,
-                padding:'0 5', borderRadius: '30px',
-                bgcolor:'#3C1C91', color: '#fff',
-                fontVariantCaps: 'normal', textTransform: 'none',
-              }}
-              onClick={onBookNow}
-            > Book now </Button>
-            <Button onClick={ bookings } disableElevation
-              sx={{
-                width: 136, m: '0 0.5rem',
-                borderRadius: '30px',
-                bgcolor: '#3C1C91', color: '#fff',
-                fontVariantCaps: 'normal', textTransform: 'none',
-              }}
-            > Reservations </Button>
+            {role === 'user' && (
+              <Button disableElevation
+                sx={{
+                  width: 120,
+                  padding:'0 5', borderRadius: '30px',
+                  bgcolor:'#3C1C91', color: '#fff',
+                  fontVariantCaps: 'normal', textTransform: 'none',
+                }}
+                onClick={onBookNow}
+              > Book now </Button>
+            )}
+            {role === 'admin' && (
+              <Button onClick={ bookings } disableElevation
+                sx={{
+                  width: 136, m: '0 0.5rem',
+                  borderRadius: '30px',
+                  bgcolor: '#3C1C91', color: '#fff',
+                  fontVariantCaps: 'normal', textTransform: 'none',
+                }}
+              > Reservations </Button>
+            )}
           </Box>
         </CardContent>
         <Box sx={{ width: 300, flexShrink: 0, position: 'relative'}}>
@@ -131,6 +139,7 @@ function GetawayItem({ name, dates, lodgingOptions, sport, galleryPhotos, onView
             width: '100%', height: '100%',
             justifyContent: 'center', alignItems: 'center'
           }}>
+          {role === 'admin' && (
             <Button onClick={editGetaway} disableElevation
               sx={{
                 padding: '8px 24px',
@@ -140,6 +149,7 @@ function GetawayItem({ name, dates, lodgingOptions, sport, galleryPhotos, onView
               }}
             > Edit getaway
             </Button>
+          )}
           </Box>
       </Box>
     </Card>

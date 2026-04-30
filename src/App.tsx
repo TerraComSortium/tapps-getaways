@@ -23,6 +23,7 @@ import { AppConfigProvider } from "./contexts/AppConfigContext";
 import { FormDataProvider, useFormData } from './contexts/FormDataContext';
 import { useWatchLocation } from './hooks/useWatchLocation';
 import { useUserStore } from './store/useUserStore';
+import { AuthProvider } from './contexts/AuthContext';
 
 const API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "";
 const GOOGLE_MAPS_LIBRARIES = ['places'];
@@ -96,32 +97,34 @@ function App() {
   }, [userLocation, userAddress, setUserAddress]);
   return (
     <>
-      <FormDataProvider>
-        <ErrorBoundary>
-          <AppConfigProvider>
-            <APIProvider apiKey={API_KEY} version="quarterly" libraries={GOOGLE_MAPS_LIBRARIES}>
-              <Router>
-                <Navbar/>
-                <Routes>
-                  <Route path="/" element={<Landing />} />
-                  <Route path="/login" element={<Login />} />
-                  {/* <Route path="/getaways" element={<Mygetaways />} /> */}
-                  <Route path="/getaways" element={<Getaways/>} />
-                  <Route path="/mygetaways" element={<Mygetaways/>}/>
-                  <Route path="/getawaydetail" element={<GetawayDetail/>} />
-                  <Route path="/bookgetaway" element={<BookGetaway />} />
-                  <Route path="/payment" element={<Payment />} />
-                  <Route path="/paid" element={<Paid />} />
-                  <Route path="/reservations" element={<Reservations />} />
-                  <Route path="/creategetaway" element={ <CreateGetaway/> } />
-                  <Route path="/data-view" element={<DataViewWrapper />} />
-                </Routes>
-                <Footer/>
-              </Router>
-            </APIProvider>
-          </AppConfigProvider>
-        </ErrorBoundary>
-      </FormDataProvider>
+      <AuthProvider>
+        <FormDataProvider>
+          <ErrorBoundary>
+            <AppConfigProvider>
+              <APIProvider apiKey={API_KEY} version="quarterly" libraries={GOOGLE_MAPS_LIBRARIES}>
+                <Router>
+                  <Navbar/>
+                  <Routes>
+                    <Route path="/" element={<Landing />} />
+                    <Route path="/login" element={<Login />} />
+                    {/* <Route path="/getaways" element={<Mygetaways />} /> */}
+                    <Route path="/getaways" element={<Getaways/>} />
+                    <Route path="/mygetaways" element={<Mygetaways/>}/>
+                    <Route path="/getawaydetail" element={<GetawayDetail/>} />
+                    <Route path="/bookgetaway" element={<BookGetaway />} />
+                    <Route path="/payment" element={<Payment />} />
+                    <Route path="/paid" element={<Paid />} />
+                    <Route path="/reservations" element={<Reservations />} />
+                    <Route path="/creategetaway" element={ <CreateGetaway/> } />
+                    <Route path="/data-view" element={<DataViewWrapper />} />
+                  </Routes>
+                  <Footer/>
+                </Router>
+              </APIProvider>
+            </AppConfigProvider>
+          </ErrorBoundary>
+        </FormDataProvider>
+      </AuthProvider>
     </>
   )
 }

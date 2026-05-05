@@ -7,7 +7,7 @@ const firebaseConfig = {
   projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
   appId: import.meta.env.VITE_FIREBASE_APP_ID,
 };
-console.log(firebaseConfig)
+// console.log(firebaseConfig)
 const app = initializeApp(firebaseConfig);
 
 export const auth = getAuth(app);

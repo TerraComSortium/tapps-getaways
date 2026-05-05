@@ -1,3 +1,4 @@
+import { api } from '../api/api';
 import type {
   GetawayPayload,
   Getaway,
@@ -12,62 +13,66 @@ const ENDPOINTS = {
 };
 
 async function isBackendAvailable(url: string): Promise<boolean> {
-    try {
-      const res = await fetch(url, { method: "HEAD" });
-      return res.ok;
-    } catch {
-      return false;
-    }
-  }
-
-
-export async function handleGetawaySubmit(payload: GetawayPayload): Promise<SubmissionResult & { getawayId?: string }> {
-const backendAvailable = await isBackendAvailable(ENDPOINTS.CREATE);
-if (backendAvailable) {
-  const apiFormData = new FormData();
-
-  if (payload.galleryPhotos && Array.isArray(payload.galleryPhotos)) {
-    payload.galleryPhotos.forEach(file => {
-      apiFormData.append("galleryPhotos", file);
-    });
-  }
-
-  const payloadWithoutFiles = { ...payload };
-
-  // @ts-expect-error to exclude galleryPhotos and discounts
-  delete payloadWithoutFiles.galleryPhotos;
-  delete payloadWithoutFiles.discounts;
-
-  //send clean JSON data
-  apiFormData.append('data', JSON.stringify(payloadWithoutFiles));
-  const token = localStorage.getItem('token');
-
   try {
-    const response = await fetch(ENDPOINTS.CREATE, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`
-      },
-      body: apiFormData,
-    });
-
-    if (response.ok) {
-      // parsing to obtain id
-      const responseData = await response.json();
-      const newId = responseData.offer?.id || responseData._id || responseData.id;
-      console.log("Getaway successfully created with ID:", newId, "Data sent:", payload);
-      return { payload, status: 'SUCCESS', statusCode: response.status, getawayId: newId };
-    } else {
-      console.error("API Error:", response.status, await response.text());
-      console.log("Data attempted to send:", payload);
-      return { payload, status: 'API_ERROR', statusCode: response.status };
-    }
-  } catch (error) {
-    console.warn("Backend unreachable. Network or submission error:", error);
-    return { payload, status: 'NETWORK_ERROR', statusCode: null };
+    const res = await fetch(url, { method: "HEAD" });
+    return res.ok;
+  } catch {
+    return false;
   }
 }
-  else {
+
+export async function handleGetawaySubmit(payload: GetawayPayload): Promise<SubmissionResult & { getawayId?: string }> {
+  const backendAvailable = await isBackendAvailable(ENDPOINTS.CREATE);
+  if (backendAvailable) {
+    const apiFormData = new FormData();
+
+    if (payload.galleryPhotos && Array.isArray(payload.galleryPhotos)) {
+      payload.galleryPhotos.forEach(file => {
+        apiFormData.append("galleryPhotos", file);
+      });
+    }
+
+    const payloadWithoutFiles = { ...payload };
+
+    // @ts-expect-error to exclude galleryPhotos and discounts
+    delete payloadWithoutFiles.galleryPhotos;
+    delete payloadWithoutFiles.discounts;
+
+    //send clean JSON data
+    apiFormData.append('data', JSON.stringify(payloadWithoutFiles));
+    const token = localStorage.getItem('token');
+
+    try {
+      const response = await api.post(ENDPOINTS.CREATE, {
+        body:apiFormData
+      }
+    );
+      console.log("Done:", response.data);
+
+      // const response = await fetch(ENDPOINTS.CREATE, {
+      //   method: 'POST',
+      //   headers: {
+      //     'Authorization': `Bearer ${token}`
+      //   },
+      //   body: apiFormData,
+      // });
+
+      if (response.ok) {
+        // parsing to obtain id
+        const responseData = await response.json();
+        const newId = responseData.offer?.id || responseData._id || responseData.id;
+        console.log("Getaway successfully created with ID:", newId, "Data sent:", payload);
+        return { payload, status: 'SUCCESS', statusCode: response.status, getawayId: newId };
+      } else {
+        console.error("API Error:", response.status, await response.text());
+        console.log("Data attempted to send:", payload);
+        return { payload, status: 'API_ERROR', statusCode: response.status };
+      }
+    } catch (error) {
+      console.warn("Backend unreachable. Network or submission error:", error);
+      return { payload, status: 'NETWORK_ERROR', statusCode: null };
+    }
+  } else {
     console.warn("Unavailable Backend, payload saved on localStorage.");
     const cleanPayload = { ...payload };
   
@@ -84,7 +89,7 @@ if (backendAvailable) {
   
     return { payload, status: 'LOCAL_SAVE', statusCode: null };
   }
-  }
+}
 
 export async function getGetaway(): Promise<GetawayPayload | null> {
   try {

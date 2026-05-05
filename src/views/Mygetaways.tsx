@@ -3,8 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { Box, Stack, Pagination, Typography, CircularProgress, Alert } from '@mui/material';
 import Grid from '@mui/material/Grid2';
 import AdminSideBar from '../components/AdminSidebar';
-import GetawayItem from '../components/GetawayItem';
-import SearchBar from '../components/SearchBar';
+import { GetawayItem } from '../components/GetawayItem';
+// import SearchBar from '../components/SearchBar';
 
 import type { Getaway } from '../types/getaway';
 import { useWatchLocation } from '../hooks/useWatchLocation';

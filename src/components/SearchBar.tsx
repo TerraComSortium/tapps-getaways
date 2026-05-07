@@ -12,7 +12,6 @@ import type { LocationEntry } from '../types/getaway';
 import { useUserStore } from '../store/useUserStore';
 import { sanitizeInput } from '../utils/validations';
 
-const GOOGLE_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "";
 interface SearchBarProps {
   onSearch?: (filters: {
     q?: string; // city: string;
@@ -28,6 +27,7 @@ export default function SearchBar({ onSearch }: SearchBarProps) {
   const navigate = useNavigate();
   const userAddress = useUserStore((state) => state.userAddress);
   const userLocation = useUserStore((state) => state.userLocation);
+  const geoError = useUserStore((state) => state.geoError);
 
   const [searchLocation, setSearchLocation] = useState<LocationEntry | null>(null);
   const [sport, setSport] = React.useState('');
@@ -48,10 +48,6 @@ export default function SearchBar({ onSearch }: SearchBarProps) {
   //initializing
   const todayObj = new Date();
   const today = formatLocalDate(todayObj);
-
-  const tomorrowObj = new Date();
-  tomorrowObj.setDate(tomorrowObj.getDate() + 1);
-  const tomorrow = formatLocalDate(tomorrowObj);
 
   const [arrival, setArrival] = React.useState('');
   const [departure, setDeparture] = React.useState('');
@@ -158,7 +154,6 @@ export default function SearchBar({ onSearch }: SearchBarProps) {
       <Grid container spacing={1} alignItems="flex-end" size={12} >
         <Grid size={{ xs:12, md:6, lg:4 }} >
           <AddressAutocomplete
-            apiKey={GOOGLE_API_KEY}
             onChange={handleMapsSearch}
             value={searchLocation}
             inputStyle={{
@@ -171,6 +166,11 @@ export default function SearchBar({ onSearch }: SearchBarProps) {
             label="Nearest city"
             labelColor='#B8FF00'
           />
+          {geoError && (
+            <Typography variant="caption" sx={{ color: '#FFD580', mt: 0.5, display: 'block' }}>
+              {geoError}
+            </Typography>
+          )}
         </Grid>
 
         <Grid size={{ xs:12, md:6, lg:4 }}>

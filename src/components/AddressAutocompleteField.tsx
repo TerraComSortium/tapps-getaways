@@ -1,7 +1,6 @@
 import { Control, Path, useController, FieldValues } from "react-hook-form";
 import { AddressAutocomplete } from '../components/AddressAutocomplete';
 import type { LocationEntry } from '../types/getaway';
-const GOOGLE_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "";
 
 const validateInput = (value: LocationEntry | undefined | null): boolean | string => {
   if (!value || !value.address) {
@@ -33,7 +32,6 @@ export function AddressAutocompleteField<T extends FieldValues>({
 
   return (
     <AddressAutocomplete
-      apiKey={GOOGLE_API_KEY}
       label={label}
       value={field.value}
       showCurrentLocationBtn

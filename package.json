@@ -15,7 +15,6 @@
     "@hookform/resolvers": "^5.0.1",
     "@mui/icons-material": "^6.5.0",
     "@mui/material": "^6.5.0",
-    "@react-google-maps/api": "^2.20.7",
     "@vis.gl/react-google-maps": "^1.7.1",
     "axios": "^1.15.0",
     "firebase": "^12.3.0",

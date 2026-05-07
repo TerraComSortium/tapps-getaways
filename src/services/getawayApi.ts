@@ -40,35 +40,21 @@ export async function handleGetawaySubmit(payload: GetawayPayload): Promise<Subm
 
     //send clean JSON data
     apiFormData.append('data', JSON.stringify(payloadWithoutFiles));
-    const token = localStorage.getItem('token');
-
     try {
-      const response = await api.post(ENDPOINTS.CREATE, {
-        body:apiFormData
-      }
-    );
-      console.log("Done:", response.data);
+      const response = await api.post(ENDPOINTS.CREATE, apiFormData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
 
-      // const response = await fetch(ENDPOINTS.CREATE, {
-      //   method: 'POST',
-      //   headers: {
-      //     'Authorization': `Bearer ${token}`
-      //   },
-      //   body: apiFormData,
-      // });
-
-      if (response.ok) {
-        // parsing to obtain id
-        const responseData = await response.json();
-        const newId = responseData.offer?.id || responseData._id || responseData.id;
-        console.log("Getaway successfully created with ID:", newId, "Data sent:", payload);
-        return { payload, status: 'SUCCESS', statusCode: response.status, getawayId: newId };
-      } else {
-        console.error("API Error:", response.status, await response.text());
-        console.log("Data attempted to send:", payload);
-        return { payload, status: 'API_ERROR', statusCode: response.status };
+      const responseData = response.data;
+      const newId = responseData?.offer?.id || responseData?._id || responseData?.id;
+      console.log("Getaway successfully created with ID:", newId, "Data sent:", payload);
+      return { payload, status: 'SUCCESS', statusCode: response.status, getawayId: newId };
+    } catch (error: any) {
+      const status = error?.response?.status ?? null;
+      if (status) {
+        console.error("API Error:", status, error?.response?.data);
+        return { payload, status: 'API_ERROR', statusCode: status };
       }
-    } catch (error) {
       console.warn("Backend unreachable. Network or submission error:", error);
       return { payload, status: 'NETWORK_ERROR', statusCode: null };
     }

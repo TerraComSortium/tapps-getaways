@@ -8,6 +8,7 @@ import Footer from './components/Footer';
 import GetawayDetail from './components/GetawayDetail';
 import CreateGetaway from './components/CreateGetaway';
 import { ErrorBoundary } from "./components/ErrorBoundary";
+import ProtectedRoute from './components/ProtectedRoute';
 
 import Landing from './views/Landing'
 import Login from './views/Login';
@@ -109,13 +110,13 @@ function App() {
                     <Route path="/login" element={<Login />} />
                     {/* <Route path="/getaways" element={<Mygetaways />} /> */}
                     <Route path="/getaways" element={<Getaways/>} />
-                    <Route path="/mygetaways" element={<Mygetaways/>}/>
+                    <Route path="/mygetaways" element={<ProtectedRoute><Mygetaways/></ProtectedRoute>}/>
                     <Route path="/getawaydetail" element={<GetawayDetail/>} />
-                    <Route path="/bookgetaway" element={<BookGetaway />} />
+                    <Route path="/bookgetaway" element={<ProtectedRoute><BookGetaway /></ProtectedRoute>} />
                     <Route path="/payment" element={<Payment />} />
                     <Route path="/paid" element={<Paid />} />
-                    <Route path="/reservations" element={<Reservations />} />
-                    <Route path="/creategetaway" element={ <CreateGetaway/> } />
+                    <Route path="/reservations" element={<ProtectedRoute requiredRole="admin"><Reservations /></ProtectedRoute>} />
+                    <Route path="/creategetaway" element={<ProtectedRoute><CreateGetaway/></ProtectedRoute>} />
                     <Route path="/data-view" element={<DataViewWrapper />} />
                   </Routes>
                   <Footer/>

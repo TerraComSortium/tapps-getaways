@@ -9,7 +9,7 @@ import Grid from '@mui/material/Grid2';
 export default function AdminSideBar() {
   return (
     <>
-      <Grid size={{ xs:2 }}>
+      <Grid size={{ xs: 12, sm: 2 }}>
         <Box
           sx={{
             display: 'flex', flexDirection: 'column',
@@ -18,7 +18,7 @@ export default function AdminSideBar() {
             mt: 2.6
           }}>
           <Button
-            type="link"
+            component="a"
             disableElevation
             variant="contained"
             href="/getaways"
@@ -32,7 +32,7 @@ export default function AdminSideBar() {
             My getaways
           </Button>
           <Button
-            type="link"
+            component="a"
             disableElevation
             variant="contained"
             href="/creategetaway"

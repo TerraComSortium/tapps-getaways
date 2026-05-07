@@ -1,8 +1,6 @@
-import 
-// React, 
-{ useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import {
-  Box, Link, Button, Dialog, DialogTitle, DialogContent, IconButton, Typography, Divider
+  Box, Button, Dialog, DialogTitle, DialogContent, IconButton, Typography, Divider
 } from '@mui/material';
 import Grid from '@mui/material/Grid2';
 import { styled } from '@mui/material/styles';
@@ -13,6 +11,7 @@ import TableBody from '@mui/material/TableBody';
 import TableContainer from '@mui/material/TableContainer';
 import TableCell, { tableCellClasses } from '@mui/material/TableCell';
 import Paper from '@mui/material/Paper';
+import Link from '@mui/material/Link';
 import CloseIcon from '@mui/icons-material/Close';
 import CreditCardIcon from '@mui/icons-material/CreditCard';
 import AdminSideBar from '../components/AdminSidebar';
@@ -71,7 +70,6 @@ interface SelectedData {
   total: number;
 }
 
-
 function Reservations() {
   const [open, setOpen] = useState(false);
   const [selectedRow, setSelectedRow] = useState<RowData | null>(null);
@@ -96,11 +94,11 @@ function Reservations() {
 
   return (
     <>
-      <Grid container columnSpacing={{ xs: 1, sm: 2, md: 3 }} >
+      <Grid container columnSpacing={{ xs: 1, sm: 2, md: 3 }}>
         <AdminSideBar />
-        <Grid size={{ xs: 10 }} spacing={2} justifyContent="center" className="section blueBg">
+        <Grid size={{ xs: 12, sm: 10 }} className="section blueBg">
           <Box>
-            <h3>Getaway's players list</h3>
+            <Typography variant="h6">Getaway's players list</Typography>
           </Box>
           <TableContainer component={Paper}>
             <Table sx={{ minWidth: 700 }} aria-label="customized table">
@@ -131,14 +129,12 @@ function Reservations() {
                     <StyledTableCell align="center">
                       <Button
                         onClick={() => handleOpenDialog(row)}
+                        startIcon={<CreditCardIcon />}
                         sx={{
-                          padding: '0px 18px 0px 9px',
+                          padding: '0px 18px',
                           bgcolor: '#3C1C91', color: '#FFF', fontWeight: 'medium', textTransform: 'none',
                         }}
                       >
-                        <IconButton aria-label="add" sx={{ color: "#fff" }}>
-                          <CreditCardIcon />
-                        </IconButton>
                         Sale details
                       </Button>
                     </StyledTableCell>
@@ -153,9 +149,7 @@ function Reservations() {
       {/* Receipt Modal */}
       <Dialog open={open} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
         <DialogTitle>
-          <center>
-            <Typography variant="subtitle1">Sale Details</Typography>
-          </center>
+          <Typography variant="subtitle1" sx={{ textAlign: 'center' }}>Sale Details</Typography>
           <IconButton
             aria-label="close"
             onClick={handleCloseDialog}
@@ -170,20 +164,35 @@ function Reservations() {
           </IconButton>
         </DialogTitle>
         <DialogContent>
-          {selectedRow && selectedData && (
+          {selectedRow && (
             <>
               <Typography variant="body1">Player's name: {selectedRow.playerName}</Typography>
-              <Typography variant="body1">Lodging option: {selectedData.lodgingOption}</Typography>
-              <Typography variant="body1">
-                Add Ons:
-                {selectedData.amenities.specialDinner && ' Special Dinner,'}
-                {selectedData.amenities.meetGreet && ' Meet & Greet,'}
-                {selectedData.amenities.tennisClass && ' Tennis Class'}
-              </Typography>
-              <Divider sx={{ my: 2 }} />
-              <Typography variant="subtitle1">Payment details</Typography>
-              <Typography variant="body1">Taxes: ${selectedData.taxes.toFixed(2)}</Typography>
-              <Typography variant="body1">Total: ${selectedData.total.toFixed(2)}</Typography>
+              <Typography variant="body1">City: {selectedRow.city}</Typography>
+              <Typography variant="body1">Payment state: {selectedRow.paymentState}</Typography>
+              <Typography variant="body1">Price: ${selectedRow.price}</Typography>
+
+              {selectedData ? (
+                <>
+                  <Divider sx={{ my: 2 }} />
+                  <Typography variant="subtitle1">Booking details</Typography>
+                  <Typography variant="body1">Lodging option: {selectedData.lodgingOption}</Typography>
+                  <Typography variant="body1">
+                    Add Ons:
+                    {selectedData.amenities.specialDinner && ' Special Dinner,'}
+                    {selectedData.amenities.meetGreet && ' Meet & Greet,'}
+                    {selectedData.amenities.tennisClass && ' Tennis Class'}
+                  </Typography>
+                  <Divider sx={{ my: 2 }} />
+                  <Typography variant="subtitle1">Payment details</Typography>
+                  <Typography variant="body1">Taxes: ${selectedData.taxes.toFixed(2)}</Typography>
+                  <Typography variant="body1">Total: ${selectedData.total.toFixed(2)}</Typography>
+                </>
+              ) : (
+                <>
+                  <Divider sx={{ my: 2 }} />
+                  <Typography variant="body2" color="text.secondary">No booking details available.</Typography>
+                </>
+              )}
             </>
           )}
         </DialogContent>

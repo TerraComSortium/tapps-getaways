@@ -1,4 +1,5 @@
 import { api } from '../api/api';
+import axios from 'axios';
 import type {
   GetawayPayload,
   Getaway,
@@ -7,87 +8,41 @@ import type {
 import type { SubmissionResult } from '../contexts/FormDataContext';
 const BASE_URL = "/api/getaways";
 const ENDPOINTS = {
-  CREATE: `${BASE_URL}/create`,
   LIST: `${BASE_URL}/`, //getGetaways
+  CREATE: `${BASE_URL}/create`,
   CREATE_COUPONS: `${BASE_URL}/coupons`,
 };
 
-async function isBackendAvailable(url: string): Promise<boolean> {
-  try {
-    const res = await fetch(url, { method: "HEAD" });
-    return res.ok;
-  } catch {
-    return false;
-  }
-}
-
 export async function handleGetawaySubmit(payload: GetawayPayload): Promise<SubmissionResult & { getawayId?: string }> {
-  const backendAvailable = await isBackendAvailable(ENDPOINTS.CREATE);
-  if (backendAvailable) {
-    const apiFormData = new FormData();
+  const apiFormData = new FormData();
+  if(payload.galleryPhotos && Array.isArray(payload.galleryPhotos)){
+    payload.galleryPhotos.forEach(file => apiFormData.append("galleryPhotos", file));
+  }
 
-    if (payload.galleryPhotos && Array.isArray(payload.galleryPhotos)) {
-      payload.galleryPhotos.forEach(file => {
-        apiFormData.append("galleryPhotos", file);
-      });
-    }
+  const payloadWithoutFiles = { ...payload };
+  //@ts-expect-error to exclude photos and discounts
+  delete payloadWithoutFiles.galleryPhotos;
+  delete payloadWithoutFiles.discounts;
 
-    const payloadWithoutFiles = { ...payload };
+  apiFormData.append('data', JSON.stringify(payloadWithoutFiles));
 
-    // @ts-expect-error to exclude galleryPhotos and discounts
-    delete payloadWithoutFiles.galleryPhotos;
-    delete payloadWithoutFiles.discounts;
+  try {
+    const response = await api.post(ENDPOINTS.CREATE, apiFormData);
+    const responseData = response.data;
+    const newId = responseData.offer?._id || responseData.offer?.id || responseData._id || responseData.id;
 
-    //send clean JSON data
-    apiFormData.append('data', JSON.stringify(payloadWithoutFiles));
-    const token = localStorage.getItem('token');
-
-    try {
-      const response = await api.post(ENDPOINTS.CREATE, {
-        body:apiFormData
+    return{ payload, status:'SUCCESS', statusCode:response.status, getawayId:newId };
+  } catch (error: unknown){
+    if(axios.isAxiosError(error)){
+      if (!error.response) {
+        console.warn("Backend unavailable, save at LocalStorage");
+        // saveToLocalStorage(payload);
+        return { payload, status: 'LOCAL_SAVE', statusCode: null };
       }
-    );
-      console.log("Done:", response.data);
-
-      // const response = await fetch(ENDPOINTS.CREATE, {
-      //   method: 'POST',
-      //   headers: {
-      //     'Authorization': `Bearer ${token}`
-      //   },
-      //   body: apiFormData,
-      // });
-
-      if (response.ok) {
-        // parsing to obtain id
-        const responseData = await response.json();
-        const newId = responseData.offer?.id || responseData._id || responseData.id;
-        console.log("Getaway successfully created with ID:", newId, "Data sent:", payload);
-        return { payload, status: 'SUCCESS', statusCode: response.status, getawayId: newId };
-      } else {
-        console.error("API Error:", response.status, await response.text());
-        console.log("Data attempted to send:", payload);
-        return { payload, status: 'API_ERROR', statusCode: response.status };
-      }
-    } catch (error) {
-      console.warn("Backend unreachable. Network or submission error:", error);
-      return { payload, status: 'NETWORK_ERROR', statusCode: null };
+      //error(400-500)
+      return { payload, status: 'API_ERROR', statusCode: error.response.status };
     }
-  } else {
-    console.warn("Unavailable Backend, payload saved on localStorage.");
-    const cleanPayload = { ...payload };
-  
-    // @ts-expect-error to ignore galleryPhotos
-    delete cleanPayload.galleryPhotos;
-    const localItem = {
-      ...cleanPayload,
-      _id: `local_${Date.now()}`,
-      galleryPhotos: []
-    };
-  
-    const existingData = JSON.parse(localStorage.getItem('getaways') || '[]');
-    localStorage.setItem('getaways', JSON.stringify([...existingData, localItem]));
-  
-    return { payload, status: 'LOCAL_SAVE', statusCode: null };
+    return { payload, status: 'NETWORK_ERROR', statusCode: null };
   }
 }
 

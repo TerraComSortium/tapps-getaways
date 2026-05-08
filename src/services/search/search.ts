@@ -1,27 +1,29 @@
-import api from "../../api/api";
+import { api } from "../../api/api";
 
-
-interface LocationI {
-    lat: string;
-    lng: string;
-    min: string;
-    max: string;
-}
-export const seachnearby = async(locations: LocationI)=>{
-    try {
-        const { data } = await api.get("/search/nearby", {
-            params: locations,
-        });
-
-        return data;
-    } catch (error: any) {
-        console.error('error in searchNearby')
-        throw new Error(error)
-    }
+interface NearbyParams {
+  lat: string;
+  lng: string;
+  min?: string;
+  max?: string;
 }
 
-export const seachFilter = async() => {}
+interface FilterParams {
+  sport?: string;
+  startDate?: string;
+  endDate?: string;
+}
 
-export const autocomplete = async() => {}
+export const searchNearby = async (params: NearbyParams) => {
+  const response = await api.get("/search/nearby", { params });
+  return response.data;
+};
 
-export const searchNearbyOffers = async() => {}
+export const searchFilter = async (params: FilterParams) => {
+  const response = await api.get("/search/filter", { params });
+  return response.data;
+};
+
+export const searchAutocomplete = async (q: string) => {
+  const response = await api.get("/search/autocomplete", { params: { q } });
+  return response.data;
+};

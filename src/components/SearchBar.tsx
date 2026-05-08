@@ -145,7 +145,9 @@ export default function SearchBar({ onSearch }: SearchBarProps) {
         display: 'flex', flexDirection: 'column',
         bgcolor: '#3C1C91', color: 'white', borderRadius: '8px',
         p: { xs: 2, md: 4 },
-        gap: { xs: 0.5, md: 1 }
+        gap: { xs: 0.5, md: 1 },
+        width: '100%',
+        boxSizing: 'border-box',
       }}
     >
       <Typography variant="h6" component="h6" sx={{ margin:0, padding:0, fontSize: { xs: '0.9rem', md: '1rem' }, fontWeight: 'medium' }} > Search your next Racquets!™ getaway | Live the full experience

@@ -13,7 +13,7 @@ import MainMap from '../components/MainMap';
 const LandingPage = () => {
   return (
     <>
-      <Box sx={{ width: '100%', position: 'relative' }}>
+      <Box sx={{ width: '100%', position: 'relative', minHeight: { xs: 260, sm: 'auto' } }}>
         <Box sx={{ width: '100%', height: 'auto', overflow: 'hidden' }}>
           <img alt="tennis player" src={background1}
             style={{
@@ -28,6 +28,8 @@ const LandingPage = () => {
           sx={{
             display: 'flex', justifyContent: 'center', position: 'absolute',
             top: 0, left: 0, right: 0, zIndex: 10, pt: 3,
+            px: { xs: 1, sm: 2, md: 4 },
+            boxSizing: 'border-box',
             background: 'linear-gradient(to bottom, rgba(0,0,0,0.3), transparent)'
           }}
         >
@@ -94,18 +96,18 @@ const LandingPage = () => {
             Join us and enjoy exclusive benefits!
           </Typography>
         </section>
-        <Grid container direction="row" justifyContent="center" alignItems="center" spacing={2}>
-          <Grid size={{ xs: 2 }}>
-            <img src={GetawaysLogo} style={{ height: '36px' }} className="logo" alt="Club Logo" />
+        <Grid container direction="row" justifyContent="center" alignItems="center" spacing={1}>
+          <Grid size={{ xs: 3, sm: 2 }}>
+            <img src={GetawaysLogo} style={{ height: '30px', maxWidth: '100%', objectFit: 'contain' }} className="logo" alt="Club Logo" />
           </Grid>
-          <Grid size={{ xs: 2 }}>
-            <img src={GetawaysLogo} style={{ height: '36px' }} className="logo" alt="Club Logo" />
+          <Grid size={{ xs: 3, sm: 2 }}>
+            <img src={GetawaysLogo} style={{ height: '30px', maxWidth: '100%', objectFit: 'contain' }} className="logo" alt="Club Logo" />
           </Grid>
-          <Grid size={{ xs: 2 }}>
-            <img src={GetawaysLogo} style={{ height: '36px' }} className="logo" alt="Club Logo" />
+          <Grid size={{ xs: 3, sm: 2 }}>
+            <img src={GetawaysLogo} style={{ height: '30px', maxWidth: '100%', objectFit: 'contain' }} className="logo" alt="Club Logo" />
           </Grid>
-          <Grid size={{ xs: 2 }}>
-            <img src={GetawaysLogo} style={{ height: '36px' }} className="logo" alt="Club Logo" />
+          <Grid size={{ xs: 3, sm: 2 }}>
+            <img src={GetawaysLogo} style={{ height: '30px', maxWidth: '100%', objectFit: 'contain' }} className="logo" alt="Club Logo" />
           </Grid>
         </Grid>
       </Box>
@@ -115,7 +117,7 @@ const LandingPage = () => {
           Nearby destinations in your area
         </Typography>
         <Grid container rowSpacing={1} columnSpacing={{ xs: 1, sm: 2, md: 3 }}>
-          <Grid>
+          <Grid size={{ xs: 12, md: 5 }}>
             <section className='section'>
               <ul>
                 <li>
@@ -139,10 +141,10 @@ const LandingPage = () => {
               >Explore Getaways</Button>
             </section>
           </Grid>
-          <Grid size={{ xs: 6 }}>
-            <section>
+          <Grid size={{ xs: 12, md: 6 }}>
+            <Box sx={{ height: { xs: 350, md: '70vh' }, width: '100%' }}>
               <MainMap />
-            </section>
+            </Box>
           </Grid>
         </Grid>
       </section>
@@ -152,7 +154,7 @@ const LandingPage = () => {
           Discover all the benefits you can enjoy
         </Typography>
         <section className='benefits'>
-          <Box sx={{ minWidth: 450 }}>
+          <Box sx={{ minWidth: { xs: 0, md: 380 }, width: { xs: '100%', md: 'auto' } }}>
             <Card variant="outlined"
               className='benefitsCards2'
               sx={{ border: 'solid 0.25em #00E392', borderRadius: '15px' }}>
@@ -184,7 +186,7 @@ const LandingPage = () => {
               </CardContent>
             </Card>
           </Box>
-          <Box sx={{ minWidth: 200 }}>
+          <Box sx={{ minWidth: { xs: 0, md: 200 }, width: { xs: '100%', md: 'auto' } }}>
             <Card variant="outlined"
               className='benefitsCards2'
               sx={{ border: 'solid 0.25em #C9F305', borderRadius: '15px' }}>

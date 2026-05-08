@@ -4,93 +4,136 @@ body, html, #root {
   padding: 0;
 }
 
-.ItemCenter{
+.ItemCenter {
   color: #fff;
   text-align: center;
 }
-.title{
+
+.title {
   color: #3C1C91;
   text-align: center;
 }
-.title2{
+
+.title2 {
   color: #fff;
   text-align: center;
 }
-.section{
+
+.section {
   padding: 30px;
   justify-content: center;
 }
 
-.cards{
+@media (max-width: 600px) {
+  .section {
+    padding: 16px;
+  }
+}
+
+.cards {
   display: flex;
-  flex-direction: 'row';
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 16px;
   margin: 0 10px;
   align-content: center;
   justify-content: center;
   text-align: center;
 }
 
-.purpBtn2{
+.purpBtn2 {
   color: #C9F305;
-  /* text-align: center; */
   background-color: #3C1C91;
   font-weight: bold;
 }
-.blueBg{
+
+.blueBg {
   background-color: #E1F5F4;
 }
-.rcnets{
+
+.rcnets {
   padding: 30px 0;
 }
+
+@media (max-width: 600px) {
+  .rcnets {
+    padding: 16px 0;
+  }
+}
+
 .label {
   color: #3C1C91;
   font-size: 16px;
   font-weight: bold;
 }
 
-.benefits{
+.benefits {
   display: flex;
   flex-direction: row;
+  flex-wrap: wrap;
+  gap: 20px;
   align-items: flex-start;
   align-content: center;
   justify-content: center;
   color: #fff;
   background-color: #3C1C91;
-  marginTop: 20px;
+  margin-top: 20px;
   padding: 30px;
+}
 
-  h5{
-    font-size: 20px;
-    font-weight: bold;
-    text-align: center;
-    color: #3C1C91;
-  }
-  Button{
-    color: #3C1C91;
-    text-align: center;
+@media (max-width: 600px) {
+  .benefits {
+    flex-direction: column;
+    align-items: center;
+    padding: 16px;
+    gap: 12px;
   }
 }
 
-.benefitsSection{
+.benefits h5 {
+  font-size: 20px;
+  font-weight: bold;
+  text-align: center;
+  color: #3C1C91;
+}
+
+.benefitsSection {
   background-color: #3C1C91;
-  marginTop: 20px;
+  margin-top: 20px;
   padding: 20px;
 }
 
-.benefitsCards{
+@media (max-width: 600px) {
+  .benefitsSection {
+    padding: 12px;
+  }
+}
+
+.benefitsCards {
   display: flex;
-  flex-direction: 'row';
+  flex-direction: row;
+  flex-wrap: wrap;
   align-items: center;
   align-content: center;
   justify-content: center;
 }
 
-.benefitsCards2{
+.benefitsCards2 {
   margin: 0 10px;
   max-width: 400px;
+  width: 100%;
+  flex: 1 1 280px;
 }
 
-//login
+@media (max-width: 600px) {
+  .benefitsCards2 {
+    margin: 0;
+    max-width: 100%;
+    flex: 1 1 100%;
+  }
+}
+
+/* login */
 .background-container {
   background-image: url('./assets/backgrounds/RappsCourtsCOLLAGEdarker.png');
   background-position: center;
@@ -101,39 +144,35 @@ body, html, #root {
   left: 0;
   width: 100%;
   height: 100%;
-  z-index: -1; /* background content */
+  z-index: -1;
 }
 
-//getawayDetail
-.titleLeft{
+/* getawayDetail */
+.titleLeft {
   margin: 0px;
   padding-bottom: 7px;
 }
 
-.title5{
+.title5 {
   color: #3C1C91;
-  margin:0px;
-}
-.title4{
-  color: #3C1C91;
-  margin:0px;
-}
-
-.titleLeft{
   margin: 0px;
-  padding-bottom: 7px;
 }
 
-.inline{
+.title4 {
+  color: #3C1C91;
+  margin: 0px;
+}
+
+.inline {
   display: inline-block;
-  /* 1px solid #000; */
 }
-.inline > h4 { display: inline-block;
+
+.inline > h4 {
+  display: inline-block;
   color: #3C1C91;
-  margin:0px;
+  margin: 0px;
+}
 
-} */
-
-.prices{
+.prices {
   margin: 0px;
 }

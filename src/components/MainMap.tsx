@@ -54,7 +54,7 @@ export default function MainMap() {
 
   return (
     <Map
-      style={{ width: '100%', height: '100vh' }}
+      style={{ width: '100%', height: '100%' }}
       defaultCenter={DEFAULT_CENTER}
       defaultZoom={15}
       // VITE_GOOGLE_MAPS_ID='cbe986196ecd68d9' ->  copy this line to .env

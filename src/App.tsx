@@ -25,6 +25,7 @@ import { FormDataProvider, useFormData } from './contexts/FormDataContext';
 import { useWatchLocation } from './hooks/useWatchLocation';
 import { useUserStore } from './store/useUserStore';
 import { AuthProvider } from './contexts/AuthContext';
+import TestApi from './views/TestApi';
 
 const API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "";
 const GOOGLE_MAPS_LIBRARIES = ['places'];
@@ -118,6 +119,7 @@ function App() {
                     <Route path="/reservations" element={<ProtectedRoute requiredRole="admin"><Reservations /></ProtectedRoute>} />
                     <Route path="/creategetaway" element={<ProtectedRoute><CreateGetaway/></ProtectedRoute>} />
                     <Route path="/data-view" element={<DataViewWrapper />} />
+                    <Route path='/test-api' element={<TestApi/>} />
                   </Routes>
                   <Footer/>
                 </Router>

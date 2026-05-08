@@ -31,7 +31,7 @@ const GOOGLE_MAPS_LIBRARIES = ['places'];
 const DataViewWrapper: React.FC = () => {
   const { submissionData } = useFormData();
   if (!submissionData) {
-    return <div>No data available. Please fill the form first.</div>;
+    return <div style={{ padding: '16px' }}>No data available. Please fill the form first.</div>;
   }
   return <DataView result={submissionData} />;
 };

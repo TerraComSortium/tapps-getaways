@@ -83,7 +83,7 @@ export default function Mygetaways() {
     <>
       <Grid container rowSpacing={1} columnSpacing={{ xs: 1, sm: 2, md: 3 }}>
         <AdminSideBar />
-        <Grid size={{ xs: 10 }} className="section blueBg">
+        <Grid size={{ xs: 12, sm: 10 }} className="section blueBg">
           <Box>
             <Box sx={{ mb: 3 }}>
               <Typography variant="h6" sx={{ mb: 1, fontWeight: 'bold' }}>My getaways</Typography>

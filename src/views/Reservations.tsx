@@ -100,7 +100,7 @@ function Reservations() {
           <Box>
             <Typography variant="h6">Getaway's players list</Typography>
           </Box>
-          <TableContainer component={Paper}>
+          <TableContainer component={Paper} sx={{ overflowX: 'auto' }}>
             <Table sx={{ minWidth: 700 }} aria-label="customized table">
               <TableHead>
                 <TableRow>

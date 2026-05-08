@@ -153,8 +153,8 @@ export default function SearchBar({ onSearch }: SearchBarProps) {
       <Typography variant="h6" component="h6" sx={{ margin:0, padding:0, fontSize: { xs: '0.9rem', md: '1rem' }, fontWeight: 'medium' }} > Search your next Racquets!™ getaway | Live the full experience
       </Typography>
 
-      <Grid container spacing={1} alignItems="flex-end" size={12} >
-        <Grid size={{ xs:12, md:6, lg:4 }} >
+      <Grid container spacing={2} alignItems="flex-end" size={12} >
+        <Grid size={{ xs:12, md:4 }} >
           <AddressAutocomplete
             onChange={handleMapsSearch}
             value={searchLocation}
@@ -168,22 +168,17 @@ export default function SearchBar({ onSearch }: SearchBarProps) {
             label="Nearest city"
             labelColor='#B8FF00'
           />
-          {geoError && (
-            <Typography variant="caption" sx={{ color: '#FFD580', mt: 0.5, display: 'block' }}>
-              {geoError}
-            </Typography>
-          )}
         </Grid>
 
-        <Grid size={{ xs:12, md:6, lg:4 }}>
+        <Grid size={{ xs:12, md:4 }}>
           <Typography variant="body2" sx={{ color:'#B8FF00', mb: 0.5 }}> Date </Typography>
           <Box sx={{ display: 'flex',
             gap: { xs: 1, sm: 2 },
             bgcolor: 'white',
             borderRadius: '8px',
-            p: '0.2',
+            p: '4px',
             width: '100%',
-            height: { xs: '38px', sm: '48px' }
+            alignItems: 'center',
           }}>
             <TextField type="date" label="Arrival" value={arrival} variant="standard" fullWidth
               InputLabelProps={{ shrink: true }}
@@ -191,16 +186,12 @@ export default function SearchBar({ onSearch }: SearchBarProps) {
               inputProps={{ min: today }}
               sx={{
                 flex: 1,
-                m: '5px 2px',
-                borderRadius: '0 0 8px ',
-                width: { xs: '200px', sm: '240px' },
+                mx: '4px',
                 borderColor: '#3C1C91', color: 'black',
-                height: { xs: '90px', sm: '100px' },
                 '& .MuiInputBase-input': { p: 0.5, fontSize: { xs: '0.75rem', sm: '0.875rem'} },
                 '& .MuiInput-underline:before': { borderBottom: 'none' },
                 '& .MuiInput-underline:after': { borderBottom: 'none' },
                 '& .MuiInput-underline:hover:not(.Mui-disabled):before': { borderBottom: 'none' },
-
                 '& .MuiOutlinedInput-root': {
                   borderRadius: '8px',
                   height:{ xs: '38px', sm: '48px' },
@@ -217,8 +208,7 @@ export default function SearchBar({ onSearch }: SearchBarProps) {
               inputProps={{ min: arrival || today }}
               sx={{
                 flex: 1,
-                m: '5px 0',
-                width: { xs: '200px', sm: '240px' },
+                mx: '4px',
                 color: '#3C1C91',
                 '& .MuiInputBase-input': { p: 0.5, color: 'black', fontSize: { xs: '0.75rem', sm: '0.875rem' }, },
                 '& .MuiInput-underline:before': { borderBottom: 'none' },
@@ -234,7 +224,7 @@ export default function SearchBar({ onSearch }: SearchBarProps) {
           </Box>
         </Grid>
 
-        <Grid size={{ xs:12, sm:4 }} sx={{ display: 'flex', gap: 1 }}>
+        <Grid size={{ xs:12, md:4 }} sx={{ display: 'flex', gap: 1 }}>
           <Box sx={{ flexGrow: 1 }}>
             <Typography variant="body2" sx={{ color:'#B8FF00', mb: 0.5 }}> Sport </Typography>
             <FormControl fullWidth sx={{
@@ -275,6 +265,12 @@ export default function SearchBar({ onSearch }: SearchBarProps) {
           </Button>
         </Grid>
       </Grid>
+
+      {geoError && (
+        <Typography variant="caption" sx={{ color: '#FFD580', mt: 0.5, display: 'block' }}>
+          {geoError}
+        </Typography>
+      )}
 
       <Snackbar
         open={feedback.open}

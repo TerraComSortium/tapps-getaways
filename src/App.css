@@ -41,6 +41,18 @@ body, html, #root {
   text-align: center;
 }
 
+.card1 {
+  flex: 1 1 250px;
+  max-width: 300px;
+}
+
+@media (max-width: 600px) {
+  .card1 {
+    flex: 1 1 100%;
+    max-width: 100%;
+  }
+}
+
 .purpBtn2 {
   color: #C9F305;
   background-color: #3C1C91;

@@ -52,10 +52,19 @@ const Login: React.FC = () => {
       <div className="background-container"></div>
       <Container component="main" maxWidth="xs" style={{ position: 'relative' }}>
         <Box
-          sx={{ mt: 10, mb: 10, display: 'flex', flexDirection: 'column', alignItems: 'center' }}
+          sx={{
+            mt: { xs: 6, sm: 10 }, mb: { xs: 6, sm: 10 },
+            display: 'flex', flexDirection: 'column', alignItems: 'center',
+            bgcolor: 'rgba(20, 8, 60, 0.72)',
+            borderRadius: '16px',
+            px: { xs: 2, sm: 4 },
+            py: 4,
+            backdropFilter: 'blur(6px)',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.45)',
+          }}
         >
           <Typography component="h1" variant="h5" sx={{ color:'#C9F305', fontWeight:'bold' }}> Log in </Typography>
-          <Box component="form" onSubmit={handleSubmit(onSubmit)} noValidate sx={{ m: 1 }}>
+          <Box component="form" onSubmit={handleSubmit(onSubmit)} noValidate sx={{ m: 1, width: '100%' }}>
             <Controller name="email" defaultValue=""
               control={control}
               render={({ field }) => (
@@ -67,6 +76,27 @@ const Login: React.FC = () => {
                   autoFocus
                   error={!!errors.email}
                   helperText={errors.email ? errors.email.message : ''}
+                  InputLabelProps={{ shrink: true }}
+                  sx={{
+                    '& .MuiInputLabel-root': { color: '#C9F305' },
+                    '& .MuiInputLabel-root.Mui-focused': { color: '#C9F305' },
+                    '& .MuiInputLabel-root.MuiInputLabel-shrink': {
+                      backgroundColor: 'rgba(20, 8, 60, 0.85)',
+                      px: '4px',
+                      borderRadius: '2px',
+                    },
+                    '& .MuiFormHelperText-root': { color: '#ffb3b3' },
+                    '& .MuiOutlinedInput-root': { backgroundColor: 'rgba(255,255,255,0.08)' },
+                    '& .MuiInputBase-input': { color: '#fff' },
+                    '& .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(201,243,5,0.5)' },
+                    '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#C9F305' },
+                    '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#C9F305' },
+                    '& input:-webkit-autofill, & input:-webkit-autofill:hover, & input:-webkit-autofill:focus': {
+                      WebkitBoxShadow: '0 0 0 1000px rgba(20, 8, 60, 0.95) inset',
+                      WebkitTextFillColor: '#fff',
+                      caretColor: '#fff',
+                    },
+                  }}
                 />
               )}
             />
@@ -81,13 +111,34 @@ const Login: React.FC = () => {
                   autoComplete="current-password"
                   error={!!errors.password}
                   helperText={errors.password ? errors.password.message : ''}
+                  InputLabelProps={{ shrink: true }}
+                  sx={{
+                    '& .MuiInputLabel-root': { color: '#C9F305' },
+                    '& .MuiInputLabel-root.Mui-focused': { color: '#C9F305' },
+                    '& .MuiInputLabel-root.MuiInputLabel-shrink': {
+                      backgroundColor: 'rgba(20, 8, 60, 0.85)',
+                      px: '4px',
+                      borderRadius: '2px',
+                    },
+                    '& .MuiFormHelperText-root': { color: '#ffb3b3' },
+                    '& .MuiOutlinedInput-root': { backgroundColor: 'rgba(255,255,255,0.08)' },
+                    '& .MuiInputBase-input': { color: '#fff' },
+                    '& .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(201,243,5,0.5)' },
+                    '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#C9F305' },
+                    '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#C9F305' },
+                    '& input:-webkit-autofill, & input:-webkit-autofill:hover, & input:-webkit-autofill:focus': {
+                      WebkitBoxShadow: '0 0 0 1000px rgba(20, 8, 60, 0.95) inset',
+                      WebkitTextFillColor: '#fff',
+                      caretColor: '#fff',
+                    },
+                  }}
                 />
               )}
             />
             <Button type="submit" variant="contained" fullWidth
               className="greenBtn"
               sx={{
-                mt: 3, mb: 5, borderRadius: '8px', padding: '5px 15px', margin: '5 5px',
+                mt: 3, mb: 2, borderRadius: '8px', padding: '5px 15px',
                 bgcolor: '#3C1C91', color: '#FFF', fontWeight: 'bold',
                 textTransform: 'none',
                 ':hover': { bgcolor: 'white', color: '#3C1C91' }
@@ -96,21 +147,20 @@ const Login: React.FC = () => {
             <Grid container sx={{ marginTop: 2, display: 'flex', flexDirection: 'column', alignItems: 'center'}} >
               <Grid>
                 <Typography
-                  sx={{
-                    // color: '#fff',
-                    textDecoration: 'none' }}>
+                  sx={{ color: '#fff', textDecoration: 'none' }}>
                   Don't have a Racquets! AppSuite™ account?
                 </Typography>
               </Grid>
               <Grid
-                container direction="row" justifyContent="center" alignItems="center" spacing={10}
-                sx={{ flexGrow: 1, height: '30px' }}
+                container direction="row" justifyContent="center" alignItems="center"
+                spacing={{ xs: 2, sm: 4 }}
+                sx={{ flexGrow: 1, mt: 2 }}
               >
                 <Grid>
                   <Button startIcon={<ShopIcon />} target="_blank" variant="contained"
                     href="https://play.google.com/store/apps/details?id=com.terracomsortium.tapps&hl=es_CO"
                     sx={{
-                      mt: 3, mb: 5, borderRadius: '8px', padding: '5px 15px', margin: '5 5px',
+                      borderRadius: '8px', padding: '5px 15px',
                       bgcolor: '#3C1C91', color: '#FFF', fontWeight: 'bold',
                       textTransform: 'none',
                       ':hover': { bgcolor: 'white', color: '#3C1C91' }
@@ -121,7 +171,7 @@ const Login: React.FC = () => {
                   <Button startIcon={<AppleIcon />} target="_blank" variant="contained"
                     href="https://apps.apple.com/co/app/racquetsappsuite/id1592585843"
                     sx={{
-                      mt: 3, mb: 5, borderRadius: '8px', padding: '5px 15px', margin: '5 5px',
+                      borderRadius: '8px', padding: '5px 15px',
                       bgcolor: '#3C1C91', color: '#FFF', fontWeight: 'bold',
                       textTransform: 'none',
                       ':hover': { bgcolor: 'white', color: '#3C1C91' }

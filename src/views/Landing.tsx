@@ -43,7 +43,7 @@ const LandingPage = () => {
         </Typography>
         <div className='cards'>
           <div className='card1'>
-            <Card sx={{ width: 250, margin: '0 20px' }}>
+            <Card sx={{ width: { xs: '100%', sm: 250 }, margin: '0 auto' }}>
               <CardMedia
                 sx={{ height: 150 }}
                 image={clubView1}
@@ -57,7 +57,7 @@ const LandingPage = () => {
             </Card>
           </div>
           <div className='card1'>
-            <Card sx={{ width: 250, margin: '0 20px' }}>
+            <Card sx={{ width: { xs: '100%', sm: 250 }, margin: '0 auto' }}>
               <CardMedia
                 sx={{ height: 150 }}
                 image={clubView1}
@@ -71,7 +71,7 @@ const LandingPage = () => {
             </Card>
           </div>
           <div className='card1'>
-            <Card sx={{ width: 250, margin: '0 20px' }}>
+            <Card sx={{ width: { xs: '100%', sm: 250 }, margin: '0 auto' }}>
               <CardMedia
                 sx={{ height: 150 }}
                 image={clubView1}
@@ -154,7 +154,7 @@ const LandingPage = () => {
           Discover all the benefits you can enjoy
         </Typography>
         <section className='benefits'>
-          <Box sx={{ minWidth: { xs: 0, md: 380 }, width: { xs: '100%', md: 'auto' } }}>
+          <Box sx={{ minWidth: { xs: 0, sm: 260, md: 380 }, width: { xs: '100%', md: 'auto' } }}>
             <Card variant="outlined"
               className='benefitsCards2'
               sx={{ border: 'solid 0.25em #00E392', borderRadius: '15px' }}>
@@ -186,7 +186,7 @@ const LandingPage = () => {
               </CardContent>
             </Card>
           </Box>
-          <Box sx={{ minWidth: { xs: 0, md: 200 }, width: { xs: '100%', md: 'auto' } }}>
+          <Box sx={{ minWidth: { xs: 0, sm: 260, md: 200 }, width: { xs: '100%', md: 'auto' } }}>
             <Card variant="outlined"
               className='benefitsCards2'
               sx={{ border: 'solid 0.25em #C9F305', borderRadius: '15px' }}>

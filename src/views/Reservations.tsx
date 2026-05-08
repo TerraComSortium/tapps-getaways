@@ -94,14 +94,15 @@ function Reservations() {
 
   return (
     <>
-      <Grid container columnSpacing={{ xs: 1, sm: 2, md: 3 }}>
+      <Box sx={{ width: '100%', overflow: 'hidden' }}>
+      <Grid container columnSpacing={{ sm: 2, md: 3 }}>
         <AdminSideBar />
-        <Grid size={{ xs: 12, sm: 10 }} className="section blueBg">
+        <Grid size={{ xs: 12, sm: 9, md: 10 }} className="section blueBg" sx={{ minWidth: 0 }}>
           <Box>
             <Typography variant="h6">Getaway's players list</Typography>
           </Box>
-          <TableContainer component={Paper} sx={{ overflowX: 'auto' }}>
-            <Table sx={{ minWidth: 700 }} aria-label="customized table">
+          <TableContainer component={Paper} sx={{ overflowX: 'auto', width: '100%' }}>
+            <Table sx={{ minWidth: 650 }} aria-label="customized table">
               <TableHead>
                 <TableRow>
                   <StyledTableCell>Player's name</StyledTableCell>
@@ -145,6 +146,7 @@ function Reservations() {
           </TableContainer>
         </Grid>
       </Grid>
+      </Box>
 
       {/* Receipt Modal */}
       <Dialog open={open} onClose={handleCloseDialog} maxWidth="sm" fullWidth>

@@ -9,13 +9,16 @@ import Grid from '@mui/material/Grid2';
 export default function AdminSideBar() {
   return (
     <>
-      <Grid size={{ xs: 12, sm: 2 }}>
+      <Grid size={{ xs: 12, sm: 3, md: 2 }}>
         <Box
           sx={{
-            display: 'flex', flexDirection: 'column',
+            display: 'flex', flexDirection: { xs: 'row', sm: 'column' },
             alignItems: 'center',
-            minWidth: 190,
-            mt: 2.6
+            justifyContent: 'center',
+            flexWrap: 'wrap',
+            gap: 1,
+            mt: { xs: 1, sm: 2.6 },
+            mb: { xs: 1, sm: 0 },
           }}>
           <Button
             component="a"
@@ -23,7 +26,7 @@ export default function AdminSideBar() {
             variant="contained"
             href="/getaways"
             sx={{
-              mb: 2, padding: '5px 0px',
+              mb: { xs: 0, sm: 2 }, padding: '5px 0px',
               width: '160px',
               bgcolor: '#3C1C91', color: '#FFF', borderRadius:'8px', fontWeight: 'medium', textTransform: 'none'
             }}

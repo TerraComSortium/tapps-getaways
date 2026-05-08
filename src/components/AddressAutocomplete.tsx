@@ -34,7 +34,9 @@ const StyledAutocomplete = styled('input', {
   }
 }));
 
-const LocationButton = styled(Button)<{ $hasLabel?: boolean; $height?: string | number }>(
+const LocationButton = styled(Button, {
+  shouldForwardProp: (prop) => prop !== '$hasLabel' && prop !== '$height',
+})<{ $hasLabel?: boolean; $height?: string | number }>(
   ({ theme, $hasLabel, $height }) => ({
     marginTop: $hasLabel ? '28px' : '0px',
     height: typeof $height === 'number' ? `${$height}px` : $height,

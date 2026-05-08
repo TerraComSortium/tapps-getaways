@@ -12,13 +12,16 @@ export default function AdminSideBar() {
       <Grid size={{ xs: 12, sm: 3, md: 2 }}>
         <Box
           sx={{
-            display: 'flex', flexDirection: { xs: 'row', sm: 'column' },
+            display: 'flex',
+            flexDirection: { xs: 'row', sm: 'column' },
             alignItems: 'center',
             justifyContent: 'center',
-            flexWrap: 'wrap',
-            gap: 1,
-            mt: { xs: 1, sm: 2.6 },
-            mb: { xs: 1, sm: 0 },
+            gap: 2,
+            px: { xs: 2, sm: 0 },
+            pt: { xs: 1.5, sm: 0 },
+            pb: { xs: 1.5, sm: 0 },
+            mt: { xs: 0, sm: 2.6 },
+            borderBottom: { xs: '1px solid rgba(0,0,0,0.1)', sm: 'none' },
           }}>
           <Button
             component="a"
@@ -26,12 +29,15 @@ export default function AdminSideBar() {
             variant="contained"
             href="/getaways"
             sx={{
-              mb: { xs: 0, sm: 2 }, padding: '5px 0px',
-              width: '160px',
-              bgcolor: '#3C1C91', color: '#FFF', borderRadius:'8px', fontWeight: 'medium', textTransform: 'none'
+              flex: { xs: 1, sm: 'unset' },
+              width: { xs: 'auto', sm: '160px' },
+              mb: { xs: 0, sm: 2 },
+              padding: '8px 12px',
+              overflow: 'hidden',
+              bgcolor: '#3C1C91', color: '#FFF', borderRadius: '8px', fontWeight: 'medium', textTransform: 'none', whiteSpace: 'nowrap'
             }}
           >
-            <IconButton aria-label="add" sx={{ color:"#C9F305", pl: '0' }} ><SportsTennisIcon/></IconButton>
+            <IconButton aria-label="add" sx={{ color: '#C9F305', pl: '0' }}><SportsTennisIcon /></IconButton>
             My getaways
           </Button>
           <Button
@@ -40,12 +46,15 @@ export default function AdminSideBar() {
             variant="contained"
             href="/creategetaway"
             sx={{
-              width: '160px',
-              mb: 2, padding: '5px 0px',
-              bgcolor: '#3C1C91', color: '#FFF', borderRadius:'8px', fontWeight: 'medium', textTransform: 'none'
+              flex: { xs: 1, sm: 'unset' },
+              width: { xs: 'auto', sm: '160px' },
+              mb: { xs: 0, sm: 2 },
+              padding: '8px 12px',
+              overflow: 'hidden',
+              bgcolor: '#3C1C91', color: '#FFF', borderRadius: '8px', fontWeight: 'medium', textTransform: 'none', whiteSpace: 'nowrap'
             }}
           >
-            <IconButton aria-label="add" sx={{ color:"#C9F305", pl: '0'}} ><AddIcon/></IconButton>
+            <IconButton aria-label="add" sx={{ color: '#C9F305', pl: '0' }}><AddIcon /></IconButton>
             New getaway
           </Button>
         </Box>

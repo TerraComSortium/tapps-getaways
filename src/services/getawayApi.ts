@@ -11,6 +11,7 @@ const ENDPOINTS = {
   LIST: `${BASE_URL}/`, //getGetaways
   CREATE: `${BASE_URL}/create`,
   CREATE_COUPONS: `${BASE_URL}/coupons`,
+  OWNER_ME: `${BASE_URL}/owner/me`,
 };
 
 export async function handleGetawaySubmit(payload: GetawayPayload): Promise<SubmissionResult & { getawayId?: string }> {
@@ -46,7 +47,21 @@ export async function handleGetawaySubmit(payload: GetawayPayload): Promise<Subm
   }
 }
 
-export async function getGetaway(): Promise<GetawayPayload | null> {
+export async function handleCouponSubmit(couponPayload: CouponPayload) {
+  const response = await fetch(ENDPOINTS.CREATE_COUPONS, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(couponPayload),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Error at coupon creation: ${response.statusText}`);
+  }
+
+  return response.json();
+}
+
+export async function getGetaway(): Promise<GetawayPayload | null>{
   try {
     const savedGetaways: GetawayPayload[] = JSON.parse(localStorage.getItem('getaways') || '[]');
 
@@ -92,16 +107,12 @@ export async function getGetaways(): Promise<Getaway[]> {
   }
 }
 
-export async function handleCouponSubmit(couponPayload: CouponPayload) {
-  const response = await fetch(ENDPOINTS.CREATE_COUPONS, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(couponPayload),
-  });
-
-  if (!response.ok) {
-    throw new Error(`Error at coupon creation: ${response.statusText}`);
+export const getOwnerGetaways = async (): Promise<Getaway[]> => {
+  try{
+    const response = await api.get<Getaway[]>(ENDPOINTS.OWNER_ME);
+    return response.data;
+  } catch (error: any){
+    console.error("Error al obtener los getaways del owner:", error);
+    throw error;
   }
-
-  return response.json();
-}
+};

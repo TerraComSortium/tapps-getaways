@@ -2,7 +2,7 @@ import { Navigate } from 'react-router-dom';
 import { Box, CircularProgress } from '@mui/material';
 import { useAuth } from '../contexts/AuthContext';
 
-interface ProtectedRouteProps {
+export interface ProtectedRouteProps {
   children: React.ReactNode;
   requiredRole?: string; // si no se pasa, cualquier usuario autenticado puede acceder
 }

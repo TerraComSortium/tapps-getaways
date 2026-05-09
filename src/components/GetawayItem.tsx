@@ -1,9 +1,12 @@
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardMedia, Typography, Button, Box, CircularProgress } from '@mui/material';
 import SportsTennisIcon from '@mui/icons-material/SportsTennis';
+import RoomServiceIcon from '@mui/icons-material/RoomService';
+import DeleteIcon from '@mui/icons-material/Delete';
+import EditIcon from '@mui/icons-material/Edit';
+import Chip from '@mui/material/Chip';
 import prevPhoto from '../assets/backgrounds/hotel.jpg';
 import '../App.css';
-import Chip from '@mui/material/Chip';
 // import {Skeleton} from '@mui/material';
 // import { useAuthRole } from '../hooks/useAuthRole';
 import { memo } from 'react';
@@ -25,12 +28,11 @@ interface GetawayItemProps {
 }
 
 export const GetawayItem = memo(
-  ({ name, dates, lodgingOptions, sport, galleryPhotos, onViewDetails, onBookNow }: GetawayItemProps ) => 
+  ({ name, dates, lodgingOptions, sport, galleryPhotos, onViewDetails, onBookNow }: GetawayItemProps ) =>
     {
       // const { role, isLoading } = useAuthRole();
       const { role, isLoading } = useAuth();
-      console.log("Estado de carga:", isLoading);
-      console.log("Rol recibido:", role);
+      console.log("Estado de carga:", isLoading, "Rol recibido:", role);
       const navigate = useNavigate();
 
       const editGetaway = () => {
@@ -39,10 +41,10 @@ export const GetawayItem = memo(
       const bookings = () => {
         navigate('/reservations');
       };
-      // const toGetaway = () => {
-        //   navigate('/getawaydetail');
-        // };
-        
+      //const toGetaway = () => {
+      //  navigate('/getawaydetail');
+      //};
+
       //previewImg Check
       const getDisplayImage = (): string => {
         if (galleryPhotos && galleryPhotos.length > 0) {
@@ -54,19 +56,17 @@ export const GetawayItem = memo(
         }
         return prevPhoto; //default img
       };
-      
       const imageUrl = getDisplayImage();
       // if(isLoading){ return null; }
-      if(isLoading){ return
-        (
+      if(isLoading){
+        return(
           <Box display="flex" justifyContent="center" alignItems="center" height={400}>
             <CircularProgress />
           </Box>
         );
-        // ( <Skeleton variant="rectangular" width={300} height={400} sx={{borderRadius:'15px'}}/> );
-      }//o un loader ligero
-        
-      return (
+        //(<Skeleton variant="rectangular" width={300} height={400} sx={{borderRadius:'15px'}}/>);
+      }
+      return(
         <>
           <Card elevation={0} sx={{ display: "flex", mb:2, borderRadius: "10px", backgroundColor: '#fff', boxShadow: "0 2px 8px 0 #c1c9d7, 0 -2px 8px 0 #cce1e9"}}>
             <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', textAlign: 'left' }} >
@@ -127,23 +127,27 @@ export const GetawayItem = memo(
                   > Book now </Button>
                 )}
                 {role === 'admin' && (
-                  <Button onClick={ bookings } disableElevation
+                  <Button startIcon={<RoomServiceIcon />} onClick={ bookings } disableElevation
                     sx={{
-                      width: 136, m: '0 0.5rem',
+                      width: 122, m: '0 0.5rem',
                       borderRadius: '30px',
                       bgcolor: '#3C1C91', color: '#fff',
                       fontVariantCaps: 'normal', textTransform: 'none',
                     }}
-                  > Reservations </Button>
-                  // <Button onClick={""} disableElevation
-                  //   sx={{
-                  //     width:135, m:'0 0.5rem',
-                  //     borderRadius: '30px',
-                  //     bgcolor: '#3C1C91', color: '#fff',
-                  //     fontVariantCaps:'normal', textTransform: 'none',
-                  //   }}
-                  // > Delete
-                  // </Button>
+                  > Bookings </Button>
+                )}
+                {role === 'admin' && (
+                  <Button startIcon={<DeleteIcon />} disableElevation
+                    // onClick={""}
+                    size="medium"
+                    sx={{
+                      width:104,
+                      m:'0 0.3rem',
+                      borderRadius: '30px',
+                      bgcolor: '#3C1C91', color: '#fff',
+                      fontVariantCaps:'normal', textTransform: 'none',
+                    }}
+                  > Delete </Button>
                 )}
               </Box>
             </CardContent>
@@ -163,9 +167,11 @@ export const GetawayItem = memo(
                 justifyContent: 'center', alignItems: 'center'
               }}>
               {role === 'admin' && (
-                <Button onClick={editGetaway} disableElevation
+                <Button startIcon={<EditIcon />} onClick={editGetaway} disableElevation size="medium"
                   sx={{
-                    padding: '8px 24px',
+                    width:145,
+                    // padding: '8px 20px',
+                    // m:'0 0.3rem',
                     color: '#1A2660', bgcolor: '#00E392',
                     borderRadius: '30px',
                     fontWeight: 'bold', textTransform: 'none',
@@ -179,5 +185,4 @@ export const GetawayItem = memo(
         </>
       )
     }
-  );
-// export default GetawayItem;
+);

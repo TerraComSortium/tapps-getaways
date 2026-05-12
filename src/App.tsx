@@ -8,6 +8,7 @@ import Footer from './components/Footer';
 import GetawayDetail from './components/GetawayDetail';
 import CreateGetaway from './components/CreateGetaway';
 import { ErrorBoundary } from "./components/ErrorBoundary";
+import ProtectedRoute from './components/ProtectedRoute';
 
 import Landing from './views/Landing'
 import Login from './views/Login';
@@ -24,13 +25,14 @@ import { FormDataProvider, useFormData } from './contexts/FormDataContext';
 import { useWatchLocation } from './hooks/useWatchLocation';
 import { useUserStore } from './store/useUserStore';
 import { AuthProvider } from './contexts/AuthContext';
+import TestApi from './views/TestApi';
 
 const API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "";
 const GOOGLE_MAPS_LIBRARIES = ['places'];
 const DataViewWrapper: React.FC = () => {
   const { submissionData } = useFormData();
   if (!submissionData) {
-    return <div>No data available. Please fill the form first.</div>;
+    return <div style={{ padding: '16px' }}>No data available. Please fill the form first.</div>;
   }
   return <DataView result={submissionData} />;
 };
@@ -109,14 +111,15 @@ function App() {
                     <Route path="/login" element={<Login />} />
                     {/* <Route path="/getaways" element={<Mygetaways />} /> */}
                     <Route path="/getaways" element={<Getaways/>} />
-                    <Route path="/mygetaways" element={<Mygetaways/>}/>
+                    <Route path="/mygetaways" element={<ProtectedRoute><Mygetaways/></ProtectedRoute>}/>
                     <Route path="/getawaydetail" element={<GetawayDetail/>} />
-                    <Route path="/bookgetaway" element={<BookGetaway />} />
+                    <Route path="/bookgetaway" element={<ProtectedRoute><BookGetaway /></ProtectedRoute>} />
                     <Route path="/payment" element={<Payment />} />
                     <Route path="/paid" element={<Paid />} />
-                    <Route path="/reservations" element={<Reservations />} />
-                    <Route path="/creategetaway" element={ <CreateGetaway/> } />
+                    <Route path="/reservations" element={<ProtectedRoute requiredRole="admin"><Reservations /></ProtectedRoute>} />
+                    <Route path="/creategetaway" element={<ProtectedRoute><CreateGetaway/></ProtectedRoute>} />
                     <Route path="/data-view" element={<DataViewWrapper />} />
+                    <Route path='/test-api' element={<TestApi/>} />
                   </Routes>
                   <Footer/>
                 </Router>

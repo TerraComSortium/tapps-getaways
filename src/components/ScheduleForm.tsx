@@ -145,7 +145,7 @@ export function ScheduleForm({ rows, setRows }: ScheduleFormProps) {
   return (
     <Box>
       <Typography variant="body1" fontWeight="bold" color="#3C1C91"> Schedule </Typography>
-      <TableContainer component={Paper} elevation={3}>
+      <TableContainer component={Paper} elevation={3} sx={{ overflowX: 'auto' }}>
         <Table sx={{ minWidth: 500 }}>
           <TableHead>
             <StyledTableRow>

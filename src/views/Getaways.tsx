@@ -8,73 +8,14 @@ import SearchBar from '../components/SearchBar';
 import type { Getaway } from '../types/getaway';
 import { useWatchLocation } from '../hooks/useWatchLocation';
 import { useUserStore } from '../store/useUserStore';
-
 import { getGetaways } from '../services/getawayApi';
 import { SearchService } from '../services/searchService';
-
-const normalizeGetawayData = (raw: any): Getaway => {
-  return {
-    _id: raw._id || raw.id || `temp_${Math.random()}`,
-    title: raw.title || raw.getawayTitle || "Untitled Offer",
-    overview: raw.overview || raw.getawayOverview || "",
-    startDate: raw.startDate || "",
-    endDate: raw.endDate || "",
-    sport: raw.sport || "",
-    galleryPhotos: raw.galleryPhotos || raw.galleryPhoto || [],
-
-    lodgingOptions: raw.lodgingOptions || [],
-    optionalAddOns: raw.optionalAddOns || [],
-    amenities: raw.amenities || [],
-    schedule: raw.schedule || [],
-    caption: raw.caption || "",
-    galleryVideo: raw.galleryVideo || "",
-    mainDescription: raw.mainDescription || raw.getawayOverview || "",
-    policies: raw.policies || "",
-    terms: raw.terms || "",
-
-    getawayAddress: raw.getawayAddress || { address: raw.address || "", lat: raw.location?.lat || 0, lng: raw.location?.lng || 0 }
-  };
-};
-//temporal search at localstorage
-const performFallbackLocalSearch = (
-  rawData: any[],
-  filters: { q?: string; sport?: string; startDate?: string | null; endDate?: string | null }
-): Getaway[] => {
-  let results = rawData.map(normalizeGetawayData);
-
-  //q validation
-  if (filters.q && filters.q.trim() !== '') {
-    const searchTerm = filters.q.trim().toLowerCase();
-    results = results.filter(g =>
-      g.getawayAddress?.address.toLowerCase().includes(searchTerm) ||
-      g.title.toLowerCase().includes(searchTerm)
-    );
-  }
-
-  if (filters.sport && filters.sport.trim() !== '') {
-    const filterSportLabel = getSportLabel(filters.sport).toLowerCase();
-    results = results.filter(g => getSportLabel(g.sport).toLowerCase() === filterSportLabel);
-  }
-
-  if (filters.startDate && filters.startDate.trim() !== '') {
-    results = results.filter(g => !g.startDate || g.startDate >= filters.startDate!);
-  }
-  if (filters.endDate && filters.endDate.trim() !== '') {
-    results = results.filter(g => !g.endDate || g.endDate <= filters.endDate!);
-  }
-
-  return results;
-};
-const sportMap: { [key: string]: string } = {
-  '1': 'Tennis',
-  '2': 'Padel',
-  '3': 'Pickleball',
-  '4': 'Other'
-};
-const getSportLabel = (sportKey: string) => {
-  if (!sportKey) return 'Not available';
-  return sportMap[sportKey] || sportKey || 'Not available';
-};
+import {
+  normalizeGetawayData,
+  performFallbackLocalSearch,
+  getSportLabel,
+  getValidImages,
+} from '../utils/getawayHelpers';
 
 export default function Mygetaways() {
   useWatchLocation();
@@ -195,11 +136,6 @@ export default function Mygetaways() {
   const handleChange = (_event: React.ChangeEvent<unknown>, value: number) => {
     setPage(value);
   };
-  const getValidImages = (photos: string[] | undefined) => {
-    if (!photos || !Array.isArray(photos) || photos.length === 0) return [];
-    return photos.filter(url => url && typeof url === 'string' && url.length > 5);
-  };
-
   const paginatedGetaways = getaways.slice(
     (page - 1) * ITEMS_PER_PAGE,
     page * ITEMS_PER_PAGE
@@ -222,27 +158,26 @@ export default function Mygetaways() {
       <Grid container rowSpacing={1} columnSpacing={{ xs: 1, sm: 2, md: 3 }} >
         {/* <AdminSideBar /> */}
         <Grid size={{ xs:1 }}/>
-        <Grid size={{ xs:10 }} 
-          spacing={1} 
+        <Grid size={{ xs:10 }}
           className="section blueBg">
           <SearchBar onSearch={handleSearchFromBar} />
           <Box>
             <Box sx={{ mb: 3 }}>
-              {/* <h4>My getaways</h4> */}
-              {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
-              {isOfflineMode && <Alert severity="warning" sx={{ mb: 2 }}>Showing local preview data. Backend connection failed.</Alert>}
-              <Typography variant="subtitle1" sx={{ mt:"20px"}}>
-                {getaways.length > 0
-                  ? `${isOfflineMode ? 'Local matches near cityName' : 'Getaways offers'}: ${getaways.length}`
-                  // at {cityName}
-                  : 'No offers match your search'
-                }
-                {/* {getaways.length > 0 ? `You have ${getaways.length} getaways registered` : 'No offers registered'} */}
-                {/* {filteredGetaways.length > 0
-                  ? `Nearest getaways offers at: ${filteredGetaways.length}`
-                  : 'No offers match your search'
-                } */}
-              </Typography>
+              {isOfflineMode && (
+                <Alert severity="warning" sx={{ mb: 2 }}>Showing local preview data. Backend connection failed.</Alert>
+              )}
+              {error && getaways.length === 0 ? (
+                <Alert severity="info" sx={{ mt: 2 }}>
+                  No getaways available right now. Try again later or use the search to find experiences near you.
+                </Alert>
+              ) : (
+                <Typography variant="subtitle1" sx={{ mt: "20px" }}>
+                  {getaways.length > 0
+                    ? `${isOfflineMode ? 'Local matches' : 'Getaways offers'}: ${getaways.length}`
+                    : 'No offers match your search'
+                  }
+                </Typography>
+              )}
             </Box>
 
             {getaways.length > 0 && (

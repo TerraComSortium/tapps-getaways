@@ -12,7 +12,6 @@ import type { LocationEntry } from '../types/getaway';
 import { useUserStore } from '../store/useUserStore';
 import { sanitizeInput } from '../utils/validations';
 
-const GOOGLE_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "";
 interface SearchBarProps {
   onSearch?: (filters: {
     q?: string; // city: string;
@@ -28,6 +27,7 @@ export default function SearchBar({ onSearch }: SearchBarProps) {
   const navigate = useNavigate();
   const userAddress = useUserStore((state) => state.userAddress);
   const userLocation = useUserStore((state) => state.userLocation);
+  const geoError = useUserStore((state) => state.geoError);
 
   const [searchLocation, setSearchLocation] = useState<LocationEntry | null>(null);
   const [sport, setSport] = React.useState('');
@@ -48,10 +48,6 @@ export default function SearchBar({ onSearch }: SearchBarProps) {
   //initializing
   const todayObj = new Date();
   const today = formatLocalDate(todayObj);
-
-  const tomorrowObj = new Date();
-  tomorrowObj.setDate(tomorrowObj.getDate() + 1);
-  const tomorrow = formatLocalDate(tomorrowObj);
 
   const [arrival, setArrival] = React.useState('');
   const [departure, setDeparture] = React.useState('');
@@ -149,16 +145,17 @@ export default function SearchBar({ onSearch }: SearchBarProps) {
         display: 'flex', flexDirection: 'column',
         bgcolor: '#3C1C91', color: 'white', borderRadius: '8px',
         p: { xs: 2, md: 4 },
-        gap: { xs: 0.5, md: 1 }
+        gap: { xs: 0.5, md: 1 },
+        width: '100%',
+        boxSizing: 'border-box',
       }}
     >
       <Typography variant="h6" component="h6" sx={{ margin:0, padding:0, fontSize: { xs: '0.9rem', md: '1rem' }, fontWeight: 'medium' }} > Search your next Racquets!™ getaway | Live the full experience
       </Typography>
 
-      <Grid container spacing={1} alignItems="flex-end" size={12} >
-        <Grid size={{ xs:12, md:6, lg:4 }} >
+      <Grid container spacing={2} alignItems="flex-end" size={12} >
+        <Grid size={{ xs:12, md:4 }} >
           <AddressAutocomplete
-            apiKey={GOOGLE_API_KEY}
             onChange={handleMapsSearch}
             value={searchLocation}
             inputStyle={{
@@ -173,15 +170,15 @@ export default function SearchBar({ onSearch }: SearchBarProps) {
           />
         </Grid>
 
-        <Grid size={{ xs:12, md:6, lg:4 }}>
+        <Grid size={{ xs:12, md:4 }}>
           <Typography variant="body2" sx={{ color:'#B8FF00', mb: 0.5 }}> Date </Typography>
           <Box sx={{ display: 'flex',
             gap: { xs: 1, sm: 2 },
             bgcolor: 'white',
             borderRadius: '8px',
-            p: '0.2',
+            p: '4px',
             width: '100%',
-            height: { xs: '38px', sm: '48px' }
+            alignItems: 'center',
           }}>
             <TextField type="date" label="Arrival" value={arrival} variant="standard" fullWidth
               InputLabelProps={{ shrink: true }}
@@ -189,16 +186,12 @@ export default function SearchBar({ onSearch }: SearchBarProps) {
               inputProps={{ min: today }}
               sx={{
                 flex: 1,
-                m: '5px 2px',
-                borderRadius: '0 0 8px ',
-                width: { xs: '200px', sm: '240px' },
+                mx: '4px',
                 borderColor: '#3C1C91', color: 'black',
-                height: { xs: '90px', sm: '100px' },
                 '& .MuiInputBase-input': { p: 0.5, fontSize: { xs: '0.75rem', sm: '0.875rem'} },
                 '& .MuiInput-underline:before': { borderBottom: 'none' },
                 '& .MuiInput-underline:after': { borderBottom: 'none' },
                 '& .MuiInput-underline:hover:not(.Mui-disabled):before': { borderBottom: 'none' },
-
                 '& .MuiOutlinedInput-root': {
                   borderRadius: '8px',
                   height:{ xs: '38px', sm: '48px' },
@@ -215,8 +208,7 @@ export default function SearchBar({ onSearch }: SearchBarProps) {
               inputProps={{ min: arrival || today }}
               sx={{
                 flex: 1,
-                m: '5px 0',
-                width: { xs: '200px', sm: '240px' },
+                mx: '4px',
                 color: '#3C1C91',
                 '& .MuiInputBase-input': { p: 0.5, color: 'black', fontSize: { xs: '0.75rem', sm: '0.875rem' }, },
                 '& .MuiInput-underline:before': { borderBottom: 'none' },
@@ -232,7 +224,7 @@ export default function SearchBar({ onSearch }: SearchBarProps) {
           </Box>
         </Grid>
 
-        <Grid size={{ xs:12, sm:4 }} sx={{ display: 'flex', gap: 1 }}>
+        <Grid size={{ xs:12, md:4 }} sx={{ display: 'flex', gap: 1 }}>
           <Box sx={{ flexGrow: 1 }}>
             <Typography variant="body2" sx={{ color:'#B8FF00', mb: 0.5 }}> Sport </Typography>
             <FormControl fullWidth sx={{
@@ -273,6 +265,12 @@ export default function SearchBar({ onSearch }: SearchBarProps) {
           </Button>
         </Grid>
       </Grid>
+
+      {geoError && (
+        <Typography variant="caption" sx={{ color: '#FFD580', mt: 0.5, display: 'block' }}>
+          {geoError}
+        </Typography>
+      )}
 
       <Snackbar
         open={feedback.open}

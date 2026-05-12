@@ -1,21 +1,22 @@
-// import { useLocation } from 'react-router-dom';
+import { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Container, Box, Stack,
   Divider, Typography, Button
 } from '@mui/material';
-
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import CreditCardIcon from '@mui/icons-material/CreditCard';
-// import RappsCourtsCOLLAGEdarker from '../assets/backgrounds/RappsCourtsCOLLAGEdarker.png';
 
 function Payment() {
-  const formData = JSON.parse(localStorage.getItem('selectedData') || '{}'); // Recuperar datos
-  const { total, taxes, lodgingOption, amenities } = formData;
-  // const location = useLocation();
-  // const { formData } = location.state as any;
-  // const { total, taxes } = formData;
+  const navigate = useNavigate();
+  const formData = JSON.parse(localStorage.getItem('selectedData') || '{}');
+  const { total = 0, taxes = 0, lodgingOption = '', amenities = {} } = formData;
+
+  useEffect(() => {
+    if (!formData.total) navigate('/bookgetaway', { replace: true });
+  }, []);
 
   return (
     <>
@@ -35,20 +36,16 @@ function Payment() {
             bgcolor: '#371984', borderRadius: '8px',
           }}
         >
-          <center>
-            <Typography component="h1" variant="h6" sx={{ mt: 2, color: '#fff', fontWeight: 'bold' }}> Order summary </Typography>
-          </center>
-          <Box sx={{ height: '65%'}}>
+          <Typography component="h1" variant="h6" sx={{ mt: 2, color: '#fff', fontWeight: 'bold', textAlign: 'center' }}>
+            Order summary
+          </Typography>
+          <Box sx={{ height: '65%' }}>
             <Stack sx={{ fontSize: 15, ml: 2, color: '#fff', p: 3, pb: 3 }}>
-              <h3 className='title3'>Padel Weekend Getaway!</h3>
-              <span className=''>at The Ritz-Carlton Key Biscayne Miami, Florida</span>
-              <span> October 11-13, 2024</span>
+              <Typography variant="h6" className='title3'>Padel Weekend Getaway!</Typography>
+              <Typography variant="body2">at The Ritz-Carlton Key Biscayne Miami, Florida</Typography>
+              <Typography variant="body2">October 11-13, 2024</Typography>
 
-              <div className=''>
-                <h4>Taxes: ${taxes.toFixed(2)} USD</h4>
-                <h4>Total: ${total.toFixed(2)} USD</h4>
-                <h3>Total amount: ${total.toFixed(2)} USD</h3>
-
+              <Box sx={{ mt: 1 }}>
                 <Typography>Lodging Option: {lodgingOption}</Typography>
                 <Typography>
                   Add Ons:
@@ -56,36 +53,39 @@ function Payment() {
                   {amenities?.meetGreet && ' Meet & Greet,'}
                   {amenities?.tennisClass && ' Tennis Class'}
                 </Typography>
-                <Typography>Taxes: ${taxes?.toFixed(2) || 0} USD</Typography>
-                <Typography>Total: ${total?.toFixed(2) || 0} USD</Typography>
-              </div>
+                <Typography>Taxes: ${taxes?.toFixed(2) || '0.00'} USD</Typography>
+                <Typography>Total: ${total?.toFixed(2) || '0.00'} USD</Typography>
+              </Box>
             </Stack>
           </Box>
           <Divider aria-hidden="true" sx={{ borderColor: 'white', borderStyle: 'dashed' }} />
           <Stack sx={{ fontSize: 15, ml: 2, color: '#fff', p: 3, pb: 0 }}>
-            <Typography sx={{ color: '#fff', textDecoration: 'none'}}> The payment will be submitted from your Racquets!™ account: </Typography>
+            <Typography sx={{ color: '#fff', textDecoration: 'none' }}>
+              The payment will be submitted from your Racquets!™ account:
+            </Typography>
           </Stack>
           <Box sx={{
             display: 'flex', flexDirection: 'column',
-            alignItems: 'center', justifyContent: 'center'}}>
+            alignItems: 'center', justifyContent: 'center',
+          }}>
             <Card
               sx={{
                 m: 1,
-                p: '6 8', height: 130,
-                width:'22em', bgcolor: '#fff',
+                padding: '6px 8px', height: 130,
+                width: '22em', bgcolor: '#fff',
               }}
             >
               <CardContent>
-                <div>
-                  <Typography sx={{ fontWeight: 'lg' }}> playerName 💳 </Typography>
-                  <Typography sx={{ fontWeight: 'lg' }}> **** **** **** 0000 </Typography>
-                </div>
+                <Box>
+                  <Typography sx={{ fontWeight: 'bold' }}>playerName 💳</Typography>
+                  <Typography sx={{ fontWeight: 'bold' }}>**** **** **** 0000</Typography>
+                </Box>
               </CardContent>
             </Card>
 
-            <Box style={{ display: 'flex', justifyContent: 'center', gap: 16, marginTop:10, marginBottom: 6 }}>
+            <Box style={{ display: 'flex', justifyContent: 'center', gap: 16, marginTop: 10, marginBottom: 6 }}>
               <Button
-                href="/MyGetaways"
+                href="/mygetaways"
                 startIcon={<ArrowBackIcon />} type="button" variant="contained" disableElevation
                 sx={{
                   minWidth: '13vw',
@@ -94,8 +94,7 @@ function Payment() {
                   fontWeight: 'medium', textTransform: 'none',
                   ':hover': { bgcolor: '#3C1C91', color: 'white' },
                 }}
-              > Retry
-              </Button>
+              >Retry</Button>
               <Button startIcon={<CreditCardIcon />} type="submit" variant="contained"
                 href="/paid"
                 sx={{
@@ -106,8 +105,7 @@ function Payment() {
                   borderRadius: '8px', borderColor: 'primary.main', border: 1,
                   ':hover': { bgcolor: 'white', color: '#3C1C91' },
                 }}
-              > Confirm payment
-              </Button>
+              >Confirm payment</Button>
             </Box>
           </Box>
         </Box>

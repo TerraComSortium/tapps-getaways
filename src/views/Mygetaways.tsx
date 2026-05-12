@@ -4,15 +4,19 @@ import { Box, Stack, Pagination, Typography, CircularProgress, Alert } from '@mu
 import Grid from '@mui/material/Grid2';
 import AdminSideBar from '../components/AdminSidebar';
 import { GetawayItem } from '../components/GetawayItem';
-// import SearchBar from '../components/SearchBar';
 
 import type { Getaway } from '../types/getaway';
-import { useWatchLocation } from '../hooks/useWatchLocation';
+// import { useWatchLocation } from '../hooks/useWatchLocation';
 // import { useUserStore } from '../store/useUserStore';
 import { useAuth } from '../contexts/AuthContext';
 
 import { getOwnerGetaways } from '../services/getawayApi';
 // import { SearchService } from '../services/searchService';
+// import {
+  //   normalizeGetawayData,
+  //   getSportLabel,
+  //   getValidImages,
+  // } from '../utils/getawayHelpers';
 
 const parseFirestoreDate = (dateField: any): string => {
   if (!dateField) return "Date not defined";
@@ -63,16 +67,21 @@ const getSportLabel = (sportKey: string) => {
   return sportMap[sportKey] || sportKey || 'Not available';
 };
 
-// const getValidImages = (photos: string[] | undefined) => {
-//   if (!photos || !Array.isArray(photos)) return [];
-//   return photos.filter(url => typeof url === 'string' && url.length > 5);
+// const getValidImages = (photos: any) => {
+//   if (!Array.isArray(photos)) return [];
+//   return photos.filter(url => typeof url === 'string' && url.startsWith('http'));
 // };
+const getValidImages = (photos: string[] | undefined) => {
+  if (!photos || !Array.isArray(photos) || photos.length === 0) return [];
+  return photos.filter(url => url && typeof url === 'string' && url.length > 5);
+};
 
 export default function Mygetaways() {
-  useWatchLocation();
+  // useWatchLocation();
   //subscribe to userLocation global state
   // const userLocation = useUserStore((state) => state.userLocation);
   // console.log('userLocation:', userLocation);
+
   const navigate = useNavigate();
   const { role, isLoading: isAuthLoading } = useAuth();
   //localStates
@@ -82,60 +91,48 @@ export default function Mygetaways() {
   const [page, setPage] = useState(1);
   const ITEMS_PER_PAGE = 10;
   // const [isOfflineMode, setIsOfflineMode] = useState<boolean>(false);
-  
+
   //graceful degradation pattern
   useEffect(() => {
-    const fetchInitialData = async () => {
-      if (isAuthLoading || !role) return;
-      setLoading(true);
+    // const fetchInitialData = async () => {
+    const fetchOwnerData = async () => {
+      // if (isAuthLoading || !role) return;
+      if (isAuthLoading) return;
+      if (!role) {
+        setError("Debes estar logueado para ver tus ofertas.");
+        setLoading(false);
+        return;
+      }
       try {
+        setLoading(true);
         setError(null);
         console.log("api call...");
         // setIsOfflineMode(false);
         const rawData = await getOwnerGetaways();
         console.log("raw backend response:", rawData);
         //rawData array check
-        if (!Array.isArray(rawData)) {
-          console.error("response not array, instead:", typeof rawData);
-          return;
+        if (Array.isArray(rawData)) {
+          setGetaways(rawData.map(normalizeGetawayData));
         }
-
-        const cleanData = rawData.map(normalizeGetawayData);
-        console.log("finalData normalized:", cleanData);
-        setGetaways(cleanData);
-      } catch (err: any) { //(!api || localStorage getGetaways?)
-        console.warn("Error fetching owner getaways", err.message);
-        setError("No getaways could be loaded at this time. Please try again later.");
+      } catch (err: any) {
+        console.error("Error fetching owner getaways:", err);
+        setError("No se pudieron cargar tus ofertas. Inténtalo más tarde.");
       } finally {
         setLoading(false);
       }
     };
-    fetchInitialData();
+    fetchOwnerData();
   }, [isAuthLoading, role]);
 
-  const handleViewDetails = (getaway: Getaway) => {
-    navigate('/getawaydetail', { state: { getawayData: getaway } });
-  };
-  // const handleBookNow = (getaway: Getaway) => {
-  //   navigate('/bookgetaway', { state: { getawayData: getaway } });
+  const handlePageChange = (_: any, value: number) => setPage(value);
+  // const handleViewDetails = (getaway: Getaway) => {
+  //   navigate('/getawaydetail', { state: { getawayData: getaway } });
   // };
-  //initial search with userLocation
-  // const handleChange = (_event: React.ChangeEvent<unknown>, value: number) => {
-  //   setPage(value);
-  // };
-  const getValidImages = (photos: string[] | undefined) => {
-    if (!photos || !Array.isArray(photos) || photos.length === 0) return [];
-    return photos.filter(url => url && typeof url === 'string' && url.length > 5);
-  };
 
   const paginatedGetaways = getaways.slice(
     (page - 1) * ITEMS_PER_PAGE,
     page * ITEMS_PER_PAGE
   );
-  // const paginatedGetaways = filteredGetaways.slice(
-  //   (page - 1) * ITEMS_PER_PAGE,
-  //   page * ITEMS_PER_PAGE
-  // );
 
   if (loading) {
     return (
@@ -149,17 +146,21 @@ export default function Mygetaways() {
     <>
       <Grid container rowSpacing={1} columnSpacing={{ xs: 1, sm: 2, md: 3 }}>
         <AdminSideBar />
-        <Grid size={{ xs:10 }} spacing={1} className="section blueBg">
-          {/* <SearchBar onSearch={handleSearchFromBar} /> */}
+        <Grid size={{ xs: 12, sm: 10 }} className="section blueBg">
           <Box>
             <Box sx={{ mb: 3 }}>
               <h4>My getaways</h4>
-              {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
-              {/* {isOfflineMode && <Alert severity="warning" sx={{ mb: 2 }}>Showing local preview data. Backend connection failed.</Alert>} */}
-              <Typography sx={{ mb: 1 }}>
+              {/* <Typography variant="h6" sx={{ mb: 1, fontWeight: 'bold' }}>My getaways</Typography> */}
+              {error && <Alert severity="info" sx={{ mb: 2 }}>
+                {error}
+                {/* No getaways available right now. Try again later or create a new one. */}
+              </Alert>}
+              <Typography color="text.secondary" 
+                // sx={{ mb: 1 }}
+                >
                 {getaways.length > 0
                   ? `You have ${getaways.length} getaways registered`
-                  : 'No offers registered'
+                  : 'No offers registered yet'
                 }
                 {/* {filteredGetaways.length > 0
                   ? `Nearest getaways offers at: ${filteredGetaways.length}`
@@ -167,7 +168,6 @@ export default function Mygetaways() {
                 } */}
               </Typography>
             </Box>
-
             {/* {getaways.length > 0 && (
               paginatedGetaways.map((getaway, index) => (
                 <GetawayItem
@@ -182,19 +182,23 @@ export default function Mygetaways() {
                 />
               ))
             )} */}
+          </Box>
+          <Stack spacing={2}>
             {paginatedGetaways.map((getaway) => (
               <GetawayItem
-                key={getaway._id}
-                name={getaway.title}
+                key={getaway._id || ""}
+                name={getaway.title || "Untitled Offer"}
                 dates={`${getaway.startDate} - ${getaway.endDate}`}
-                lodgingOptions={getaway.lodgingOptions}
+                lodgingOptions={getaway.lodgingOptions || []}
                 sport={getSportLabel(getaway.sport)}
                 galleryPhotos={getValidImages(getaway.galleryPhotos)}
                 onViewDetails={() => navigate('/getawaydetail', { state: { getawayData: getaway } })}
                 onBookNow={() => navigate('/bookgetaway', { state: { getawayData: getaway } })}
+                // onViewDetails={() => handleViewDetails(getaway)}
+                // onBookNow={() => handleBookNow(getaway)}
               />
             ))}
-          </Box>
+          </Stack>
 
           {getaways.length > ITEMS_PER_PAGE && (
             <Stack spacing={2} sx={{ mt: 4, alignItems: 'center' }}>
@@ -202,7 +206,7 @@ export default function Mygetaways() {
                 shape="rounded"
                 count={Math.ceil(getaways.length / ITEMS_PER_PAGE)}
                 page={page}
-                onChange={handleChange}
+                onChange={handlePageChange}
               />
             </Stack>
           )}

@@ -4,7 +4,7 @@ import { useForm, Controller, useFieldArray, SubmitHandler } from 'react-hook-fo
 import { useFormData } from '../contexts/FormDataContext';
 import { useNavigate } from 'react-router-dom';
 
-import { Box, TextField, Button, Divider, Typography, Card} from '@mui/material';
+import { Box, TextField, Button, Divider, Typography, Card, Snackbar, Alert } from '@mui/material';
 import MenuItem from '@mui/material/MenuItem';
 import Grid from '@mui/material/Grid2';
 
@@ -78,15 +78,16 @@ export default function CreateGetaway() {
   const [scheduleRows, setScheduleRows] = React.useState<ScheduleRow[]>([]);
   const [scheduleError, setScheduleError] = React.useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: 'success' | 'error' | 'warning' }>({ open: false, message: '', severity: 'success' });
+  const showSnackbar = (message: string, severity: 'success' | 'error' | 'warning') =>
+    setSnackbar({ open: true, message, severity });
 
   const onSubmit: SubmitHandler<GetawayFormData> = async (data) => {
     setIsLoading(true);
 
     try {
-      //initial validations
-      console.log("Address data to send:", data.getawayAddress);
       if (!data.getawayAddress.lat || !data.getawayAddress.lng) {
-        alert("Please select a valid location");
+        showSnackbar("Please select a valid location from the suggestions.", "warning");
         return;
       }
 
@@ -100,7 +101,6 @@ export default function CreateGetaway() {
 
       const { discounts, ...getawayData } = data;
 
-      //Initial getawayPayload (without discounts)
       const payload: GetawayPayload = {
         ...getawayData,
         address: data.getawayAddress.address,
@@ -114,27 +114,26 @@ export default function CreateGetaway() {
       delete payload.getawayAddress;
 
       const result = await handleGetawaySubmit(payload);
-      if (result.status === 'SUCCESS' && result.getawayId ){
-
-        if (discounts && discounts.length > 0){
-          const couponPromises = discounts.map((discount => {
+      if (result.status === 'SUCCESS' && result.getawayId) {
+        if (discounts && discounts.length > 0) {
+          const couponPromises = discounts.map((discount) => {
             const couponPayload: CouponPayload = {
               ...discount,
               getawayId: result.getawayId!
             };
             return handleCouponSubmit(couponPayload);
-          }));
+          });
           await Promise.all(couponPromises);
         }
-        alert("getaway created successfully!");
+        showSnackbar("Getaway created successfully!", "success");
         setSubmissionData(result);
         navigate('/data-view');
       } else {
-        alert("Connection error. Check your internet connection and try again.");
+        showSnackbar("Connection error. Check your internet connection and try again.", "error");
       }
     } catch(error){
-      console.log("Submit error", error);
-      alert("An unexpected error occured while processsing the request");
+      console.error("Submit error", error);
+      showSnackbar("An unexpected error occurred while processing the request.", "error");
     } finally {
       setIsLoading(false);
     }
@@ -147,11 +146,13 @@ export default function CreateGetaway() {
   }, [scheduleRows, scheduleError]);
 
   return (
-    <Grid container columnSpacing={{ xs:1, sm:2}} >
-      <Grid size={{ xs:1.8 }}><AdminSidebar/></Grid>
-      <Grid size={{ xs:10.2 }} className='section blueBg'>
+    <>
+    <Box sx={{ width: '100%', overflow: 'hidden' }}>
+    <Grid container columnSpacing={{ sm: 2, md: 3 }}>
+      <AdminSidebar/>
+      <Grid size={{ xs: 12, sm: 9, md: 10 }} className='section blueBg' sx={{ minWidth: 0 }}>
         <h2 className='title'>Create getaway</h2>
-        <Box sx={{ width: 1000, maxWidth: '100%', padding: '7px 0px' }}>
+        <Box sx={{ padding: '7px 0px' }}>
           <form onSubmit={handleSubmit(onSubmit)}>
             <Controller name="title" defaultValue=""
               control={control}
@@ -191,7 +192,7 @@ export default function CreateGetaway() {
             />
 
             <Grid container spacing={2}>
-              <Grid size={{ xs:4 }}>
+              <Grid size={{ xs: 12, sm: 4 }}>
                 <Controller name="startDate" defaultValue=""
                   control={control}
                   // rules={{ required: "Start date is required" }}
@@ -205,7 +206,7 @@ export default function CreateGetaway() {
                   )}
                 />
               </Grid>
-              <Grid size={{ xs:4 }}>
+              <Grid size={{ xs: 12, sm: 4 }}>
                 <Controller name="endDate" defaultValue=""
                   control={control}
                   rules={{
@@ -227,7 +228,7 @@ export default function CreateGetaway() {
                   )}
                 />
               </Grid>
-              <Grid size={{ xs: 4 }}>
+              <Grid size={{ xs: 12, sm: 4 }}>
                 <Controller
                   name="sport"
                   control={control}
@@ -348,7 +349,7 @@ export default function CreateGetaway() {
             <Typography variant="h6" color="#3C1C91" sx={{ m: '1 0', fontSize: '14px', fontWeight:"bold"  }}> Lodging options(Single or double occupancy)</Typography>
             <Divider aria-hidden="true"/>
             {lodgingFields.map((field, index) => (
-              <div key={field.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'start' }} >
+              <Box key={field.id} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'start', flexWrap: 'wrap', gap: 1 }}>
                 <Controller name={`lodgingOptions.${index}.name`}
                   control={control}
                   defaultValue={field.name}
@@ -364,7 +365,7 @@ export default function CreateGetaway() {
                       {...field}
                       label={`Lodging Option ${index + 1}`}
                       fullWidth margin="normal"
-                      sx={{ maxWidth:'570px', mr:'15px'}}
+                      sx={{ maxWidth: { xs: '100%', sm: '570px' }, mr: { xs: 0, sm: '15px' } }}
                       error={!!errors.lodgingOptions?.[index]?.name}
                       helperText={errors.lodgingOptions?.[index]?.name ? errors.lodgingOptions?.[index]?.name.message : ''}
                     />
@@ -390,7 +391,7 @@ export default function CreateGetaway() {
                     }
                   }}
                   render={({ field }) => (
-                    <TextField sx={{ width: '220px', mr:'15px'}}
+                    <TextField sx={{ width: { xs: '100%', sm: '220px' }, mr: { xs: 0, sm: '15px' } }}
                       {...field}
                       label={`Lodging ${index + 1} Price`}
                       type="number" margin="normal"
@@ -408,7 +409,7 @@ export default function CreateGetaway() {
                   onClick={() => removeLodging(index)}
                   // disabled={activeForms.length === 1}
                 >Remove</Button>
-              </div>
+              </Box>
             ))}
             <Button
               startIcon={<AddIcon />} variant="contained"
@@ -424,7 +425,7 @@ export default function CreateGetaway() {
             <Divider aria-hidden="true" />
 
             {addOnFields.map((field, index) => (
-              <div key={field.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'start' }}>
+              <Box key={field.id} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'start', flexWrap: 'wrap', gap: 1 }}>
                 <Controller
                   name={`optionalAddOns.${index}.name`}
                   control={control}
@@ -440,7 +441,7 @@ export default function CreateGetaway() {
                     <TextField
                       {...field}
                       label={`Optional Add On ${index + 1}`}
-                      sx={{ maxWidth:'550px', mr:'15px'}} fullWidth margin="normal"
+                      sx={{ maxWidth: { xs: '100%', sm: '550px' }, mr: { xs: 0, sm: '15px' } }} fullWidth margin="normal"
                       error={!!errors.optionalAddOns?.[index]?.name}
                       helperText={errors.optionalAddOns?.[index]?.name ? errors.optionalAddOns?.[index]?.name.message : ''}
                     />
@@ -468,7 +469,7 @@ export default function CreateGetaway() {
                     <TextField
                       {...field}
                       label={`Add On ${index + 1} Price`}
-                      type="number" margin="normal" sx={{ maxWidth:'220px', mr:'15px'}}
+                      type="number" margin="normal" sx={{ maxWidth: { xs: '100%', sm: '220px' }, mr: { xs: 0, sm: '15px' } }}
                       error={!!errors.optionalAddOns?.[index]?.price}
                       helperText={errors.optionalAddOns?.[index]?.price ? errors.optionalAddOns?.[index]?.price.message : ''}
                     />
@@ -483,7 +484,7 @@ export default function CreateGetaway() {
                   onClick={() => removeAddOn(index)}
                   // disabled={activeForms.length === 1}
                 > Remove </Button>
-              </div>
+              </Box>
             ))}
 
             <Button startIcon={<AddIcon />} variant="contained" disableElevation
@@ -497,19 +498,16 @@ export default function CreateGetaway() {
             <Typography variant="h6" color="#3C1C91" sx={{ m: '1 0', fontSize: '14px', fontWeight:"bold"  }}> Services & amenities included </Typography>
             <Divider aria-hidden="true" sx={{ pt:0, mt: 0 }} />
             {amenityFields.map((field, index) => (
-              <div key={field.id}
-                style={{ display: 'flex', alignItems: 'center', marginBottom: "0px", justifyContent: ' start' }}
-              >
+              <Box key={field.id} sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
                 <Controller
                   name={`amenities.${index}.name`}
                   control={control}
                   defaultValue={field.name}
-                  // rules={{ required: "Amenity is required" }}
                   render={({ field }) => (
                     <TextField
                       {...field}
                       fullWidth margin="normal"
-                      sx={{ maxWidth:'550px', mr:'9px' }}
+                      sx={{ maxWidth: { xs: '100%', sm: '550px' }, mr: { xs: 0, sm: '9px' } }}
                       label={`Amenity ${index + 1}`}
                       error={!!errors.amenities?.[index]?.name}
                       helperText={errors.amenities?.[index]?.name ? errors.amenities?.[index]?.name.message : ''}
@@ -523,9 +521,8 @@ export default function CreateGetaway() {
                     ':hover': { color: '#3C1C91', bgcolor: '#fff'  }
                   }}
                   onClick={() => removeAmenity(index)} aria-label="delete"
-                  // disabled={activeForms.length === 1}
                 > Remove </Button>
-              </div>
+              </Box>
             ))}
             <Button startIcon={<AddIcon />} variant="contained" aria-label="Add amenity" disableElevation
               onClick={() => appendAmenity({ name: "" })}
@@ -540,9 +537,11 @@ export default function CreateGetaway() {
                 {scheduleError}
               </div>
             )}
+            <Box id="schedule-section">
             <ScheduleForm
             rows={scheduleRows} setRows={setScheduleRows}
             />
+            </Box>
 
             <Box
               sx={{
@@ -592,16 +591,9 @@ export default function CreateGetaway() {
                 />
               )}
             />
-            <Button type="submit" startIcon={<AddIcon />} variant="contained" disableElevation
-              sx={{
-                mb: 2, bgcolor: '#00E392', color: '#1A2660', fontWeight: 'bold', borderRadius: '30px', textTransform: 'none',
-                ':hover': { bgcolor: '#3C1C91', color: 'white' }
-              }}
-            > Add item </Button>
 
             <Controller name="terms" defaultValue=""
               control={control}
-              //rules={{ required: "Terms are required" }}
               render={({ field }) => (
                 <TextField label="Terms" multiline maxRows={7} fullWidth margin="normal"
                   {...field} id={field.name}
@@ -610,12 +602,6 @@ export default function CreateGetaway() {
                 />
               )}
             />
-            <Button type="submit" startIcon={<AddIcon />} variant="contained" disableElevation
-              sx={{
-                mb: 2, bgcolor: '#00E392', color: '#1A2660', fontWeight: 'bold', borderRadius: '30px', textTransform: 'none',
-                ':hover': { bgcolor: '#3C1C91', color: 'white' }
-              }}
-            > Add item </Button>
 
             <Box style={{ display: 'flex', justifyContent: 'center', gap: 18, margin:'20px 0' }}>
               <Button type="button" href="/getaways"
@@ -641,5 +627,17 @@ export default function CreateGetaway() {
         </Box>
       </Grid>
     </Grid>
+    </Box>
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={4000}
+        onClose={() => setSnackbar(s => ({ ...s, open: false }))}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert severity={snackbar.severity} onClose={() => setSnackbar(s => ({ ...s, open: false }))} sx={{ width: '100%' }}>
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
+    </>
   );
 }

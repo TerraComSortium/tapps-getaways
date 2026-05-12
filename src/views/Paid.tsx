@@ -8,7 +8,7 @@ function Paid() {
       <Container
         sx={{
           pt:4, pb:4,
-          width: '70%',
+          width: { xs: '100%', sm: '70%' },
           display:"flex", flexDirection: 'column',
         }}
       >
@@ -43,8 +43,7 @@ function Paid() {
                 href="/getaways"
                 sx={{
                   mt: 1, mb: 3, borderRadius:'8px',
-                  minWidth: '18vw',
-                  maxWidth: '13vw',
+                  minWidth: { xs: '200px', sm: '220px' },
                   bgcolor: '#3C1C91', color: '#FFF', fontWeight: 'bold', textTransform: 'none',
                   ':hover': { bgcolor: 'white', color: '#3C1C91'},
                   borderColor: 'primary.main', border: 1

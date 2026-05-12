@@ -24,25 +24,27 @@ export async function handleGetawaySubmit(payload: GetawayPayload): Promise<Subm
   //@ts-expect-error to exclude photos and discounts
   delete payloadWithoutFiles.galleryPhotos;
   delete payloadWithoutFiles.discounts;
-
+  //send clean JSON data
   apiFormData.append('data', JSON.stringify(payloadWithoutFiles));
 
   try {
     const response = await api.post(ENDPOINTS.CREATE, apiFormData);
     const responseData = response.data;
     const newId = responseData.offer?._id || responseData.offer?.id || responseData._id || responseData.id;
-
+    console.log("getaway created,id:", newId);
     return{ payload, status:'SUCCESS', statusCode:response.status, getawayId:newId };
   } catch (error: unknown){
     if(axios.isAxiosError(error)){
-      if (!error.response) {
+      if (!error.response){
         console.warn("Backend unavailable, save at LocalStorage");
         // saveToLocalStorage(payload);
         return { payload, status: 'LOCAL_SAVE', statusCode: null };
       }
       //error(400-500)
+      console.error("Backend unreacheable. Network or submit error:", error.response.status, error.response.data);
       return { payload, status: 'API_ERROR', statusCode: error.response.status };
     }
+    console.error("unexpected error:", error);
     return { payload, status: 'NETWORK_ERROR', statusCode: null };
   }
 }

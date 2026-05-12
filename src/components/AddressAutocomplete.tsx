@@ -1,10 +1,9 @@
 import { useRef, useState, useEffect } from "react";
 import { Button, Box, Typography, FormLabel, SxProps, Theme } from "@mui/material";
-import { Autocomplete } from "@react-google-maps/api";
 import GpsFixedIcon from '@mui/icons-material/GpsFixed';
 import { styled } from "@mui/material/styles";
 import type { LocationEntry } from '../types/getaway';
-import { useApiIsLoaded } from '@vis.gl/react-google-maps';
+import { useMapsLibrary } from '@vis.gl/react-google-maps';
 
 const StyledAutocomplete = styled('input', {
   shouldForwardProp: (prop) =>
@@ -22,7 +21,6 @@ const StyledAutocomplete = styled('input', {
   padding: '10px',
   width: '100%',
   display: 'block',
-
   border: `1px solid ${$isError ? theme.palette.error.main : 'rgba(0, 0, 0, 0.23)'}`,
   borderRadius: '4px',
   backgroundColor: $transparent ? 'transparent' : '#fff',
@@ -31,13 +29,14 @@ const StyledAutocomplete = styled('input', {
   color: $textColor,
   boxSizing: 'border-box',
   transition: 'border-color 0.2s',
-
   '&:focus-within': {
     borderColor: theme.palette.primary.main,
   }
 }));
 
-const LocationButton = styled(Button)<{ $hasLabel?: boolean; $height?: string | number }>(
+const LocationButton = styled(Button, {
+  shouldForwardProp: (prop) => prop !== '$hasLabel' && prop !== '$height',
+})<{ $hasLabel?: boolean; $height?: string | number }>(
   ({ theme, $hasLabel, $height }) => ({
     marginTop: $hasLabel ? '28px' : '0px',
     height: typeof $height === 'number' ? `${$height}px` : $height,
@@ -60,9 +59,7 @@ const LocationButton = styled(Button)<{ $hasLabel?: boolean; $height?: string | 
 );
 
 interface AddressAutocompleteProps {
-  apiKey: string;
   onChange: (value: LocationEntry) => void;
-  //optional props
   value?: LocationEntry | null;
   label?: string;
   error?: boolean;
@@ -77,7 +74,6 @@ interface AddressAutocompleteProps {
 }
 
 export function AddressAutocomplete({
-  apiKey,
   onChange,
   value,
   label,
@@ -86,100 +82,82 @@ export function AddressAutocomplete({
   showCurrentLocationBtn = false,
   inputStyle,
   containerSx,
-  //default prop values
   height = '56px',
   transparentBackground = false,
   labelColor,
   inputTextColor = '#000',
 }: AddressAutocompleteProps) {
   const [isLoadingGeo, setIsLoadingGeo] = useState(false);
-  const [autocompleteInstance, setAutocompleteInstance] = useState<google.maps.places.Autocomplete | null>(null);
-
   const inputRef = useRef<HTMLInputElement>(null);
+  const onChangeRef = useRef(onChange);
 
-  const globalAddress = value?.address; //string initial extract
-  useEffect(() => { //to sync global value with inputRef
+  // useMapsLibrary hooks into the APIProvider from @vis.gl — no separate loader needed
+  const placesLib = useMapsLibrary('places');
+
+  useEffect(() => { onChangeRef.current = onChange; });
+
+  // Sync external value (e.g. GPS auto-fill) into the input
+  const globalAddress = value?.address;
+  useEffect(() => {
     if (inputRef.current && globalAddress) {
       const inputAddress = `${globalAddress}, `;
       inputRef.current.value = inputAddress;
-
       const isDesktop = window.innerWidth > 768;
-      //responsive auto-focus only for desktop
       if (isDesktop) {
         inputRef.current.focus();
-        //final cursor position
         const length = inputAddress.length;
         inputRef.current.setSelectionRange(length, length);
       }
     }
-  }, [globalAddress]);//render at initial load and at value.address change
+  }, [globalAddress]);
 
-  const isLoaded = useApiIsLoaded();
-  const onLoad = (autocomplete: google.maps.places.Autocomplete) => {
-    setAutocompleteInstance(autocomplete);
-  };
+  // Attach Google Places Autocomplete to our own styled input
+  useEffect(() => {
+    if (!placesLib || !inputRef.current) return;
 
-  const onPlaceChanged = () => {
-    if (autocompleteInstance !== null) {
-      const place = autocompleteInstance.getPlace();
-      console.log("Google response:", place);
+    const ac = new placesLib.Autocomplete(inputRef.current, {
+      fields: ['formatted_address', 'geometry', 'name'],
+    });
 
-      if (!place || !place.geometry || !place.geometry.location) {
-        console.warn("Places don't return coordinates, try again");
+    const listener = ac.addListener('place_changed', () => {
+      const place = ac.getPlace();
+      if (!place?.geometry?.location) {
+        console.warn("Place selected has no coordinates");
         return;
       }
+      const address = place.formatted_address || place.name || "";
+      const lat = place.geometry.location.lat();
+      const lng = place.geometry.location.lng();
+      onChangeRef.current({ address, lat, lng });
+    });
 
-      const addressStr = place.formatted_address || place.name || "";
-      const latValue = place.geometry.location.lat();
-      const lngValue = place.geometry.location.lng();
-      console.log("Extracted data:", { address: addressStr, lat: latValue, lng: lngValue });
-
-      //to AddressAutocompleteField
-      onChange({
-        address: addressStr,
-        lat: latValue,
-        lng: lngValue,
-      });
-    }
-  };
+    return () => google.maps.event.removeListener(listener);
+  }, [placesLib]);
 
   const handleMyPositionClick = () => {
     if (!navigator.geolocation) {
       alert("Geolocation is not supported by your browser");
       return;
     }
-    console.log("Button pressed. making position request...");
     setIsLoadingGeo(true);
 
-    navigator.geolocation.getCurrentPosition(async (pos) => {
-      const { latitude: lat, longitude: lng } = pos.coords;
-      console.log("Relative position:", { lat, lng });
-
-      try {
-        console.log("Geocoding API call...");
-        const res = await fetch(
-          `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${apiKey}`
-        );
-        const data = await res.json();
-        // console.log("Google Maps API complete response:", data);
-        let addressToSave = "";
-
-        if (data.status === "OK" && data.results && data.results[0]) {
-          addressToSave = data.results[0].formatted_address;
-          console.log("Address found:", addressToSave);
-
-        } else {
-          console.warn(`Maps API status: ${data.status}. Using fallback coordinates.`);
-          addressToSave = `Lat: ${lat.toFixed(4)}, Lng: ${lng.toFixed(4)}`;
-        }
-
-        onChange({ address: addressToSave, lat, lng });
-          if (inputRef.current) {
-            inputRef.current.value = addressToSave;
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const { latitude: lat, longitude: lng } = pos.coords;
+        const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "";
+        try {
+          const res = await fetch(
+            `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${apiKey}`
+          );
+          const data = await res.json();
+          let address = `Lat: ${lat.toFixed(4)}, Lng: ${lng.toFixed(4)}`;
+          if (data.status === "OK" && data.results?.[0]) {
+            address = data.results[0].formatted_address;
           }
-
-        } catch (error) {
-          console.error("Geocoding error:", error);
+          onChangeRef.current({ address, lat, lng });
+          if (inputRef.current) inputRef.current.value = address;
+        } catch (err) {
+          console.error("Geocoding error:", err);
           alert("Error fetching address details.");
         } finally {
           setIsLoadingGeo(false);
@@ -187,13 +165,12 @@ export function AddressAutocomplete({
       },
       (err) => {
         setIsLoadingGeo(false);
-        console.error("Geolocation error:", err.message);
         alert("Could not get location: " + err.message);
       }
     );
   };
 
-  if (!isLoaded) return <Typography>Loading Maps...</Typography>;
+  if (!placesLib) return <Typography>Loading Maps...</Typography>;
 
   return (
     <Box sx={{ width: '100%', display: 'flex', alignItems: 'flex-start', gap: 1, flexWrap: 'wrap', ...containerSx }}>
@@ -203,20 +180,17 @@ export function AddressAutocomplete({
             {label}
           </FormLabel>
         )}
-        <Autocomplete onLoad={onLoad} onPlaceChanged={onPlaceChanged}>
-          <StyledAutocomplete
-            ref={inputRef}
-            type="text"
-            placeholder="City or RCnet"
-            defaultValue={value?.address || ""}
-            $isError={error}
-            $height={height}
-            $transparent={transparentBackground}
-            $textColor={inputTextColor}
-            //override
-            style={inputStyle}
-          />
-        </Autocomplete>
+        <StyledAutocomplete
+          ref={inputRef}
+          type="text"
+          placeholder="City or RCnet"
+          defaultValue={value?.address || ""}
+          $isError={error}
+          $height={height}
+          $transparent={transparentBackground}
+          $textColor={inputTextColor}
+          style={inputStyle}
+        />
         {errorMessage && (
           <Typography variant="caption" color="error" sx={{ mt: 0.5, display: 'block' }}>
             {errorMessage}
@@ -231,9 +205,7 @@ export function AddressAutocomplete({
           startIcon={<GpsFixedIcon />}
           variant="contained"
           disableElevation
-          //custom props
           $hasLabel={!!label}
-          // $height={height}
           $height={'35px'}
           sx={{ ml: 0, mb: 2 }}
         >

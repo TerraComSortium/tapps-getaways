@@ -8,7 +8,8 @@ import SearchBar from '../components/SearchBar';
 import type { Getaway } from '../types/getaway';
 import { useWatchLocation } from '../hooks/useWatchLocation';
 import { useUserStore } from '../store/useUserStore';
-import { getGetaways } from '../services/getawayApi';
+import { getAllGetaways } from '../services/getaways/getaways';
+
 import { SearchService } from '../services/searchService';
 import {
   normalizeGetawayData,
@@ -37,23 +38,28 @@ export default function Mygetaways() {
       setLoading(true);
       try {
         setError(null);
-        setIsOfflineMode(false);
-        let rawData;
+        console.log("calling getaways...");
+        // setIsOfflineMode(false);
+        // let rawData;
+        let finalData: Getaway[] = [];
 
         if (userLocation?.lat && userLocation?.lng) {
           console.log("Position detected: searching nearby offers at 300km...");
-          rawData = await SearchService.search({
+          //toReview SearchService have to return normalized data to avoid twice
+          // rawData = await SearchService.search({
+          finalData = await SearchService.search({
             lat: userLocation.lat,
             lng: userLocation.lng
           });
         } else {
           console.log("Without usrLocation: receving all offers...");
-          rawData = await getGetaways();
+          finalData = await getAllGetaways();
         }
 
         //Normalize and save data
-        const cleanData = rawData.map(normalizeGetawayData);
-        setGetaways(cleanData);
+        // const cleanData = rawData.map(normalizeGetawayData);
+        // setGetaways(cleanData);
+        setGetaways(finalData);
 
       } catch (err: any) { //(!api || localStorage getGetaways?)
         console.warn("Error a initial fetch data", err.message);

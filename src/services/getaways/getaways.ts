@@ -1,8 +1,14 @@
 import { api } from "../../api/api";
+import { normalizeGetawayData } from '../../utils/getawayHelpers';
 
 export const getAllGetaways = async () => {
   const response = await api.get("/getaways");
-  return response.data;
+  // return response.data;
+  const dataToNormalize = response.data?.data || response.data || [];
+  // return Array.isArray(response.data) ? response.data.map(normalizeGetawayData) : [];
+  return Array.isArray(dataToNormalize)
+    ? dataToNormalize.map(normalizeGetawayData)
+    : [];
 };
 
 export const getGetawayById = async (id: string) => {
@@ -14,6 +20,10 @@ export const getGetawaysByOwner = async () => {
   const response = await api.get("/getaways/owner/me");
   return response.data;
 };
+// export const getGetawaysByOwner = async () => {
+//   const response = await api.get("/getaways/owner/me");
+//   // return Array.isArray(response.data) ? response.data.map(normalizeGetawayData) : [];
+// };
 
 export const getSubscribedGetaways = async () => {
   const response = await api.get("/getaways/subscribed/");

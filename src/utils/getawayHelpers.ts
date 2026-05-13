@@ -12,29 +12,43 @@ export const getSportLabel = (sportKey: string): string => {
   return sportMap[sportKey] || sportKey || 'Not available';
 };
 
-export const normalizeGetawayData = (raw: any): Getaway => ({
-  _id: raw._id || raw.id || `temp_${Math.random()}`,
-  title: raw.title || raw.getawayTitle || "Untitled Offer",
-  overview: raw.overview || raw.getawayOverview || "",
-  startDate: raw.startDate || "",
-  endDate: raw.endDate || "",
-  sport: raw.sport || "",
-  galleryPhotos: raw.galleryPhotos || raw.galleryPhoto || [],
-  lodgingOptions: raw.lodgingOptions || [],
-  optionalAddOns: raw.optionalAddOns || [],
-  amenities: raw.amenities || [],
-  schedule: raw.schedule || [],
-  caption: raw.caption || "",
-  galleryVideo: raw.galleryVideo || "",
-  mainDescription: raw.mainDescription || raw.getawayOverview || "",
-  policies: raw.policies || "",
-  terms: raw.terms || "",
-  getawayAddress: raw.getawayAddress || {
-    address: raw.address || "",
-    lat: raw.location?.lat || 0,
-    lng: raw.location?.lng || 0,
-  },
-});
+const parseFirestoreDate = (dateField: any): string => {
+  if (!dateField) return "Date not defined";
+
+  //for firestoreTimestamp
+  if (dateField._seconds !== undefined) {
+    //convert to milisecs
+    return new Date(dateField._seconds * 1000).toLocaleDateString();
+  }
+  return new Date(dateField).toLocaleDateString();
+};
+export const normalizeGetawayData = (raw: any): Getaway => {
+  return {
+    ...raw,
+    _id: raw._id || raw.id || `temp_${Math.random()}`,
+    title: raw.title || raw.getawayTitle || "Untitled Offer",
+    overview: raw.overview || raw.getawayOverview || "",
+    startDate: parseFirestoreDate(raw.startDate),
+    endDate: parseFirestoreDate(raw.endDate),
+    sport: raw.sport || "",
+    galleryPhotos: raw.galleryPhotos || raw.galleryPhoto || [],
+
+    lodgingOptions: raw.lodgingOptions || [],
+    optionalAddOns: raw.optionalAddOns || [],
+    amenities: raw.amenities || [],
+    schedule: raw.schedule?.map((item: any) => ({
+      ...item,
+      date: parseFirestoreDate(item.date)
+    })) || [],
+    caption: raw.caption || "",
+    galleryVideo: raw.galleryVideo || "",
+    mainDescription: raw.mainDescription || raw.getawayOverview || "",
+    policies: raw.policies || "",
+    terms: raw.terms || "",
+
+    getawayAddress: raw.getawayAddress || { address: raw.address || "", lat: raw.location?.lat || 0, lng: raw.location?.lng || 0 }
+  };
+};
 
 export const performFallbackLocalSearch = (
   rawData: any[],

@@ -9,7 +9,6 @@ import type { SubmissionResult } from '../contexts/FormDataContext';
 // const BASE_URL = "/api/getaways";
 const BASE_URL = "/getaways";
 
-
 const ENDPOINTS = {
   CREATE: `${BASE_URL}/create`,
   // LIST: `${BASE_URL}/`, //getGetaways
@@ -67,7 +66,7 @@ export async function handleGetawaySubmit(payload: GetawayPayload): Promise<Subm
   } else {
     console.warn("Unavailable Backend, payload saved on localStorage.");
     const cleanPayload = { ...payload };
-  
+
     // @ts-expect-error to ignore galleryPhotos
     delete cleanPayload.galleryPhotos;
     const localItem = {
@@ -75,10 +74,10 @@ export async function handleGetawaySubmit(payload: GetawayPayload): Promise<Subm
       _id: `local_${Date.now()}`,
       galleryPhotos: []
     };
-  
+
     const existingData = JSON.parse(localStorage.getItem('getaways') || '[]');
     localStorage.setItem('getaways', JSON.stringify([...existingData, localItem]));
-  
+
     return { payload, status: 'LOCAL_SAVE', statusCode: null };
   }
 }

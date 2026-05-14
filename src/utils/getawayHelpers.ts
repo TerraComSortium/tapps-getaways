@@ -22,6 +22,7 @@ const parseFirestoreDate = (dateField: any): string => {
   }
   return new Date(dateField).toLocaleDateString();
 };
+
 export const normalizeGetawayData = (raw: any): Getaway => {
   return {
     ...raw,

@@ -15,6 +15,7 @@ import Link from '@mui/material/Link';
 import CloseIcon from '@mui/icons-material/Close';
 import CreditCardIcon from '@mui/icons-material/CreditCard';
 import AdminSideBar from '../components/AdminSidebar';
+import { useGetawaySubscribers } from '../hooks/useGetawaySubscribers';
 
 const StyledTableCell = styled(TableCell)(({ theme }) => ({
   [`&.${tableCellClasses.head}`]: {
@@ -71,12 +72,17 @@ interface SelectedData {
 }
 
 function Reservations() {
+  const id = localStorage.getItem('id') ?? '';
+  const { data: getaways } = useGetawaySubscribers(id);
+  console.log(getaways);
+
   const [open, setOpen] = useState(false);
   const [selectedRow, setSelectedRow] = useState<RowData | null>(null);
   const [selectedData, setSelectedData] = useState<SelectedData | null>(null);
 
   useEffect(() => {
     const data = localStorage.getItem('selectedData');
+    console.log("data que vamos creando ", data)
     if (data) {
       setSelectedData(JSON.parse(data));
     }

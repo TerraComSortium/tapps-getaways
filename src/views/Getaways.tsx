@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Box, Stack, Pagination, Typography, CircularProgress, Alert } from '@mui/material';
 import Grid from '@mui/material/Grid2';
@@ -6,11 +6,9 @@ import { GetawayItem } from '../components/GetawayItem';
 import SearchBar from '../components/SearchBar';
 
 import type { Getaway } from '../types/getaway';
-import { useWatchLocation } from '../hooks/useWatchLocation';
 import { useUserStore } from '../store/useUserStore';
 import { getAllGetaways } from '../services/getaways/getaways';
-
-import { SearchService } from '../services/searchService';
+import { searchGetaways } from '../services/search/search';
 import {
   normalizeGetawayData,
   performFallbackLocalSearch,
@@ -19,10 +17,8 @@ import {
 } from '../utils/getawayHelpers';
 
 export default function Mygetaways() {
-  useWatchLocation();
-  //subscribe to userLocation global state
+  // App.tsx already calls useWatchLocation — no second watcher needed here
   const userLocation = useUserStore((state) => state.userLocation);
-  console.log('userLocation:', userLocation);
   const navigate = useNavigate();
 
   const [getaways, setGetaways] = useState<Getaway[]>([]);
@@ -32,37 +28,38 @@ export default function Mygetaways() {
   const [page, setPage] = useState(1);
   const ITEMS_PER_PAGE = 10;
 
-  //graceful degradation pattern
+  // Track previous coordinates to avoid re-fetching when the location object
+  // changes reference but lat/lng values are identical (watchPosition fires repeatedly)
+  const prevCoordsKey = useRef<string>('');
+
   useEffect(() => {
+    const coordsKey = userLocation ? `${userLocation.lat},${userLocation.lng}` : '';
+    if (coordsKey && coordsKey === prevCoordsKey.current) return;
+    prevCoordsKey.current = coordsKey;
+
     const fetchInitialData = async () => {
       setLoading(true);
+      setError(null);
       try {
-        setError(null);
-        console.log("calling getaways...");
-        // setIsOfflineMode(false);
-        // let rawData;
         let finalData: Getaway[] = [];
 
         if (userLocation?.lat && userLocation?.lng) {
-          console.log("Position detected: searching nearby offers at 300km...");
-          //toReview SearchService have to return normalized data to avoid twice
-          // rawData = await SearchService.search({
-          finalData = await SearchService.search({
+          const rawData = await searchGetaways({
             lat: userLocation.lat,
-            lng: userLocation.lng
+            lng: userLocation.lng,
           });
-        } else {
-          console.log("Without usrLocation: receving all offers...");
+          finalData = Array.isArray(rawData) ? rawData.map(normalizeGetawayData) : [];
+        }
+
+        // Fall back to all getaways if search returned nothing or there was no location
+        // (the search endpoint filters by date ≥ today, so test data with past dates returns [])
+        if (finalData.length === 0) {
           finalData = await getAllGetaways();
         }
 
-        //Normalize and save data
-        // const cleanData = rawData.map(normalizeGetawayData);
-        // setGetaways(cleanData);
         setGetaways(finalData);
-
-      } catch (err: any) { //(!api || localStorage getGetaways?)
-        console.warn("Error a initial fetch data", err.message);
+      } catch (err: any) {
+        console.warn("Error fetching initial getaways:", err.message);
         setError("No getaways could be loaded at this time. Please try again later.");
       } finally {
         setLoading(false);
@@ -89,13 +86,12 @@ export default function Mygetaways() {
     setError(null);
     setIsOfflineMode(false);
 
-    SearchService.search({
+    searchGetaways({
       lat: searchLat,
       lng: searchLng,
-      q: filters.q,
       sport: filters.sport,
       startDate: filters.startDate || undefined,
-      endDate: filters.endDate || undefined
+      endDate: filters.endDate || undefined,
     })
 
     .then(rawData => {
@@ -151,14 +147,6 @@ export default function Mygetaways() {
   //   page * ITEMS_PER_PAGE
   // );
 
-  if (loading) {
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-        <CircularProgress />
-      </Box>
-    );
-  }
-
   return (
     <>
       <Grid container rowSpacing={1} columnSpacing={{ xs: 1, sm: 2, md: 3 }} >
@@ -172,11 +160,11 @@ export default function Mygetaways() {
               {isOfflineMode && (
                 <Alert severity="warning" sx={{ mb: 2 }}>Showing local preview data. Backend connection failed.</Alert>
               )}
-              {error && getaways.length === 0 ? (
+              {!loading && error && getaways.length === 0 ? (
                 <Alert severity="info" sx={{ mt: 2 }}>
                   No getaways available right now. Try again later or use the search to find experiences near you.
                 </Alert>
-              ) : (
+              ) : !loading && (
                 <Typography variant="subtitle1" sx={{ mt: "20px" }}>
                   {getaways.length > 0
                     ? `${isOfflineMode ? 'Local matches' : 'Getaways offers'}: ${getaways.length}`
@@ -186,8 +174,12 @@ export default function Mygetaways() {
               )}
             </Box>
 
-            {getaways.length > 0 && (
-              paginatedGetaways.map((getaway, index) => (
+            {loading ? (
+              <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
+                <CircularProgress />
+              </Box>
+            ) : (
+              getaways.length > 0 && paginatedGetaways.map((getaway, index) => (
                 <GetawayItem
                   key={getaway._id || `fallback-key-${index}`}
                   name={getaway.title || "Untitled Offer"}
@@ -202,12 +194,11 @@ export default function Mygetaways() {
             )}
           </Box>
 
-          {getaways.length > 0 && (
+          {!loading && getaways.length > 0 && (
             <Stack spacing={2} sx={{ mt: 4, alignItems: 'center' }}>
               <Pagination
                 shape="rounded"
                 count={Math.ceil(getaways.length / ITEMS_PER_PAGE)}
-                // count={Math.ceil(filteredGetaways.length / ITEMS_PER_PAGE)}
                 page={page}
                 onChange={handleChange}
               />

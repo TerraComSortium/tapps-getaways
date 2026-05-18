@@ -12,6 +12,7 @@ export const getAllGetaways = async () => {
 };
 
 export const getGetawayById = async (id: string) => {
+  console.log("datos de id", id) // todo-list este id debe ser de un getaways 
   const response = await api.get(`/getaways/${id}`);
   return response.data;
 };
@@ -24,6 +25,14 @@ export const getGetawaysByOwner = async () => {
 //   const response = await api.get("/getaways/owner/me");
 //   // return Array.isArray(response.data) ? response.data.map(normalizeGetawayData) : [];
 // };
+
+export const getActiveGetaways = async () => {
+  const response = await api.get("/getaways/active");
+  const dataToNormalize = response.data?.results || response.data || [];
+  return Array.isArray(dataToNormalize)
+    ? dataToNormalize.map(normalizeGetawayData)
+    : [];
+};
 
 export const getSubscribedGetaways = async () => {
   const response = await api.get("/getaways/subscribed/");

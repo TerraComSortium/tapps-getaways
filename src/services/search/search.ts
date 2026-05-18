@@ -1,5 +1,13 @@
 import { api } from "../../api/api";
 
+interface SearchParams {
+  lat: number;
+  lng: number;
+  sport?: string;
+  startDate?: string;
+  endDate?: string;
+}
+
 interface NearbyParams {
   lat: string;
   lng: string;
@@ -12,6 +20,12 @@ interface FilterParams {
   startDate?: string;
   endDate?: string;
 }
+
+export const searchGetaways = async (params: SearchParams) => {
+  const response = await api.get("/search", { params });
+  const data = response.data;
+  return Array.isArray(data?.results) ? data.results : [];
+};
 
 export const searchNearby = async (params: NearbyParams) => {
   const response = await api.get("/search/nearby", { params });

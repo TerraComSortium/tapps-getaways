@@ -21,7 +21,7 @@ export const SearchService = {
     if (params.startDate) queryParams.append('startDate', params.startDate);
     if (params.endDate) queryParams.append('endDate', params.endDate);
 
-    const res = await fetch(`${BASE_URL}/search?${queryParams.toString()}`, { signal });
+    const res = await fetch(`${BASE_URL}search?${queryParams.toString()}`, { signal });
 
     if (!res.ok) {
       const errData = await res.json();

@@ -10,7 +10,7 @@ import { useAuth } from '../contexts/AuthContext';
 // import { useWatchLocation } from '../hooks/useWatchLocation';
 // import { useUserStore } from '../store/useUserStore';
 
-import { getOwnerGetaways } from '../services/getawayApi';
+import { getGetawaysByOwner } from '../services/getaways/getaways';
 // import { SearchService } from '../services/searchService';
 import { normalizeGetawayData, getSportLabel, getValidImages } from '../utils/getawayHelpers';
 
@@ -35,7 +35,7 @@ export default function Mygetaways() {
     const fetchOwnerData = async () => {
       if (isAuthLoading) return;
       if (!role) {
-        setError("Debes estar logueado para ver tus ofertas.");
+        setError("You must be logged to review getaways");
         setLoading(false);
         return;
       }
@@ -44,7 +44,7 @@ export default function Mygetaways() {
         setError(null);
         console.log("api call...");
         // setIsOfflineMode(false);
-        const rawData = await getOwnerGetaways();
+        const rawData = await getGetawaysByOwner();
         console.log("raw backend response:", rawData);
         const dataArray = Array.isArray(rawData)
           ? rawData
@@ -59,7 +59,7 @@ export default function Mygetaways() {
         setLoading(false);
       }
     };
-    fetchOwnerData();
+    fetchOwnerData();      
   }, [isAuthLoading, role]);
 
   const handlePageChange = (_: any, value: number) => setPage(value);

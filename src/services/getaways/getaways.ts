@@ -3,28 +3,25 @@ import { normalizeGetawayData } from '../../utils/getawayHelpers';
 
 export const getAllGetaways = async () => {
   const response = await api.get("/getaways");
-  // return response.data;
   const dataToNormalize = response.data?.data || response.data || [];
-  // return Array.isArray(response.data) ? response.data.map(normalizeGetawayData) : [];
   return Array.isArray(dataToNormalize)
     ? dataToNormalize.map(normalizeGetawayData)
     : [];
 };
 
 export const getGetawayById = async (id: string) => {
-  console.log("datos de id", id) // todo-list este id debe ser de un getaways 
+  console.log("datos de id", id) // todo-list este id debe ser de un getaways
   const response = await api.get(`/getaways/${id}`);
   return response.data;
 };
 
 export const getGetawaysByOwner = async () => {
   const response = await api.get("/getaways/owner/me");
-  return response.data;
+  const responseToNormalize = response.data?.data || response.data || [];
+  return Array.isArray(responseToNormalize)
+    ? responseToNormalize.map(normalizeGetawayData)
+    : [];
 };
-// export const getGetawaysByOwner = async () => {
-//   const response = await api.get("/getaways/owner/me");
-//   // return Array.isArray(response.data) ? response.data.map(normalizeGetawayData) : [];
-// };
 
 export const getActiveGetaways = async () => {
   const response = await api.get("/getaways/active");

@@ -10,8 +10,12 @@ export default defineConfig({
         // target: 'http://localhost:3000',
         target: 'http://localhost:8000',
         changeOrigin: true,
+        // rewrite: (path) => path.replace(/^\/api/, ''),
         secure: false,
       },
     },
+  },
+  optimizeDeps:{
+    include:['@tanstack/react-query'],
   }
 })

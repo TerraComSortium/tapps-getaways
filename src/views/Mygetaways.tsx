@@ -7,6 +7,8 @@ import { GetawayItem } from '../components/GetawayItem';
 
 import type { Getaway } from '../types/getaway';
 import { useAuth } from '../contexts/AuthContext';
+import { useDeleteGetaway } from '../hooks/useDeleteGetaway';
+
 // import { useWatchLocation } from '../hooks/useWatchLocation';
 // import { useUserStore } from '../store/useUserStore';
 
@@ -27,6 +29,10 @@ export default function Mygetaways() {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
+
+  const [ successDeleteMsg, setSuccessDeleteMsg] = useState<string | null>(null);
+  const { removeGetaway, isDeleting} = useDeleteGetaway();
+
   const ITEMS_PER_PAGE = 10;
   // const [isOfflineMode, setIsOfflineMode] = useState<boolean>(false);
 
@@ -59,10 +65,11 @@ export default function Mygetaways() {
         setLoading(false);
       }
     };
-    fetchOwnerData();      
+    fetchOwnerData();
   }, [isAuthLoading, role]);
 
   const handlePageChange = (_: any, value: number) => setPage(value);
+  
   // const handleViewDetails = (getaway: Getaway) => {
   //   navigate('/getawaydetail', { state: { getawayData: getaway } });
   // };
@@ -71,6 +78,20 @@ export default function Mygetaways() {
     (page - 1) * ITEMS_PER_PAGE,
     page * ITEMS_PER_PAGE
   );
+
+  const handleDeleteClick = (idToDelete: string) => {
+    const isConfirmed = window.confirm(`Are you sure you want to delete getaway: "${name}"?. This action cannot be undone.`);
+    if (!isConfirmed) return;
+    removeGetaway(idToDelete, {
+      onSuccess: () => {
+        setSuccessDeleteMsg("Getaway deleted successfully!");
+        setTimeout(() => setSuccessDeleteMsg(null), 3000);
+      },
+      onError: () => {
+        alert("An error occurred while deleting the offer on the server. Please try again later.");
+      }
+    });
+  };
 
   if (loading) {
     return (
@@ -82,6 +103,11 @@ export default function Mygetaways() {
 
   return (
     <>
+      {isDeleting && (
+          <Box sx={{ position: 'fixed', top:10, right:10, zIndex: 9999 }}>
+            <CircularProgress />
+          </Box>
+      )}
       <Grid container rowSpacing={1} columnSpacing={{ xs: 1, sm: 2, md: 3 }}>
         <AdminSideBar />
         <Grid size={{ xs: 12, sm: 10 }} className="section blueBg">
@@ -92,7 +118,13 @@ export default function Mygetaways() {
               {error && <Alert severity="info" sx={{ mb: 2 }}>
                 {error}
                 {/* No getaways available right now. Try again later or create a new one. */}
-              </Alert>}
+                </Alert>
+              }
+              {successDeleteMsg && (
+                <Alert severity="success" sx={{ mb: 2 }}>
+                  {successDeleteMsg}
+                </Alert>
+              )}
               <Typography color="text.secondary">
                 {getaways.length > 0
                   ? `You have ${getaways.length} getaways registered`
@@ -117,6 +149,8 @@ export default function Mygetaways() {
                 galleryPhotos={getValidImages(getaway.galleryPhotos)}
                 onViewDetails={() => navigate('/getawaydetail', { state: { getawayData: getaway } })}
                 onBookNow={() => navigate('/bookgetaway', { state: { getawayData: getaway } })}
+                isDeleting={isDeleting}
+                onDelete={() => handleDeleteClick(getaway._id)}
                 // onViewDetails={() => handleViewDetails(getaway)}
                 // onBookNow={() => handleBookNow(getaway)}
               />

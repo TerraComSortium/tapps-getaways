@@ -26,6 +26,7 @@ import { useWatchLocation } from './hooks/useWatchLocation';
 import { useUserStore } from './store/useUserStore';
 import { AuthProvider } from './contexts/AuthContext';
 import TestApi from './views/TestApi';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 const API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "";
 const GOOGLE_MAPS_LIBRARIES = ['places'];
@@ -67,6 +68,15 @@ const getCityAndCountry = (components: GeocoderAddressComponent[]) => {
   return "";
 };
 
+const queryClient =  new QueryClient({
+  defaultOptions:{
+    queries: {
+      refetchOnWindowFocus: false,
+      retry:1,
+    }
+  }
+})
+
 function App() {
   //console.log("key:", import.meta.env.VITE_GOOGLE_MAPS_API_KEY);
   useWatchLocation();
@@ -99,35 +109,37 @@ function App() {
   }, [userLocation, userAddress, setUserAddress]);
   return (
     <>
-      <AuthProvider>
-        <FormDataProvider>
-          <ErrorBoundary>
-            <AppConfigProvider>
-              <APIProvider apiKey={API_KEY} version="quarterly" libraries={GOOGLE_MAPS_LIBRARIES}>
-                <Router>
-                  <Navbar/>
-                  <Routes>
-                    <Route path="/" element={<Landing />} />
-                    <Route path="/login" element={<Login />} />
-                    {/* <Route path="/getaways" element={<Mygetaways />} /> */}
-                    <Route path="/getaways" element={<Getaways/>} />
-                    <Route path="/mygetaways" element={<ProtectedRoute><Mygetaways/></ProtectedRoute>}/>
-                    <Route path="/getawaydetail" element={<GetawayDetail/>} />
-                    <Route path="/bookgetaway" element={<ProtectedRoute><BookGetaway /></ProtectedRoute>} />
-                    <Route path="/payment" element={<Payment />} />
-                    <Route path="/paid" element={<Paid />} />
-                    <Route path="/reservations" element={<ProtectedRoute requiredRole="admin"><Reservations /></ProtectedRoute>} />
-                    <Route path="/creategetaway" element={<ProtectedRoute><CreateGetaway/></ProtectedRoute>} />
-                    <Route path="/data-view" element={<DataViewWrapper />} />
-                    <Route path='/test-api' element={<TestApi/>} />
-                  </Routes>
-                  <Footer/>
-                </Router>
-              </APIProvider>
-            </AppConfigProvider>
-          </ErrorBoundary>
-        </FormDataProvider>
-      </AuthProvider>
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <FormDataProvider>
+            <ErrorBoundary>
+              <AppConfigProvider>
+                <APIProvider apiKey={API_KEY} version="quarterly" libraries={GOOGLE_MAPS_LIBRARIES}>
+                  <Router>
+                    <Navbar/>
+                    <Routes>
+                      <Route path="/" element={<Landing />} />
+                      <Route path="/login" element={<Login />} />
+                      {/* <Route path="/getaways" element={<Mygetaways />} /> */}
+                      <Route path="/getaways" element={<Getaways/>} />
+                      <Route path="/mygetaways" element={<ProtectedRoute><Mygetaways/></ProtectedRoute>}/>
+                      <Route path="/getawaydetail" element={<GetawayDetail/>} />
+                      <Route path="/bookgetaway" element={<ProtectedRoute><BookGetaway /></ProtectedRoute>} />
+                      <Route path="/payment" element={<Payment />} />
+                      <Route path="/paid" element={<Paid />} />
+                      <Route path="/reservations" element={<ProtectedRoute requiredRole="admin"><Reservations /></ProtectedRoute>} />
+                      <Route path="/creategetaway" element={<ProtectedRoute><CreateGetaway/></ProtectedRoute>} />
+                      <Route path="/data-view" element={<DataViewWrapper />} />
+                      <Route path='/test-api' element={<TestApi/>} />
+                    </Routes>
+                    <Footer/>
+                  </Router>
+                </APIProvider>
+              </AppConfigProvider>
+            </ErrorBoundary>
+          </FormDataProvider>
+        </AuthProvider>
+      </QueryClientProvider>
     </>
   )
 }

@@ -10,7 +10,7 @@ import '../App.css';
 // import {Skeleton} from '@mui/material';
 // import { useAuthRole } from '../hooks/useAuthRole';
 import { memo } from 'react';
-import { useAuth } from '../contexts/AuthContext'
+import { useAuth } from '../contexts/AuthContext';
 
 const isPhotoUrl = (url: string): boolean => {
   if (!url) return false;
@@ -25,12 +25,15 @@ interface GetawayItemProps {
   galleryPhotos: string[];
   onViewDetails: () => void;
   onBookNow: () => void;
+  onDelete: () => void;
+  isDeleting: boolean;
 }
 
 export const GetawayItem = memo(
-  ({ name, dates, lodgingOptions, sport, galleryPhotos, onViewDetails, onBookNow }: GetawayItemProps ) =>
-    {
-      // const { role, isLoading } = useAuthRole();
+  ({
+    name, dates, lodgingOptions, sport, galleryPhotos, onViewDetails, onBookNow, onDelete, isDeleting
+  }: GetawayItemProps ) =>
+  {
       const { role, isLoading } = useAuth();
       console.log("Estado de carga:", isLoading, "Rol recibido:", role);
       const navigate = useNavigate();
@@ -57,6 +60,7 @@ export const GetawayItem = memo(
         return prevPhoto; //default img
       };
       const imageUrl = getDisplayImage();
+
       // if(isLoading){ return null; }
       if(isLoading){
         return(
@@ -66,6 +70,7 @@ export const GetawayItem = memo(
         );
         //(<Skeleton variant="rectangular" width={300} height={400} sx={{borderRadius:'15px'}}/>);
       }
+
       return(
         <>
           <Card elevation={0} sx={{ display: "flex", mb:2, borderRadius: "10px", backgroundColor: '#fff', boxShadow: "0 2px 8px 0 #c1c9d7, 0 -2px 8px 0 #cce1e9"}}>
@@ -138,7 +143,8 @@ export const GetawayItem = memo(
                 )}
                 {role === 'admin' && (
                   <Button startIcon={<DeleteIcon />} disableElevation
-                    // onClick={""}
+                    onClick={onDelete}
+                    disabled={isDeleting}
                     size="medium"
                     sx={{
                       width:104,
@@ -146,8 +152,14 @@ export const GetawayItem = memo(
                       borderRadius: '30px',
                       bgcolor: '#3C1C91', color: '#fff',
                       fontVariantCaps:'normal', textTransform: 'none',
+                      opacity: isDeleting ? 0.7 : 1,
+                      '&:hover': {
+                        bgcolor: '#2a1268'
+                      }
                     }}
-                  > Delete </Button>
+                  >
+                    {isDeleting ? 'Wait...' : 'Delete'}
+                  </Button>
                 )}
               </Box>
             </CardContent>

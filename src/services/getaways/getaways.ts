@@ -10,7 +10,7 @@ export const getAllGetaways = async () => {
 };
 
 export const getGetawayById = async (id: string) => {
-  console.log("datos de id", id) // todo-list este id debe ser de un getaways
+  console.log("id data", id) // todo-list este id debe ser de un RCNet
   const response = await api.get(`/getaways/${id}`);
   return response.data;
 };

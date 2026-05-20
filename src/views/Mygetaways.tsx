@@ -1,20 +1,18 @@
-import React, { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Box, Stack, Pagination, Typography, CircularProgress, Alert } from '@mui/material';
 import Grid from '@mui/material/Grid2';
 import AdminSideBar from '../components/AdminSidebar';
 import { GetawayItem } from '../components/GetawayItem';
 
-import type { Getaway } from '../types/getaway';
 import { useAuth } from '../contexts/AuthContext';
 import { useDeleteGetaway } from '../hooks/useDeleteGetaway';
+import { useOwnerGetaways } from '../hooks/useOwnerGetaways';
+import { getSportLabel, getValidImages } from '../utils/getawayHelpers';
 
 // import { useWatchLocation } from '../hooks/useWatchLocation';
 // import { useUserStore } from '../store/useUserStore';
-
-import { getGetawaysByOwner } from '../services/getaways/getaways';
 // import { SearchService } from '../services/searchService';
-import { normalizeGetawayData, getSportLabel, getValidImages } from '../utils/getawayHelpers';
 
 export default function Mygetaways() {
   // useWatchLocation();
@@ -25,67 +23,34 @@ export default function Mygetaways() {
   const navigate = useNavigate();
   const { role, isLoading: isAuthLoading } = useAuth();
   //localStates
-  const [getaways, setGetaways] = useState<Getaway[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
-
-  const [ successDeleteMsg, setSuccessDeleteMsg] = useState<string | null>(null);
-  const { removeGetaway, isDeleting} = useDeleteGetaway();
-
+  const [successDeleteMsg, setSuccessDeleteMsg] = useState<string | null>(null);
   const ITEMS_PER_PAGE = 10;
-  // const [isOfflineMode, setIsOfflineMode] = useState<boolean>(false);
 
-  //graceful degradation pattern
-  useEffect(() => {
-    const fetchOwnerData = async () => {
-      if (isAuthLoading) return;
-      if (!role) {
-        setError("You must be logged to review getaways");
-        setLoading(false);
-        return;
-      }
-      try {
-        setLoading(true);
-        setError(null);
-        console.log("api call...");
-        // setIsOfflineMode(false);
-        const rawData = await getGetawaysByOwner();
-        console.log("raw backend response:", rawData);
-        const dataArray = Array.isArray(rawData)
-          ? rawData
-          : (rawData.data || rawData.offers || []);
-        if (dataArray.length > 0) {
-          setGetaways(dataArray.map(normalizeGetawayData));
-        }
-      } catch (err: any) {
-        console.error("Error fetching owner getaways:", err);
-        setError("Your offers could not be loaded. Please try again later.");
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchOwnerData();
-  }, [isAuthLoading, role]);
-
+  const isUserValid = !isAuthLoading && !!role;
+  const { data: getaways = [], isLoading: isDataLoading, error: queryError } = useOwnerGetaways(isUserValid);
+  const { removeGetaway, isDeleting } = useDeleteGetaway();
+  const authError = !isAuthLoading && !role ? "Youn must be logged to review your getaways" : null;
+  const displayError = authError || (queryError instanceof Error ? queryError.message : null);
   const handlePageChange = (_: any, value: number) => setPage(value);
-  
-  // const handleViewDetails = (getaway: Getaway) => {
-  //   navigate('/getawaydetail', { state: { getawayData: getaway } });
-  // };
+  // const [isOfflineMode, setIsOfflineMode] = useState<boolean>(false);
 
   const paginatedGetaways = getaways.slice(
     (page - 1) * ITEMS_PER_PAGE,
     page * ITEMS_PER_PAGE
   );
 
-  const handleDeleteClick = (idToDelete: string) => {
-    const isConfirmed = window.confirm(`Are you sure you want to delete getaway: "${name}"?. This action cannot be undone.`);
+  const handleDeleteClick = (getawayId: string, getawayTitle: string) => {
+    const isConfirmed = window.confirm(`Are you sure you want to delete getaway: "${getawayTitle}"?. This action cannot be undone.`);
     if (!isConfirmed) return;
-    removeGetaway(idToDelete, {
+    removeGetaway(getawayId, {
       onSuccess: () => {
         setSuccessDeleteMsg("Getaway deleted successfully!");
         setTimeout(() => setSuccessDeleteMsg(null), 3000);
+
+        if(paginatedGetaways.length === 1 && page > 1) {
+          setPage(page - 1);
+        }
       },
       onError: () => {
         alert("An error occurred while deleting the offer on the server. Please try again later.");
@@ -93,20 +58,19 @@ export default function Mygetaways() {
     });
   };
 
-  if (loading) {
+  if (isAuthLoading || isDataLoading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
         <CircularProgress />
       </Box>
     );
   }
-
   return (
     <>
       {isDeleting && (
-          <Box sx={{ position: 'fixed', top:10, right:10, zIndex: 9999 }}>
-            <CircularProgress />
-          </Box>
+        <Box sx={{ position: 'fixed', top:10, right:10, zIndex: 9999 }}>
+          <CircularProgress size={24}/>
+        </Box>
       )}
       <Grid container rowSpacing={1} columnSpacing={{ xs: 1, sm: 2, md: 3 }}>
         <AdminSideBar />
@@ -115,11 +79,9 @@ export default function Mygetaways() {
             <Box sx={{ mb: 3 }}>
               <Typography variant="h6" sx={{ mb: 1, fontWeight: 'bold' }}>My getaways</Typography>
               {/* <h4>My getaways</h4> */}
-              {error && <Alert severity="info" sx={{ mb: 2 }}>
-                {error}
-                {/* No getaways available right now. Try again later or create a new one. */}
-                </Alert>
-              }
+              {displayError && (
+                <Alert severity="info" sx={{ mb: 2 }}> {displayError} </Alert>
+              )}
               {successDeleteMsg && (
                 <Alert severity="success" sx={{ mb: 2 }}>
                   {successDeleteMsg}
@@ -150,7 +112,7 @@ export default function Mygetaways() {
                 onViewDetails={() => navigate('/getawaydetail', { state: { getawayData: getaway } })}
                 onBookNow={() => navigate('/bookgetaway', { state: { getawayData: getaway } })}
                 isDeleting={isDeleting}
-                onDelete={() => handleDeleteClick(getaway._id)}
+                onDelete={() => handleDeleteClick(getaway._id, getaway.title)}
                 // onViewDetails={() => handleViewDetails(getaway)}
                 // onBookNow={() => handleBookNow(getaway)}
               />

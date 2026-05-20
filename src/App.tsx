@@ -19,6 +19,7 @@ import Reservations from './views/Reservations';
 import Payment from './views/Payment';
 import Paid from './views/Paid';
 import DataView from './views/DataView';
+import MyOrders from './views/MyOrders';
 
 import { AppConfigProvider } from "./contexts/AppConfigContext";
 import { FormDataProvider, useFormData } from './contexts/FormDataContext';
@@ -125,6 +126,9 @@ function App() {
                       <Route path="/mygetaways" element={<ProtectedRoute><Mygetaways/></ProtectedRoute>}/>
                       <Route path="/getawaydetail" element={<GetawayDetail/>} />
                       <Route path="/bookgetaway" element={<ProtectedRoute><BookGetaway /></ProtectedRoute>} />
+                      <Route path="/myorders" element={<ProtectedRoute
+                      // requiredRole="player"
+                      ><MyOrders /></ProtectedRoute>} />
                       <Route path="/payment" element={<Payment />} />
                       <Route path="/paid" element={<Paid />} />
                       <Route path="/reservations" element={<ProtectedRoute requiredRole="admin"><Reservations /></ProtectedRoute>} />

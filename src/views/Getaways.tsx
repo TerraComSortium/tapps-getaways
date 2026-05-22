@@ -4,7 +4,9 @@ import { Box, Stack, Pagination, Typography, CircularProgress, Alert } from '@mu
 import Grid from '@mui/material/Grid2';
 import { GetawayItem } from '../components/GetawayItem';
 import SearchBar from '../components/SearchBar';
+import AdminSideBar from '../components/AdminSidebar';
 
+import { useAuth } from '../contexts/AuthContext';
 import type { Getaway } from '../types/getaway';
 import { useUserStore } from '../store/useUserStore';
 import { getAllGetaways } from '../services/getaways/getaways';
@@ -19,8 +21,8 @@ import {
 export default function Mygetaways() {
   // App.tsx already calls useWatchLocation — no second watcher needed here
   const userLocation = useUserStore((state) => state.userLocation);
+  const { role, isLoading: isAuthLoading } = useAuth();
   const navigate = useNavigate();
-
   const [getaways, setGetaways] = useState<Getaway[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -131,7 +133,7 @@ export default function Mygetaways() {
   const handleViewDetails = (getaway: Getaway) => {
     navigate('/getawaydetail', { state: { getawayData: getaway } });
   };
-  const handleBookNow = (getaway: Getaway) => {
+  const handleBooking = (getaway: Getaway) => {
     navigate('/bookgetaway', { state: { getawayData: getaway } });
   };
   //initial search with userLocation
@@ -147,12 +149,20 @@ export default function Mygetaways() {
   //   page * ITEMS_PER_PAGE
   // );
 
+  // if (isAuthLoading || isDataLoading) {
+  if (isAuthLoading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
   return (
     <>
       <Grid container rowSpacing={1} columnSpacing={{ xs: 1, sm: 2, md: 3 }} >
-        {/* <AdminSideBar /> */}
-        <Grid size={{ xs:1 }}/>
-        <Grid size={{ xs:10 }}
+        <AdminSideBar />
+        {/* <Grid size={{ xs:1 }}/> */}
+        <Grid size={{ xs:12, sm: 10 }}
           className="section blueBg">
           <SearchBar onSearch={handleSearchFromBar} />
           <Box>
@@ -187,8 +197,11 @@ export default function Mygetaways() {
                   lodgingOptions={getaway.lodgingOptions || []}
                   sport={getSportLabel(getaway.sport)}
                   galleryPhotos={getValidImages(getaway.galleryPhotos)}
+                  // isLoading={isLoading}
                   onViewDetails={() => handleViewDetails(getaway)}
-                  onBookNow={() => handleBookNow(getaway)}
+                  onBookNow={role === 'player' ? () => handleBooking(getaway) : undefined}
+                  // onEdit={role === 'admin' ? () => handleEdit(getaway.id) : undefined}
+                  // onDelete={role === 'admin' ? () => (getaway._id, getaway.title) : undefined}
                 />
               ))
             )}

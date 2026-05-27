@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useFormData } from '../contexts/FormDataContext';
-import { handleGetawaySubmit, handleCouponSubmit } from '../services/getawayApi';
-import { mapScheduleRowsToApiFormat } from '../utils/dataMappers';
+import { handleGetawaySubmit, handleCouponSubmit } from '../services/getaways/getawayCreate';
 import type { GetawayFormData, GetawayPayload, CouponPayload, ScheduleRow } from '../types/getaway';
+
+import { mapScheduleRowsToApiFormat } from '../utils/dataMappers';
 
 interface UseCreateGetawayReturn {
   isLoading: boolean;
@@ -76,6 +77,5 @@ export function useCreateGetaway(
       setIsLoading(false);
     }
   };
-
   return { isLoading, submitGetaway };
 }

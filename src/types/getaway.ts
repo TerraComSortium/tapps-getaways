@@ -31,6 +31,7 @@ export interface GetawayBase {
   startDate: string;
   endDate: string;
   sport: string;
+  // price: number;
   getawayAddress: LocationEntry;
   caption?: string;
   galleryVideo: string;

@@ -1,11 +1,7 @@
 import * as React from 'react';
-import { useState } from 'react';
 import { useForm, Controller, useFieldArray, SubmitHandler } from 'react-hook-form';
-import { useFormData } from '../contexts/FormDataContext';
-import { useNavigate } from 'react-router-dom';
-
-import { Box, TextField, Button, Divider, Typography, Card, Snackbar, Alert } from '@mui/material';
-import MenuItem from '@mui/material/MenuItem';
+import { Box, TextField, Button, Divider, Typography, Card, Snackbar, Alert, MenuItem } from '@mui/material';
+// import MenuItem from '@mui/material/MenuItem';
 import Grid from '@mui/material/Grid2';
 
 import AddIcon from '@mui/icons-material/Add';
@@ -16,15 +12,22 @@ import LightbulbIcon from '@mui/icons-material/Lightbulb';
 
 import AdminSidebar from './AdminSidebar';
 import { GalleryPhotoInput } from "../components/GalleryPhotoInput";
-import AcademySchedule from '../components/AcademySchedule';
-import TournamentsSchedule from '../components/TournamentsSchedule';
-import LaddersSchedule from '../components/LaddersSchedule';
 import { AddressAutocompleteField } from '../components/AddressAutocompleteField';
 import { ScheduleForm } from '../components/ScheduleForm';
 import  DiscountForm  from '../components/DiscountForm';
-import { GetawayFormData, GetawayPayload, ScheduleRow, CouponPayload } from '../types/getaway';
-import { mapScheduleRowsToApiFormat } from '../utils/dataMappers';
-import { handleGetawaySubmit, handleCouponSubmit } from '../services/getawayApi';
+import AcademySchedule from '../components/AcademySchedule';
+import TournamentsSchedule from '../components/TournamentsSchedule';
+import LaddersSchedule from '../components/LaddersSchedule';
+
+import {
+  GetawayFormData,
+  // GetawayPayload, CouponPayload
+  ScheduleRow,
+} from '../types/getaway';
+
+import { useSnackbar } from '../hooks/useSnackbar';
+import { useCreateGetaway } from '../hooks/useCreateGetaway';
+// import { useScheduleValidation } from '../hooks/useScheduleValidation';
 
 const ALPHANUMERIC_REGEX = /^[a-zA-Z0-9\s,._'";:()!/|-]*$/;
 const YOUTUBE_VIMEO_REGEX = /^(https?:\/\/)?(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/|vimeo\.com\/)([a-zA-Z0-9_-]{11,})/;
@@ -36,12 +39,13 @@ const sports = [
 ];
 
 export default function CreateGetaway() {
-  const { setSubmissionData } = useFormData();
-  const navigate = useNavigate();
-  const {
-    control,
-    handleSubmit,
-    formState: { errors } } = useForm<GetawayFormData>({
+  const { snackbar, showSnackbar, closeSnackbar } = useSnackbar();
+  const { isLoading, submitGetaway } = useCreateGetaway(showSnackbar);
+
+  const [scheduleRows, setScheduleRows] = React.useState<ScheduleRow[]>([]);
+  const [scheduleError, setScheduleError] = React.useState<string | null>(null);
+
+  const { control, handleSubmit, formState: { errors } } = useForm<GetawayFormData>({
     defaultValues: {
       title: "",
       overview: "",
@@ -75,68 +79,18 @@ export default function CreateGetaway() {
     name: 'discounts'
   });
 
-  const [scheduleRows, setScheduleRows] = React.useState<ScheduleRow[]>([]);
-  const [scheduleError, setScheduleError] = React.useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: 'success' | 'error' | 'warning' }>({ open: false, message: '', severity: 'success' });
-  const showSnackbar = (message: string, severity: 'success' | 'error' | 'warning') =>
-    setSnackbar({ open: true, message, severity });
-
   const onSubmit: SubmitHandler<GetawayFormData> = async (data) => {
-    setIsLoading(true);
-
-    try {
-      if (!data.getawayAddress.lat || !data.getawayAddress.lng) {
-        showSnackbar("Please select a valid location from the suggestions.", "warning");
-        return;
-      }
-
-      if (scheduleRows.length === 0) {
-        setScheduleError("You must add at least one schedule row.");
-        document.getElementById("schedule-section")?.scrollIntoView({ behavior: "smooth" });
-        return;
-      }
-      setScheduleError(null);
-      const apiSchedule = mapScheduleRowsToApiFormat(scheduleRows);
-
-      const { discounts, ...getawayData } = data;
-
-      const payload: GetawayPayload = {
-        ...getawayData,
-        address: data.getawayAddress.address,
-        location: {
-          lat: data.getawayAddress.lat,
-          lng: data.getawayAddress.lng
-        },
-        schedule: apiSchedule,
-      };
-      // @ts-expect-error to ignore getawayAddress value
-      delete payload.getawayAddress;
-
-      const result = await handleGetawaySubmit(payload);
-      if (result.status === 'SUCCESS' && result.getawayId) {
-        if (discounts && discounts.length > 0) {
-          const couponPromises = discounts.map((discount) => {
-            const couponPayload: CouponPayload = {
-              ...discount,
-              getawayId: result.getawayId!
-            };
-            return handleCouponSubmit(couponPayload);
-          });
-          await Promise.all(couponPromises);
-        }
-        showSnackbar("Getaway created successfully!", "success");
-        setSubmissionData(result);
-        navigate('/data-view');
-      } else {
-        showSnackbar("Connection error. Check your internet connection and try again.", "error");
-      }
-    } catch(error){
-      console.error("Submit error", error);
-      showSnackbar("An unexpected error occurred while processing the request.", "error");
-    } finally {
-      setIsLoading(false);
+    if (!data.getawayAddress.lat || !data.getawayAddress.lng) {
+      showSnackbar("Please select a valid location from the suggestions.", "warning");
+      return;
     }
+    if (scheduleRows.length === 0) {
+      setScheduleError("You must add at least one schedule row.");
+      document.getElementById("schedule-section")?.scrollIntoView({ behavior: "smooth" });
+      return;
+    }
+    setScheduleError(null);
+    await submitGetaway(data, scheduleRows);
   };
 
   React.useEffect(() => {
@@ -253,10 +207,7 @@ export default function CreateGetaway() {
               </Grid>
             </Grid>
 
-            <AddressAutocompleteField
-              name="getawayAddress"
-              control={control}
-            />
+            <AddressAutocompleteField name="getawayAddress" control={control} />
 
             <GalleryPhotoInput
               name="galleryPhotos"
@@ -328,8 +279,7 @@ export default function CreateGetaway() {
             <Typography variant="h6" color="#3C1C91" sx={{ m: '1 0', fontWeight:"bold"  }}> Getaway details </Typography>
             <Divider aria-hidden="true"/>
 
-            <Controller name="mainDescription" defaultValue=""
-              control={control}
+            <Controller name="mainDescription" defaultValue="" control={control}
               rules={{
                 // required: "Main description is required"
                 validate: (value?: string) =>
@@ -533,14 +483,10 @@ export default function CreateGetaway() {
             > Add item </Button>
 
             {scheduleError && (
-              <div style={{ color: "red", fontWeight: "bold", marginBottom: 8 }}>
-                {scheduleError}
-              </div>
+              <div style={{ color: "red", fontWeight: "bold", marginBottom: 8 }}> {scheduleError} </div>
             )}
             <Box id="schedule-section">
-            <ScheduleForm
-            rows={scheduleRows} setRows={setScheduleRows}
-            />
+              <ScheduleForm rows={scheduleRows} setRows={setScheduleRows} />
             </Box>
 
             <Box
@@ -628,13 +574,8 @@ export default function CreateGetaway() {
       </Grid>
     </Grid>
     </Box>
-      <Snackbar
-        open={snackbar.open}
-        autoHideDuration={4000}
-        onClose={() => setSnackbar(s => ({ ...s, open: false }))}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-      >
-        <Alert severity={snackbar.severity} onClose={() => setSnackbar(s => ({ ...s, open: false }))} sx={{ width: '100%' }}>
+      <Snackbar open={snackbar.open} autoHideDuration={4000} onClose={closeSnackbar}>
+        <Alert severity={snackbar.severity} onClose={closeSnackbar} sx={{ width: '100%' }}>
           {snackbar.message}
         </Alert>
       </Snackbar>

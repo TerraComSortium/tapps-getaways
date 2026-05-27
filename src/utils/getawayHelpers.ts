@@ -12,17 +12,6 @@ export const getSportLabel = (sportKey: string): string => {
   return sportMap[sportKey] || sportKey || 'Not available';
 };
 
-const parseFirestoreDate = (dateField: any): string => {
-  if (!dateField) return "Date not defined";
-
-  //for firestoreTimestamp
-  if (dateField._seconds !== undefined) {
-    //convert to milisecs
-    return new Date(dateField._seconds * 1000).toLocaleDateString();
-  }
-  return new Date(dateField).toLocaleDateString();
-};
-
 export const normalizeGetawayData = (raw: any): Getaway => {
   return {
     ...raw,
@@ -32,6 +21,7 @@ export const normalizeGetawayData = (raw: any): Getaway => {
     startDate: parseFirestoreDate(raw.startDate),
     endDate: parseFirestoreDate(raw.endDate),
     sport: raw.sport || "",
+    // price: Number(raw.price) || 0,
     galleryPhotos: raw.galleryPhotos || raw.galleryPhoto || [],
 
     lodgingOptions: raw.lodgingOptions || [],
@@ -49,6 +39,13 @@ export const normalizeGetawayData = (raw: any): Getaway => {
 
     getawayAddress: raw.getawayAddress || { address: raw.address || "", lat: raw.location?.lat || 0, lng: raw.location?.lng || 0 }
   };
+};
+
+export const getStartingPrice = (
+  lodgingOptions: { name: string; price: number }[]
+): number => {
+  if (!lodgingOptions?.length) return 0;
+  return Math.min(...lodgingOptions.map((o) => o.price));
 };
 
 export const performFallbackLocalSearch = (
@@ -85,3 +82,49 @@ export const getValidImages = (photos: string[] | undefined): string[] => {
   if (!photos || !Array.isArray(photos) || photos.length === 0) return [];
   return photos.filter(url => url && typeof url === 'string' && url.length > 5);
 };
+
+export const formatGetawayDates = (start: any, end: any): string => {
+  //validation
+  const startStr = typeof start === 'string' ? start.trim() : (start instanceof Date ? start.toLocaleDateString() : "");
+  const endStr = typeof end === 'string' ? end.trim() : (end instanceof Date ? end.toLocaleDateString() : "");
+
+  if (startStr && endStr) return `${startStr} - ${endStr}`;
+  if (startStr) return `Starts: ${startStr}`;
+  if (endStr) return `Ends: ${endStr}`;
+
+  return "No dates available";
+};
+
+export const parseFirestoreDate = (rawDate: unknown): string => {
+  if (!rawDate) return "";
+  try {
+    //if valid date is string, return
+    if (typeof rawDate === 'string') {
+      const date = new Date(rawDate);
+      return isNaN(date.getTime()) ? "" : formatDate(date);
+    }
+
+    //timestamp firestore
+    if (typeof rawDate === 'object' && rawDate !== null) {
+      const ts = rawDate as Record<string, unknown>;
+      const secs = (ts.seconds ?? ts._seconds) as number | undefined;
+      if (secs !== undefined) {
+        return formatDate(new Date(secs * 1000));
+      }
+    }
+    // Date native
+    if (rawDate instanceof Date) {
+      return isNaN(rawDate.getTime()) ? "" : formatDate(rawDate);
+    }
+    return "";
+  } catch {
+    return "";
+  }
+}
+function formatDate(date: Date): string {
+  return date.toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  });
+}

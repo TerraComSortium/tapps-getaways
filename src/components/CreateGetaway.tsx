@@ -29,8 +29,8 @@ import { useSnackbar } from '../hooks/useSnackbar';
 import { useCreateGetaway } from '../hooks/useCreateGetaway';
 // import { useScheduleValidation } from '../hooks/useScheduleValidation';
 
-const ALPHANUMERIC_REGEX = /^[a-zA-Z0-9\s,._'";:()!/|-]*$/;
-const YOUTUBE_VIMEO_REGEX = /^(https?:\/\/)?(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/|vimeo\.com\/)([a-zA-Z0-9_-]{11,})/;
+const ALPHANUMERIC_I18N_REGEX : RegExp = /^[\p{L}0-9\s,._'";:()!/|&—’\-]*$/u;
+const YOUTUBE_VIMEO_REGEX = /^(https?:\/\/)?(www\.)?(?:(?:youtube\.com\/(?:watch\?v=|shorts\/|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})|vimeo\.com\/(\d+))/;
 const sports = [
   { value: 'tennis', label: 'Tennis' },
   { value: 'padel', label: 'Padel' },
@@ -113,7 +113,7 @@ export default function CreateGetaway() {
               rules={{
                 // required: "Getaway title is required",
                 validate: (value?: string) =>
-                  !value || ALPHANUMERIC_REGEX.test(value)
+                  !value || ALPHANUMERIC_I18N_REGEX.test(value)
                     ? true
                     : "Only letters and numbers are allowed.",
               }}
@@ -132,7 +132,7 @@ export default function CreateGetaway() {
               rules={{
                 // required: "Overview description is required",
                 validate: (value?: string) =>
-                  !value || ALPHANUMERIC_REGEX.test(value)
+                  !value || ALPHANUMERIC_I18N_REGEX.test(value)
                     ? true
                     : "Only letters and numbers are allowed.",
               }}
@@ -220,7 +220,7 @@ export default function CreateGetaway() {
               control={control}
               rules={{
                 validate: (value?: string) =>
-                  !value || ALPHANUMERIC_REGEX.test(value)
+                  !value || ALPHANUMERIC_I18N_REGEX.test(value)
                     ? true
                     : "Only letters and numbers are allowed.",
               }}
@@ -283,7 +283,7 @@ export default function CreateGetaway() {
               rules={{
                 // required: "Main description is required"
                 validate: (value?: string) =>
-                  !value || ALPHANUMERIC_REGEX.test(value)
+                  !value || ALPHANUMERIC_I18N_REGEX.test(value)
                     ? true
                     : "Only letters and numbers are allowed.",
               }}
@@ -306,7 +306,7 @@ export default function CreateGetaway() {
                   rules={{
                     // required: "Lodging option is required",
                     validate: (value?: string) =>
-                      !value || ALPHANUMERIC_REGEX.test(value)
+                      !value || ALPHANUMERIC_I18N_REGEX.test(value)
                         ? true
                         : "Only letters and numbers are allowed.",
                   }}
@@ -383,7 +383,7 @@ export default function CreateGetaway() {
                   rules={{
                     // required: "Add-on name is required",
                     validate: (value?: string) =>
-                      !value || ALPHANUMERIC_REGEX.test(value)
+                      !value || ALPHANUMERIC_I18N_REGEX.test(value)
                         ? true
                         : "Only letters and numbers are allowed.",
                   }}

@@ -8,7 +8,7 @@ import { GetawayItem } from '../components/GetawayItem';
 import { useAuth } from '../contexts/AuthContext';
 import { useDeleteGetaway } from '../hooks/useDeleteGetaway';
 import { useOwnerGetaways } from '../hooks/useOwnerGetaways';
-import { getSportLabel, getValidImages } from '../utils/getawayHelpers';
+import { getSportLabel, getValidImages, formatGetawayDates } from '../utils/getawayHelpers';
 
 // import { useWatchLocation } from '../hooks/useWatchLocation';
 // import { useUserStore } from '../store/useUserStore';
@@ -102,19 +102,25 @@ export default function Mygetaways() {
           </Box>
           <Stack spacing={2}>
             {paginatedGetaways.map((getaway) => (
+              console.log(`Getaway: ${getaway.title}`, {
+                startRawDate: getaway.startDate,
+                typeStart: typeof getaway.startDate,
+                resultHelper: formatGetawayDates(getaway.startDate, getaway.endDate)
+              }),
               <GetawayItem
                 key={getaway._id || ""}
                 name={getaway.title || "Untitled Offer"}
-                dates={`${getaway.startDate} - ${getaway.endDate}`}
+                // dates={`${getaway.startDate} - ${getaway.endDate}`}
+                dates={formatGetawayDates(getaway.startDate, getaway.endDate)}
                 lodgingOptions={getaway.lodgingOptions || []}
                 sport={getSportLabel(getaway.sport)}
                 galleryPhotos={getValidImages(getaway.galleryPhotos)}
                 onViewDetails={() => navigate('/getawaydetail', { state: { getawayData: getaway } })}
-                onBookNow={() => navigate('/bookgetaway', { state: { getawayData: getaway } })}
+                // onViewDetails={() => handleViewDetails(getaway)}
                 isDeleting={isDeleting}
                 onDelete={() => handleDeleteClick(getaway._id, getaway.title)}
-                // onViewDetails={() => handleViewDetails(getaway)}
-                // onBookNow={() => handleBookNow(getaway)}
+                // onEdit={role === 'admin' ? () => handleEdit(getaway.id) : undefined}
+                // onViewBookings ={role === 'admin' ? () => handleBookNow(getaway) : undefined}
               />
             ))}
           </Stack>

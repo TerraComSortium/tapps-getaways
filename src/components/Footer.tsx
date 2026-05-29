@@ -51,7 +51,7 @@ function Footer() {
           </Grid>
           <Grid component="div">
             <Link href="https://www.facebook.com/Raquetsapp" target="_blank">
-              <img src={fb}  style={{height:'45px'}} className="logo ItemCenter" alt="Facebook link" />
+              <img src={fb}  style={{height:'40px', marginTop:'15px'}} className="logo ItemCenter" alt="Facebook link" />
             </Link>
           </Grid>
           <Grid component="div">

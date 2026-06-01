@@ -2,6 +2,8 @@ body, html, #root {
   width: 100%;
   margin: 0;
   padding: 0;
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 .ItemCenter {
@@ -13,10 +15,16 @@ body, html, #root {
   color: #3C1C91;
   text-align: center;
 }
+.title3 {
+  color: #3C1C91;
+  text-align: center;
+  font-size: 16px;
+}
 
 .title2 {
   color: #fff;
   text-align: center;
+  font-size: 16px;
 }
 
 .section {
@@ -43,7 +51,6 @@ body, html, #root {
 
 .card1 {
   flex: 1 1 250px;
-  max-width: 300px;
 }
 
 @media (max-width: 600px) {
@@ -84,21 +91,18 @@ body, html, #root {
   flex-direction: row;
   flex-wrap: wrap;
   gap: 20px;
-  align-items: flex-start;
-  align-content: center;
+  align-items: stretch;
   justify-content: center;
   color: #fff;
-  background-color: #3C1C91;
+  width:100%;
+  max-width: 1200px;
   margin-top: 20px;
-  padding: 30px;
 }
 
-@media (max-width: 600px) {
+@media (max-width: 768px) {
   .benefits {
     flex-direction: column;
     align-items: center;
-    padding: 16px;
-    gap: 12px;
   }
 }
 
@@ -111,14 +115,11 @@ body, html, #root {
 
 .benefitsSection {
   background-color: #3C1C91;
-  margin-top: 20px;
-  padding: 20px;
-}
-
-@media (max-width: 600px) {
-  .benefitsSection {
-    padding: 12px;
-  }
+  padding: 40px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 
 .benefitsCards {
@@ -131,18 +132,8 @@ body, html, #root {
 }
 
 .benefitsCards2 {
-  margin: 0 10px;
-  max-width: 400px;
   width: 100%;
-  flex: 1 1 280px;
-}
-
-@media (max-width: 600px) {
-  .benefitsCards2 {
-    margin: 0;
-    max-width: 100%;
-    flex: 1 1 100%;
-  }
+  height: 100%;
 }
 
 /* login */

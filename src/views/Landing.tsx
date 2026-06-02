@@ -153,7 +153,7 @@ const LandingPage = () => {
             <Typography variant="body1" className='label' sx={{ mt: 2, fontWeight: 'semibold' }}>
               Sign in and explore incredible packages!
             </Typography>
-            <Button type="submit" variant="contained" disableElevation
+            <Button href="/login" type="submit" variant="contained" disableElevation
               sx={{ mt: 2, mb: 5, bgcolor: '#C9F305', color: '#1A2660', fontWeight: 'bold', borderRadius: '30px' }}
             >Explore Getaways</Button>
           </Grid>

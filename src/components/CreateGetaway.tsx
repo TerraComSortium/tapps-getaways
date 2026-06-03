@@ -89,8 +89,19 @@ export default function CreateGetaway() {
       document.getElementById("schedule-section")?.scrollIntoView({ behavior: "smooth" });
       return;
     }
+    const cleanedAddOns= data.optionalAddOns
+      .filter(addon => {
+        const isNameEmpty = !addon.name || addon.name.trim() === "";
+        const isPriceZero = Number(addon.price) === 0;
+        return !(isNameEmpty && isPriceZero);
+      })
+      .map(addon => ({
+        name: addon.name,
+        price: Number(addon.price)
+      }));
+
     setScheduleError(null);
-    await submitGetaway(data, scheduleRows);
+    await submitGetaway(data, scheduleRows, cleanedAddOns);
   };
 
   React.useEffect(() => {
@@ -304,7 +315,7 @@ export default function CreateGetaway() {
                   control={control}
                   defaultValue={field.name}
                   rules={{
-                    // required: "Lodging option is required",
+                    required: "Lodging option is required",
                     validate: (value?: string) =>
                       !value || ALPHANUMERIC_I18N_REGEX.test(value)
                         ? true
@@ -328,7 +339,7 @@ export default function CreateGetaway() {
                   // defaultValue={field.price}
                   defaultValue={Number(field.price) || 0}
                   rules={{
-                    // required: "Lodging price is required",
+                    required: "Lodging price is required",
                     validate: {
                       isNumber: (value) => {
                         const numberValue = parseFloat(String(value));

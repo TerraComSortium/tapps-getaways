@@ -26,13 +26,13 @@ export function useCreateGetaway(
 
   const submitGetaway = async (
     data: GetawayFormData,
-    scheduleRows: ScheduleRow[]
+    scheduleRows: ScheduleRow[], cleanedAddOns: { name: string; price: number }[]
   ): Promise<void> => {
     setIsLoading(true);
 
     try {
       const apiSchedule = mapScheduleRowsToApiFormat(scheduleRows);
-      const { discounts, getawayAddress, ...rest } = data;
+      const { discounts, getawayAddress, optionalAddOns: _unused, ...rest } = data;
 
       const payload: GetawayPayload = {
         ...rest,
@@ -41,6 +41,7 @@ export function useCreateGetaway(
           lat: getawayAddress.lat!,
           lng: getawayAddress.lng!,
         },
+        optionalAddOns: cleanedAddOns,
         schedule: apiSchedule,
       };
 

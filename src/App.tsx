@@ -10,11 +10,12 @@ import CreateGetaway from './components/CreateGetaway';
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import ProtectedRoute from './components/ProtectedRoute';
 
-import Landing from './views/Landing'
+import Landing from './views/Landing';
 import Login from './views/Login';
 import Mygetaways from './views/Mygetaways';
 import Getaways from './views/Getaways';
 import BookGetaway from './views/BookGetaway';
+import BookGetaway2 from './views/BookGetaway2';
 import Reservations from './views/Reservations';
 import Payment from './views/Payment';
 import Paid from './views/Paid';
@@ -126,10 +127,11 @@ function App() {
                       <Route path="/mygetaways" element={<ProtectedRoute><Mygetaways/></ProtectedRoute>}/>
                       <Route path="/getawaydetail" element={<GetawayDetail/>} />
                       <Route path="/bookgetaway" element={<ProtectedRoute><BookGetaway /></ProtectedRoute>} />
+                      <Route path="/booking/:id" element={<ProtectedRoute><BookGetaway2 /></ProtectedRoute>} />
                       <Route path="/myorders" element={<ProtectedRoute
                       // requiredRole="player"
                       ><MyOrders /></ProtectedRoute>} />
-                      <Route path="/payment" element={<Payment />} />
+                      <Route path ="/payment/:orderId" element={ <ProtectedRoute><Payment /></ProtectedRoute> } />
                       <Route path="/paid" element={<Paid />} />
                       <Route path="/reservations" element={<ProtectedRoute requiredRole="admin"><Reservations /></ProtectedRoute>} />
                       <Route path="/creategetaway" element={<ProtectedRoute><CreateGetaway/></ProtectedRoute>} />

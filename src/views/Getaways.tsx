@@ -132,9 +132,11 @@ export default function Mygetaways() {
 
   const handleViewDetails = (getaway: Getaway) => {
     navigate('/getawaydetail', { state: { getawayData: getaway } });
+    //navigate(`/getawaydetail`, { state:{ getawayData: getaway} })
   };
   const handleBooking = (getaway: Getaway) => {
-    navigate('/bookgetaway', { state: { getawayData: getaway } });
+    // navigate('/bookgetaway', { state: { getawayData: getaway } });
+    navigate(`/booking/${getaway.id}`, { state: { getawayData: getaway } });
   };
   //initial search with userLocation
   const handleChange = (_event: React.ChangeEvent<unknown>, value: number) => {
@@ -157,6 +159,7 @@ export default function Mygetaways() {
       </Box>
     );
   }
+  // console.log("structure getaway received API:", getaways[0]);
   return (
     <>
       <Grid container rowSpacing={1} columnSpacing={{ xs: 1, sm: 2, md: 3 }} >
@@ -193,6 +196,9 @@ export default function Mygetaways() {
                 <GetawayItem
                   key={getaway._id || `fallback-key-${index}`}
                   name={getaway.title || "Untitled Offer"}
+                  getawayAddress={getaway.getawayAddress}
+                  // address={getaway.address || (getaway as any).getawayAddress?.address}
+                  // address={ getaway.getawayAddress}
                   dates={`${getaway.startDate} - ${getaway.endDate}`}
                   lodgingOptions={getaway.lodgingOptions || []}
                   sport={getSportLabel(getaway.sport)}

@@ -5,6 +5,7 @@ export interface ProcessPaymentPayload {
   paymentMethodId: string;
   amount: number;
   currency: string;
+  saveCard?: boolean;
 }
 
 export const processPayment = async (payload: ProcessPaymentPayload) => {

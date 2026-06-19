@@ -1,4 +1,3 @@
-import * as React from 'react';
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useForm, Controller } from 'react-hook-form';
@@ -101,7 +100,7 @@ export default function BookGetaway() {
           id: user.uid,
           name: user.displayName || '',
           email: user.email || '',
-          cellphone: user.cellphone || '', //no works
+          cellphone: (user as any).cellphone || '', //Firebase User no expone cellphone
           // address: {
           //   street: "string" || '',
           //   city: "string" || '',
@@ -117,7 +116,7 @@ export default function BookGetaway() {
         //   "occupancy": "string || '',
             option: originalLodging.name,
             price: originalLodging.price,
-            occupancy: originalLodging.occupancy,
+            occupancy: (originalLodging as any).occupancy,
         } : undefined,
 
         optionalAddOns: originalAddOns?.map((addon:any) => ({
@@ -141,7 +140,7 @@ export default function BookGetaway() {
         ...reservationPayload,
         orderId: fetchedOrderId,
         getawayTitle: getaway.title,
-        getawayAddress: getaway.address,
+        getawayAddress: getaway.getawayAddress?.address,
         getawayDates: `${getaway.startDate} - ${getaway.endDate}`
       };
 
@@ -164,12 +163,12 @@ export default function BookGetaway() {
     <>
       <Grid container rowSpacing={1} columnSpacing={{ xs: 1, sm: 2, md: 3 }}>
         <AdminSideBar />
-        <Grid size={{ xs: 12, sm: 10 }} className='section blueBg'>
+        <Grid size={{ xs: 12, sm: 9, md: 10 }} className='section blueBg'>
           <Typography variant="h5" className='title'>Getaway reservation</Typography>
           <Typography variant="h6" className='title'>{getaway.title || 'Getaway reservation'}</Typography>
           {/* <Typography variant="h6" className='title'><span>{getaway.startDate} to {getaway.endDate}</span></Typography> */}
 
-          <Box sx={{ width: 1000, maxWidth: '100%', padding: '7px' }}>
+          <Box sx={{ width: 1000, maxWidth: '100%', padding: { xs: 1, sm: '7px' }, boxSizing: 'border-box' }}>
             <form onSubmit={handleSubmit(onSubmit)}>
               <Typography variant="h6" className='purpleLabel' sx={{ mt: 2, mb: 1, fontSize: '14px', fontWeight: 'bold' }}>Payment & contact info</Typography>
               <TextField label="Player Name" margin="dense" fullWidth disabled defaultValue={user?.displayName || ''} />
@@ -279,7 +278,7 @@ export default function BookGetaway() {
                 <Typography variant="caption" color="error" sx={{ display: 'block' }}>{errors.agreeTerms.message}</Typography>
               )}
 
-              <Box style={{ display: 'flex', justifyContent: 'center', gap: 18, margin: '20px 0' }}>
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 2, my: '20px' }}>
               <Button type="button" startIcon={<ArrowBackIcon />} variant="outlined" disableElevation
                 onClick={() => navigate(-1)}
                 sx={{ width: '135px', borderRadius: '8px', borderColor: '#3C1C91',

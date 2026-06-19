@@ -3,6 +3,7 @@ import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import {
   Container, Box, Stack,
   Divider, Typography, Button, Alert, CircularProgress,
+  Checkbox, FormControlLabel, Radio, RadioGroup,
 } from '@mui/material';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
@@ -13,6 +14,9 @@ import { Elements, CardElement, useStripe, useElements } from '@stripe/react-str
 import '../App.css';
 
 import { processPayment } from '../services/payment/payment';
+import { listSavedCards, type SavedCard } from '../services/payment/paymentMethods';
+
+const NEW_CARD = 'new';
 
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || '');
 
@@ -93,35 +97,61 @@ function CheckoutForm({ orderId, amount, user }: { orderId: string; amount: numb
   const [processing, setProcessing] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
+  // Tarjetas guardadas del usuario
+  const [savedCards, setSavedCards] = useState<SavedCard[]>([]);
+  const [selectedMethod, setSelectedMethod] = useState<string>(NEW_CARD); // pm_id | 'new'
+  const [saveCard, setSaveCard] = useState(false);
+
+  useEffect(() => {
+    listSavedCards()
+      .then((cards) => {
+        setSavedCards(cards);
+        // Si hay tarjetas guardadas, preseleccionar la primera; si no, tarjeta nueva.
+        if (cards.length > 0) setSelectedMethod(cards[0].id);
+      })
+      .catch((e) => console.warn('[STRIPE] No se pudieron cargar tarjetas guardadas:', e));
+  }, []);
+
+  const usingNewCard = selectedMethod === NEW_CARD;
+
   const handleConfirm = async () => {
-    if (!stripe || !elements) return; // Stripe.js aún no cargó
-    const cardElement = elements.getElement(CardElement);
-    if (!cardElement) return;
+    if (!stripe) return; // Stripe.js aún no cargó
 
     setProcessing(true);
     setErrorMsg(null);
 
     try {
-      // 1. Crear el PaymentMethod con los datos de la tarjeta (Stripe)
-      console.log('%c[STRIPE] Paso 1 — createPaymentMethod (Stripe)', 'color:#5B2BD6;font-weight:bold');
-      const { error: pmError, paymentMethod } = await stripe.createPaymentMethod({
-        type: 'card',
-        card: cardElement,
-        billing_details: { name: user?.name || '', email: user?.email || '' },
-      });
-      if (pmError) {
-        console.error('[STRIPE] error createPaymentMethod:', pmError);
-        // Lanzamos el error de Stripe tal cual para conservar code/type y mapearlo a un mensaje claro.
-        throw pmError;
-      }
-      console.log('%c[STRIPE] Paso 1 — paymentMethod OK', 'color:#00A36C;font-weight:bold', paymentMethod?.id);
+      let paymentMethodId: string;
 
-      // 2. Procesar el pago en el backend (amount en dólares; el backend lo pasa a centavos)
+      if (usingNewCard) {
+        // 1a. Tarjeta nueva → tokenizar con Stripe Elements
+        if (!elements) return;
+        const cardElement = elements.getElement(CardElement);
+        if (!cardElement) return;
+        console.log('%c[STRIPE] Paso 1 — createPaymentMethod (tarjeta nueva)', 'color:#5B2BD6;font-weight:bold');
+        const { error: pmError, paymentMethod } = await stripe.createPaymentMethod({
+          type: 'card',
+          card: cardElement,
+          billing_details: { name: user?.name || '', email: user?.email || '' },
+        });
+        if (pmError) {
+          console.error('[STRIPE] error createPaymentMethod:', pmError);
+          throw pmError; // conserva code/type para el mensaje amigable
+        }
+        paymentMethodId = paymentMethod!.id;
+      } else {
+        // 1b. Tarjeta guardada → se usa su pm_id directamente
+        console.log('%c[STRIPE] Paso 1 — usando tarjeta guardada', 'color:#5B2BD6;font-weight:bold', selectedMethod);
+        paymentMethodId = selectedMethod;
+      }
+
+      // 2. Procesar el pago en el backend. saveCard solo aplica a tarjeta nueva.
       const paymentPayload = {
         orderId,
-        paymentMethodId: paymentMethod!.id,
+        paymentMethodId,
         amount,
         currency: 'usd',
+        saveCard: usingNewCard ? saveCard : false,
       };
       console.log('%c[STRIPE] Paso 2 — POST /payment (enviando)', 'color:#5B2BD6;font-weight:bold', paymentPayload);
       const payRes = await processPayment(paymentPayload);
@@ -228,27 +258,71 @@ function CheckoutForm({ orderId, amount, user }: { orderId: string; amount: numb
         </CardContent>
       </Card>
 
-      {/* Campo real de tarjeta (Stripe Elements) */}
+      {/* Selector de método de pago: tarjetas guardadas + tarjeta nueva */}
       <Box sx={{ width: 340, maxWidth: '90vw', mb: 1 }}>
         <Typography variant="caption" sx={{ color: '#fff', display: 'block', mb: 0.5, fontWeight: 'bold' }}>
-          Card details
+          Payment method
         </Typography>
-        <Box sx={{ bgcolor: '#fff', borderRadius: '8px', p: 1.5 }}>
-          <CardElement options={CARD_ELEMENT_OPTIONS} />
-        </Box>
+        <RadioGroup
+          value={selectedMethod}
+          onChange={(e) => setSelectedMethod(e.target.value)}
+        >
+          {savedCards.map((c) => (
+            <FormControlLabel
+              key={c.id}
+              value={c.id}
+              control={<Radio size="small" sx={{ color: '#fff', '&.Mui-checked': { color: '#00E392' } }} />}
+              label={
+                <Typography variant="body2" sx={{ color: '#fff' }}>
+                  {(c.brand || 'card').toUpperCase()} •••• {c.last4} — {String(c.expMonth).padStart(2, '0')}/{c.expYear}
+                </Typography>
+              }
+            />
+          ))}
+          <FormControlLabel
+            value={NEW_CARD}
+            control={<Radio size="small" sx={{ color: '#fff', '&.Mui-checked': { color: '#00E392' } }} />}
+            label={<Typography variant="body2" sx={{ color: '#fff' }}>Use a new card</Typography>}
+          />
+        </RadioGroup>
+
+        {/* Campo real de tarjeta (solo si se eligió tarjeta nueva) */}
+        {usingNewCard && (
+          <>
+            <Box sx={{ bgcolor: '#fff', borderRadius: '8px', p: 1.5, mt: 0.5 }}>
+              <CardElement options={CARD_ELEMENT_OPTIONS} />
+            </Box>
+            <FormControlLabel
+              sx={{ mt: 0.5 }}
+              control={
+                <Checkbox
+                  size="small"
+                  checked={saveCard}
+                  onChange={(e) => setSaveCard(e.target.checked)}
+                  sx={{ color: '#fff', '&.Mui-checked': { color: '#00E392' } }}
+                />
+              }
+              label={
+                <Typography variant="caption" sx={{ color: '#fff' }}>
+                  Guardar esta tarjeta para futuros pagos
+                </Typography>
+              }
+            />
+          </>
+        )}
       </Box>
 
       {errorMsg && (
         <Alert severity="error" sx={{ width: 340, maxWidth: '90vw', mt: 1 }}>{errorMsg}</Alert>
       )}
 
-      <Box style={{ display: 'flex', justifyContent: 'center', gap: 16, marginTop: 10, marginBottom: 6 }}>
+      <Box sx={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 2, mt: 1.5, mb: 1 }}>
         <Button
           onClick={() => navigate(-1)}
           startIcon={<ArrowBackIcon />} type="button" variant="contained" disableElevation
           disabled={processing}
           sx={{
-            minWidth: '13vw',
+            minWidth: 130,
             borderRadius: '8px',
             bgcolor: '#FFF', color: '#3C1C91',
             fontWeight: 'medium', textTransform: 'none',
@@ -261,8 +335,7 @@ function CheckoutForm({ orderId, amount, user }: { orderId: string; amount: numb
           variant="contained"
           disabled={!stripe || processing}
           sx={{
-            minWidth: '15vw',
-            maxWidth: '13vw',
+            minWidth: 160,
             bgcolor: '#3C1C91', color: '#FFF',
             fontWeight: 'bold', textTransform: 'none',
             borderRadius: '8px', borderColor: 'primary.main', border: 1,
@@ -305,7 +378,7 @@ function Payment() {
       <Container
         sx={{
           pt: 3, pb: 3,
-          width: '75%',
+          width: { xs: '100%', sm: '90%', md: '75%' },
           display: 'flex', flexDirection: 'column', position: 'relative',
           zIndex: 1,
         }}

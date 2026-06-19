@@ -83,7 +83,7 @@ function Paid() {
               <Button
                 variant="contained"
                 startIcon={<LibraryBooksIcon />}
-                onClick={() => navigate('/mygetaways')}
+                onClick={() => navigate('/myorders')}
                 sx={{ mt: 3, bgcolor: '#3C1C91', color: '#FFF', textTransform: 'none', borderRadius: '8px', px: 4 }}
               > View My Bookings
               </Button>
@@ -94,7 +94,7 @@ function Paid() {
           <center>
           <Stack spacing={2} alignItems="center">
             <ErrorOutlineIcon sx={{ fontSize:70, color:'#fff' }} />
-            <Typography component="h3" variant="body" sx={{ fontWeight: 'semibold', color:'#fff' }}> Payment Declined
+            <Typography component="h3" variant="body1" sx={{ fontWeight: 'semibold', color:'#fff' }}> Payment Declined
             </Typography>
             <Typography variant="body1" color="#fff">
               We couldn't process your payment. Please check your card details or use a different payment method.

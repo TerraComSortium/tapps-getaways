@@ -16,6 +16,7 @@ import {
   performFallbackLocalSearch,
   getSportLabel,
   getValidImages,
+  isGetawayExpired,
 } from '../utils/getawayHelpers';
 
 export default function Mygetaways() {
@@ -205,7 +206,7 @@ export default function Mygetaways() {
                   galleryPhotos={getValidImages(getaway.galleryPhotos)}
                   // isLoading={isLoading}
                   onViewDetails={() => handleViewDetails(getaway)}
-                  onBookNow={role === 'player' ? () => handleBooking(getaway) : undefined}
+                  onBookNow={role === 'player' && !isGetawayExpired(getaway) ? () => handleBooking(getaway) : undefined}
                   // onEdit={role === 'admin' ? () => handleEdit(getaway.id) : undefined}
                   // onDelete={role === 'admin' ? () => (getaway._id, getaway.title) : undefined}
                 />

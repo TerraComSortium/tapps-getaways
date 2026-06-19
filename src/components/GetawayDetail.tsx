@@ -25,11 +25,13 @@ import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 import prevPhoto from '../assets/backgrounds/hotel.jpg';
 
 import type { Getaway } from '../types/getaway';
+import { isGetawayExpired } from '../utils/getawayHelpers';
 
 function GetawayDetail() {
   const navigate = useNavigate();
   const location = useLocation();
   const getaway: Getaway | null = location.state?.getawayData;
+  const expired = isGetawayExpired(getaway);
 
   const [mainImage, setMainImage] = useState<string | "video">(prevPhoto);
   const [galleryImages, setGalleryImages] = useState<(string | "video")[]>([]);
@@ -213,16 +215,22 @@ function GetawayDetail() {
               </RadioGroup>
             </FormControl>
 
-            <Button type="submit" onClick={handleBookNow}
-              startIcon={<ShoppingCartIcon />} variant="contained"
-              sx={{
-                mt: 1, mb: 3, width: '15vw', borderRadius:'8px',
-                bgcolor: '#3C1C91', color: '#FFF', fontWeight: 'bold', textTransform: 'none',
-                ':hover': {
-                  bgcolor: 'white', color: '#3C1C91',
-                }
-              }}
-            > Book now </Button>
+            {expired ? (
+              <Typography sx={{ mt: 1, mb: 3, fontStyle: 'italic', color: 'text.secondary' }}>
+                This getaway has ended — subscription is no longer available.
+              </Typography>
+            ) : (
+              <Button type="submit" onClick={handleBookNow}
+                startIcon={<ShoppingCartIcon />} variant="contained"
+                sx={{
+                  mt: 1, mb: 3, width: '15vw', borderRadius:'8px',
+                  bgcolor: '#3C1C91', color: '#FFF', fontWeight: 'bold', textTransform: 'none',
+                  ':hover': {
+                    bgcolor: 'white', color: '#3C1C91',
+                  }
+                }}
+              > Book now </Button>
+            )}
           </Stack>
         </Stack>
 
@@ -268,16 +276,18 @@ function GetawayDetail() {
               <Stack sx={{ fontSize: 15, width: '60vw' }}>
                 <p> {getaway.mainDescription || getaway.overview } </p>
               </Stack>
-              <Button type="submit" startIcon={<ShoppingCartIcon />} variant="contained"
-                onClick={handleBookNow}
-                sx={{
-                  mt: 1, mb: 3, borderRadius:'8px',
-                  minWidth: '12vw', maxWidth: '13vw',
-                  bgcolor: '#3C1C91', color: '#FFF', fontWeight: 'bold', textTransform: 'none',
-                  ':hover': { bgcolor: 'white', color: '#3C1C91'},
-                  borderColor: 'primary.main', border: 1
-                }}
-              > Book now </Button>
+              {!expired && (
+                <Button type="submit" startIcon={<ShoppingCartIcon />} variant="contained"
+                  onClick={handleBookNow}
+                  sx={{
+                    mt: 1, mb: 3, borderRadius:'8px',
+                    minWidth: '12vw', maxWidth: '13vw',
+                    bgcolor: '#3C1C91', color: '#FFF', fontWeight: 'bold', textTransform: 'none',
+                    ':hover': { bgcolor: 'white', color: '#3C1C91'},
+                    borderColor: 'primary.main', border: 1
+                  }}
+                > Book now </Button>
+              )}
             </Stack>
           </Box>
         </Modal>

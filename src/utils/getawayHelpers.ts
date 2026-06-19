@@ -83,6 +83,16 @@ export const getValidImages = (photos: string[] | undefined): string[] => {
   return photos.filter(url => url && typeof url === 'string' && url.length > 5);
 };
 
+// True si el getaway ya terminó (endDate < hoy). Sin endDate válido → false (no se bloquea).
+export const isGetawayExpired = (getaway: { endDate?: any } | null | undefined): boolean => {
+  if (!getaway?.endDate) return false;
+  const end = new Date(getaway.endDate);
+  if (isNaN(end.getTime())) return false;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return end < today;
+};
+
 export const formatGetawayDates = (start: any, end: any): string => {
   //validation
   const startStr = typeof start === 'string' ? start.trim() : (start instanceof Date ? start.toLocaleDateString() : "");

@@ -95,6 +95,8 @@ export default function BookGetaway() {
 
       //payload to POST
       const reservationPayload: Reservation = {
+        // El backend recalcula los precios/total desde este getaway (fuente de verdad).
+        getawayId: id,
         user: {
           id: user.uid,
           name: user.displayName || '',

@@ -1,4 +1,5 @@
 // import * as React from 'react';
+import { BRAND } from '../theme/colors';
 import {
   Box, Button, Typography, TextField,
   FormControl,
@@ -26,16 +27,16 @@ export default function DiscountForm({ control, index, remove }: DiscountFormPro
     <Box sx={{
       m:'20px 0px',
       p:'20px 20px',
-      borderRadius: '8px', bgcolor: '#FFF',
+      borderRadius: '8px', bgcolor: BRAND.white,
     }}
     >
       <Box style={{ display: 'flex', justifyContent:'space-between', alignItems:'center', gap: 16, marginBottom: 5 }}>
-        <Typography variant="h6" sx={{ color: '#3C1C91', fontWeight: 'bold' }}> Discount #{index + 1} </Typography>
+        <Typography variant="h6" sx={{ color: BRAND.primary, fontWeight: 'bold' }}> Discount #{index + 1} </Typography>
         <Button startIcon={<DeleteIcon />} variant="outlined" disableElevation size="medium" aria-label="delete"
           sx={{ height: 36,
             p:'5px 16px', m:'0 3px', borderRadius: "10px", textTransform: "none",
-            bgcolor: '#3C1C91', borderColor: 'white', color: 'white', fontWeight: 'bold',
-            ':hover': { color: '#3C1C91', bgcolor: '#fff'  }
+            bgcolor: BRAND.primary, borderColor: 'white', color: 'white', fontWeight: 'bold',
+            ':hover': { color: BRAND.primary, bgcolor: BRAND.white  }
           }}
           // onClick={() => removeDiscount(index)}
           onClick={() => remove(index)}
@@ -145,7 +146,7 @@ export default function DiscountForm({ control, index, remove }: DiscountFormPro
           defaultValue={false} // Default
           render={({ field }) => (
             <FormControlLabel
-              sx={{ color: "#000" }}
+              sx={{ color: BRAND.black }}
               label="Activate discount"
               control={
                 <Checkbox

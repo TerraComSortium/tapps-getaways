@@ -1,5 +1,6 @@
 import { Control, Path, useController, FieldValues } from "react-hook-form";
 import { AddressAutocomplete } from '../components/AddressAutocomplete';
+import { BRAND } from '../theme/colors';
 import type { LocationEntry } from '../types/getaway';
 
 const validateInput = (value: LocationEntry | undefined | null): boolean | string => {
@@ -43,8 +44,8 @@ export function AddressAutocompleteField<T extends FieldValues>({
       errorMessage={error?.message}
       inputStyle={{
         height: '55px',
-        backgroundColor: '#fff',
-        color:'#000',
+        backgroundColor: BRAND.white,
+        color:BRAND.black,
         borderRadius: '8px',
         // borderColor: 'white',
       }}

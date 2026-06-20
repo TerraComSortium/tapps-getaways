@@ -7,6 +7,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import ReceiptIcon from '@mui/icons-material/Receipt';
 import prevPhoto from '../assets/backgrounds/hotel.jpg';
+import { BRAND } from '../theme/colors';
 import '../App.css';
 // import {Skeleton} from '@mui/material';
 // import { useAuthRole } from '../hooks/useAuthRole';
@@ -78,13 +79,13 @@ export const GetawayItem = memo(
 
     return(
       <>
-        <Card elevation={0} sx={{ display: "flex", mb:2, borderRadius: "10px", backgroundColor: '#fff', boxShadow: "0 2px 8px 0 #c1c9d7, 0 -2px 8px 0 #cce1e9"}}>
+        <Card elevation={0} sx={{ display: "flex", mb:2, borderRadius: "10px", backgroundColor: BRAND.bgPaper, boxShadow: "0 2px 8px 0 #c1c9d7, 0 -2px 8px 0 #cce1e9"}}>
           <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', textAlign: 'left' }} >
             <Box>
               <Typography
                 // onClick={toGetaway}
                 onClick={onViewDetails}
-                sx={{ fontSize: '16px', color:'#3C1C91', fontWeight: '600', cursor: onViewDetails ? 'pointer': 'default'}}
+                sx={{ fontSize: '16px', color:BRAND.primary, fontWeight: '600', cursor: onViewDetails ? 'pointer': 'default'}}
                 // style={{ cursor: 'pointer' }}
               > {name} </Typography>
 
@@ -131,7 +132,7 @@ export const GetawayItem = memo(
                     width: 128,
                     m:'0 0.3rem',
                     borderRadius: '30px',
-                    bgcolor:'#3C1C91', color: '#fff',
+                    bgcolor:BRAND.primary, color: BRAND.white,
                     fontVariantCaps: 'normal', textTransform: 'none',
                   }}
                   onClick={onBookNow}
@@ -144,7 +145,7 @@ export const GetawayItem = memo(
                     width: 160,
                     m:'0 0.3rem',
                     borderRadius: '30px',
-                    bgcolor:'#3C1C91', color: '#fff',
+                    bgcolor:BRAND.primary, color: BRAND.white,
                     fontVariantCaps: 'normal', textTransform: 'none',
                   }}
                   onClick={onOrderDetails}
@@ -155,7 +156,7 @@ export const GetawayItem = memo(
                   sx={{
                     width: 122, m: '0 0.5rem',
                     borderRadius: '30px',
-                    bgcolor: '#3C1C91', color: '#fff',
+                    bgcolor: BRAND.primary, color: BRAND.white,
                     fontVariantCaps: 'normal', textTransform: 'none',
                   }}
                 > Bookings </Button>
@@ -169,11 +170,11 @@ export const GetawayItem = memo(
                     width:104,
                     m:'0 0.3rem',
                     borderRadius: '30px',
-                    bgcolor: '#3C1C91', color: '#fff',
+                    bgcolor: BRAND.primary, color: BRAND.white,
                     fontVariantCaps:'normal', textTransform: 'none',
                     opacity: isDeleting ? 0.7 : 1,
                     '&:hover': {
-                      bgcolor: '#2a1268'
+                      bgcolor: BRAND.primaryDark
                     }
                   }}
                 >
@@ -203,7 +204,7 @@ export const GetawayItem = memo(
                   width:145,
                   // padding: '8px 20px',
                   // m:'0 0.3rem',
-                  color: '#1A2660', bgcolor: '#00E392',
+                  color: BRAND.navy, bgcolor: BRAND.green,
                   borderRadius: '30px',
                   fontWeight: 'bold', textTransform: 'none',
                 }}

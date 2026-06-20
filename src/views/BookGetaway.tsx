@@ -1,5 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { useForm, Controller } from 'react-hook-form';
+import { ROUTES } from '../constants/routes';
+import { BRAND } from '../theme/colors';
 import AdminSideBar from '../components/AdminSidebar';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -56,7 +58,7 @@ export default function BookGetaway() {
     const { total, taxes } = calculateTotal();
     const formDataWithTotal = { ...data, total, taxes };
     localStorage.setItem('selectedData', JSON.stringify(formDataWithTotal));
-    navigate('/payment');
+    navigate(ROUTES.PAYMENT);
   };
 
   const { total, taxes } = calculateTotal();
@@ -90,7 +92,7 @@ export default function BookGetaway() {
               />
 
               <Typography variant="h6" className='purpleLabel' sx={{ mt: 2, mb: 0.5, fontSize: '14px', fontWeight: 'bold' }}>Lodging Options*</Typography>
-              <Divider aria-hidden="true" sx={{ bgcolor: '#00E392' }} />
+              <Divider aria-hidden="true" sx={{ bgcolor: BRAND.green }} />
               <Controller name="lodgingOption"
                 control={control}
                 defaultValue="resortView"
@@ -107,7 +109,7 @@ export default function BookGetaway() {
               )}
 
               <Typography variant="h6" className='purpleLabel' sx={{ mt: 2, mb: 0.5, fontSize: '14px', fontWeight: 'bold' }}>Add Ons (Optional)</Typography>
-              <Divider aria-hidden="true" sx={{ bgcolor: '#00E392' }} />
+              <Divider aria-hidden="true" sx={{ bgcolor: BRAND.green }} />
               <Controller name="amenities.specialDinner"
                 control={control}
                 render={({ field }) => (
@@ -141,7 +143,7 @@ export default function BookGetaway() {
               />
 
               <Typography variant="h6" className='purpleLabel' sx={{ mt: 2, mb: 0.5, fontSize: '14px', fontWeight: 'bold' }}>Payment Details</Typography>
-              <Divider aria-hidden="true" sx={{ bgcolor: '#00E392' }} />
+              <Divider aria-hidden="true" sx={{ bgcolor: BRAND.green }} />
               <Typography variant="body2" sx={{ mt: 1 }}>Taxes: ${taxes.toFixed(2)} USD</Typography>
               <Typography variant="body2">Total: ${total.toFixed(2)} USD</Typography>
               <Typography variant="body2">*The total charged on the next page will be the price quoted above.</Typography>
@@ -183,11 +185,11 @@ export default function BookGetaway() {
 
               <Box style={{ display: 'flex', justifyContent: 'center', gap: 18, margin: '20px 0' }}>
                 <Button type="button" startIcon={<ArrowBackIcon />} variant="outlined" disableElevation
-                  href="/mygetaways"
+                  href={ROUTES.MY_GETAWAYS}
                   sx={{
                     width: '135px',
-                    borderRadius: '8px', bgcolor: '#FFF', color: '#3C1C91', fontWeight: 'medium', textTransform: 'none', borderColor: '#3C1C91',
-                    ':hover': { bgcolor: '#3C1C91', color: 'white' }
+                    borderRadius: '8px', bgcolor: BRAND.white, color: BRAND.primary, fontWeight: 'medium', textTransform: 'none', borderColor: BRAND.primary,
+                    ':hover': { bgcolor: BRAND.primary, color: 'white' }
                   }}
                 >Retry</Button>
 
@@ -195,9 +197,9 @@ export default function BookGetaway() {
                   type="submit"
                   startIcon={<ShoppingCartIcon />} variant="outlined" disableElevation
                   sx={{
-                    borderRadius: '8px', borderColor: '#3C1C91',
-                    bgcolor: '#3C1C91', color: '#FFF', fontWeight: 'medium', textTransform: 'none',
-                    ':hover': { bgcolor: 'white', color: '#3C1C91' }
+                    borderRadius: '8px', borderColor: BRAND.primary,
+                    bgcolor: BRAND.primary, color: BRAND.white, fontWeight: 'medium', textTransform: 'none',
+                    ':hover': { bgcolor: 'white', color: BRAND.primary }
                   }}
                 >Book getaway</Button>
               </Box>

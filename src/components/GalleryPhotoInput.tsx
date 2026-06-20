@@ -1,5 +1,6 @@
 import { Controller, Control, Path, RegisterOptions } from "react-hook-form";
 import React, { useState } from 'react';
+import { BRAND } from '../theme/colors';
 
 import type { GetawayFormData } from '../types/getaway';
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
@@ -114,12 +115,12 @@ export const GalleryPhotoInput: React.FC<GalleryPhotoInputProps> = ({
                 disableElevation
                 startIcon={<CloudUploadIcon />}
                 sx={{
-                  bgcolor: '#00E392',
-                  color: '#1A2660',
+                  bgcolor: BRAND.green,
+                  color: BRAND.navy,
                   fontWeight: 'bold',
                   borderRadius: '30px',
                   textTransform: 'none',
-                  ':hover': { bgcolor: '#3C1C91', color: 'white' }
+                  ':hover': { bgcolor: BRAND.primary, color: BRAND.white }
                 }}
               >
                 Upload file

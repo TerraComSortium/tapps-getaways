@@ -1,6 +1,7 @@
 import { Box, Container, Link, Button, Typography, TypographyProps } from '@mui/material';
 import Grid from '@mui/material/Grid2';
 import { styled } from '@mui/material/styles';
+import { BRAND } from '../theme/colors';
 import ArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 
 import RacquetsLogo from '../components/RacquetsLogo/RacquetS 25 LogoHorizontal_FondoMorado.png'
@@ -33,7 +34,7 @@ const FooterWrapper = styled(Box)(
 
 function Footer() {
   return (
-    <FooterWrapper sx={{ backgroundColor: "#3C1C91", paddingTop:'25px'}}>
+    <FooterWrapper sx={{ backgroundColor: BRAND.primary, paddingTop:'25px'}}>
       <Container maxWidth="lg">
         <Box>
           <Typography className='ItemCenter'>Follow us on our social networks to keep up with all our updates!</Typography>
@@ -72,12 +73,12 @@ function Footer() {
               <img src={RacquetsLogo} style={{height:'70px'}} alt="RacquetsApp Suite logo" />
             </Link>
           </Typography>
-          <Copyright sx={{ mt: 5, mb: 4,  color: "#FFF"}}/>
+          <Copyright sx={{ mt: 5, mb: 4,  color: BRAND.white}}/>
           <Button
             startIcon={<ArrowUpIcon />}
             sx={{
               height:'40px', margin: 2, p:'1em',
-              border: 'solid 0.07em #FFFFFF',
+              border: `solid 0.07em ${BRAND.white}`,
               color: 'white',
               fontWeight: 'bold', borderRadius: '6px', textTransform: 'none',
             }}

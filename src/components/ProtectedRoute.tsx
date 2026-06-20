@@ -1,10 +1,12 @@
 import { Navigate } from 'react-router-dom';
 import { Box, CircularProgress } from '@mui/material';
 import { useAuth } from '../contexts/AuthContext';
+import { ROUTES } from '../constants/routes';
+import { Role } from '../constants/roles';
 
 export interface ProtectedRouteProps {
   children: React.ReactNode;
-  requiredRole?: string; // si no se pasa, cualquier usuario autenticado puede acceder
+  requiredRole?: Role; // si no se pasa, cualquier usuario autenticado puede acceder
 }
 
 export default function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) {
@@ -18,8 +20,8 @@ export default function ProtectedRoute({ children, requiredRole }: ProtectedRout
     );
   }
 
-  if (!role) return <Navigate to="/login" replace />;
-  if (requiredRole && role !== requiredRole) return <Navigate to="/getaways" replace />;
+  if (!role) return <Navigate to={ROUTES.LOGIN} replace />;
+  if (requiredRole && role !== requiredRole) return <Navigate to={ROUTES.GETAWAYS} replace />;
 
   return <>{children}</>;
 }

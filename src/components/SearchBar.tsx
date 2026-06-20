@@ -1,6 +1,8 @@
 import * as React from 'react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { ROUTES } from '../constants/routes';
+import { BRAND } from '../theme/colors';
 import {
   Box, Button, TextField, Typography, FormControl, Select, MenuItem,
   Snackbar, Alert, CircularProgress
@@ -123,7 +125,7 @@ export default function SearchBar({ onSearch }: SearchBarProps) {
 
         const queryString = params.toString();
         //console.log("finalURL:", `/getaways?${queryString}`);
-        navigate(`/getaways?${queryString}`);
+        navigate(`${ROUTES.GETAWAYS}?${queryString}`);
       }
     } catch (error) {
       console.error("Connection failed:", error);
@@ -143,7 +145,7 @@ export default function SearchBar({ onSearch }: SearchBarProps) {
     <Box
       sx={{
         display: 'flex', flexDirection: 'column',
-        bgcolor: '#3C1C91', color: 'white', borderRadius: '8px',
+        bgcolor: BRAND.primary, color: BRAND.white, borderRadius: '8px',
         p: { xs: 2, md: 4 },
         gap: { xs: 0.5, md: 1 },
         width: '100%',
@@ -161,20 +163,20 @@ export default function SearchBar({ onSearch }: SearchBarProps) {
             inputStyle={{
               height: '48px',
               backgroundColor: '#f5f5f5',
-              color:'#000',
+              color:BRAND.black,
               borderRadius: '8px',
-              borderColor: 'white',
+              borderColor: BRAND.white,
             }}
             label="Nearest city"
-            labelColor='#B8FF00'
+            labelColor={BRAND.limeAlt}
           />
         </Grid>
 
         <Grid size={{ xs:12, md:4 }}>
-          <Typography variant="body2" sx={{ color:'#B8FF00', mb: 0.5 }}> Date </Typography>
+          <Typography variant="body2" sx={{ color:BRAND.limeAlt, mb: 0.5 }}> Date </Typography>
           <Box sx={{ display: 'flex',
             gap: { xs: 1, sm: 2 },
-            bgcolor: 'white',
+            bgcolor: BRAND.white,
             borderRadius: '8px',
             p: '4px',
             width: '100%',
@@ -187,7 +189,7 @@ export default function SearchBar({ onSearch }: SearchBarProps) {
               sx={{
                 flex: 1,
                 mx: '4px',
-                borderColor: '#3C1C91', color: 'black',
+                borderColor: BRAND.primary, color: BRAND.black,
                 '& .MuiInputBase-input': { p: 0.5, fontSize: { xs: '0.75rem', sm: '0.875rem'} },
                 '& .MuiInput-underline:before': { borderBottom: 'none' },
                 '& .MuiInput-underline:after': { borderBottom: 'none' },
@@ -195,7 +197,7 @@ export default function SearchBar({ onSearch }: SearchBarProps) {
                 '& .MuiOutlinedInput-root': {
                   borderRadius: '8px',
                   height:{ xs: '38px', sm: '48px' },
-                  bgcolor: 'white',
+                  bgcolor: BRAND.white,
                   '&:hover fieldset': { borderColor: 'transparent' },
                   '&.Mui-focused fieldset': { borderColor: 'transparent' },
                 },
@@ -209,15 +211,15 @@ export default function SearchBar({ onSearch }: SearchBarProps) {
               sx={{
                 flex: 1,
                 mx: '4px',
-                color: '#3C1C91',
-                '& .MuiInputBase-input': { p: 0.5, color: 'black', fontSize: { xs: '0.75rem', sm: '0.875rem' }, },
+                color: BRAND.primary,
+                '& .MuiInputBase-input': { p: 0.5, color: BRAND.black, fontSize: { xs: '0.75rem', sm: '0.875rem' }, },
                 '& .MuiInput-underline:before': { borderBottom: 'none' },
                 '& .MuiInput-underline:after': { borderBottom: 'none' },
                 '& .MuiInput-underline:hover:not(.Mui-disabled):before': { borderBottom: 'none' },
                 '& .MuiOutlinedInput-root': {
                   borderRadius: '8px',
                   height:{ xs: '38px', sm: '48px' },
-                  color: 'black', bgcolor: 'white',
+                  color: BRAND.black, bgcolor: BRAND.white,
                 },
               }}
             />
@@ -226,9 +228,9 @@ export default function SearchBar({ onSearch }: SearchBarProps) {
 
         <Grid size={{ xs:12, md:4 }} sx={{ display: 'flex', gap: 1 }}>
           <Box sx={{ flexGrow: 1 }}>
-            <Typography variant="body2" sx={{ color:'#B8FF00', mb: 0.5 }}> Sport </Typography>
+            <Typography variant="body2" sx={{ color:BRAND.limeAlt, mb: 0.5 }}> Sport </Typography>
             <FormControl fullWidth sx={{
-              '& .MuiOutlinedInput-root': { borderRadius: '8px', color: 'black', bgcolor: 'white', '& fieldset': { borderColor: 'transparent' }, '&:hover fieldset': { borderColor: 'transparent' }, '&.Mui-focused fieldset': { borderColor: 'transparent' }, },
+              '& .MuiOutlinedInput-root': { borderRadius: '8px', color: BRAND.black, bgcolor: BRAND.white, '& fieldset': { borderColor: 'transparent' }, '&:hover fieldset': { borderColor: 'transparent' }, '&.Mui-focused fieldset': { borderColor: 'transparent' }, },
             }}>
               <Select
                 value={sport} displayEmpty
@@ -252,13 +254,13 @@ export default function SearchBar({ onSearch }: SearchBarProps) {
               p: 0, alignSelf: 'flex-end',
               minWidth: { xs: '48px', sm: '56px' },
               height:{ xs: '38px', sm: '48px' },
-              bgcolor: '#B8FF00', color: '#3C1C91', borderRadius: '8px',
+              bgcolor: BRAND.limeAlt, color: BRAND.primary, borderRadius: '8px',
               '&:hover': { bgcolor: '#A3E300'},
               '&:disabled': { bgcolor: '#e0e0e0' }
             }}
           >
             {loading ? (
-              <CircularProgress size={24} sx={{ color: '#3C1C91' }} />
+              <CircularProgress size={24} sx={{ color: BRAND.primary }} />
             ):(
               <SearchIcon fontSize="large" />
             )}

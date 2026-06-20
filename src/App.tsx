@@ -3,6 +3,9 @@ import './index.css'
 import { useEffect } from 'react';
 import { APIProvider } from '@vis.gl/react-google-maps';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { ROUTES, ROUTE_PATTERNS } from './constants/routes';
+import { Role } from './constants/roles';
+import { ColorModeProvider } from './theme/ColorModeContext';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import GetawayDetail from './components/GetawayDetail';
@@ -110,7 +113,7 @@ function App() {
     fetchAddress();
   }, [userLocation, userAddress, setUserAddress]);
   return (
-    <>
+    <ColorModeProvider>
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
           <FormDataProvider>
@@ -120,23 +123,20 @@ function App() {
                   <Router>
                     <Navbar/>
                     <Routes>
-                      <Route path="/" element={<Landing />} />
-                      <Route path="/login" element={<Login />} />
-                      {/* <Route path="/getaways" element={<Mygetaways />} /> */}
-                      <Route path="/getaways" element={<Getaways/>} />
-                      <Route path="/mygetaways" element={<ProtectedRoute><Mygetaways/></ProtectedRoute>}/>
-                      <Route path="/getawaydetail" element={<GetawayDetail/>} />
-                      <Route path="/bookgetaway" element={<ProtectedRoute><BookGetaway /></ProtectedRoute>} />
-                      <Route path="/booking/:id" element={<ProtectedRoute><BookGetaway2 /></ProtectedRoute>} />
-                      <Route path="/myorders" element={<ProtectedRoute
-                      // requiredRole="player"
-                      ><MyOrders /></ProtectedRoute>} />
-                      <Route path ="/payment/:orderId" element={ <ProtectedRoute><Payment /></ProtectedRoute> } />
-                      <Route path="/paid" element={<Paid />} />
-                      <Route path="/reservations" element={<ProtectedRoute requiredRole="admin"><Reservations /></ProtectedRoute>} />
-                      <Route path="/creategetaway" element={<ProtectedRoute><CreateGetaway/></ProtectedRoute>} />
-                      <Route path="/data-view" element={<DataViewWrapper />} />
-                      <Route path='/test-api' element={<TestApi/>} />
+                      <Route path={ROUTES.LANDING} element={<Landing />} />
+                      <Route path={ROUTES.LOGIN} element={<Login />} />
+                      <Route path={ROUTES.GETAWAYS} element={<Getaways/>} />
+                      <Route path={ROUTES.MY_GETAWAYS} element={<ProtectedRoute><Mygetaways/></ProtectedRoute>}/>
+                      <Route path={ROUTES.GETAWAY_DETAIL} element={<GetawayDetail/>} />
+                      <Route path={ROUTES.BOOK_GETAWAY} element={<ProtectedRoute><BookGetaway /></ProtectedRoute>} />
+                      <Route path={ROUTE_PATTERNS.BOOKING} element={<ProtectedRoute><BookGetaway2 /></ProtectedRoute>} />
+                      <Route path={ROUTES.MY_ORDERS} element={<ProtectedRoute><MyOrders /></ProtectedRoute>} />
+                      <Route path={ROUTE_PATTERNS.PAYMENT} element={ <ProtectedRoute><Payment /></ProtectedRoute> } />
+                      <Route path={ROUTES.PAID} element={<Paid />} />
+                      <Route path={ROUTES.RESERVATIONS} element={<ProtectedRoute requiredRole={Role.ADMIN}><Reservations /></ProtectedRoute>} />
+                      <Route path={ROUTES.CREATE_GETAWAY} element={<ProtectedRoute><CreateGetaway/></ProtectedRoute>} />
+                      <Route path={ROUTES.DATA_VIEW} element={<DataViewWrapper />} />
+                      <Route path={ROUTES.TEST_API} element={<TestApi/>} />
                     </Routes>
                     <Footer/>
                   </Router>
@@ -146,7 +146,7 @@ function App() {
           </FormDataProvider>
         </AuthProvider>
       </QueryClientProvider>
-    </>
+    </ColorModeProvider>
   )
 }
 export default App

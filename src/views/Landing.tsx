@@ -1,5 +1,7 @@
 import { Box, Button, Typography, Card, CardContent, CardMedia, List, ListItemText} from '@mui/material';
 import Grid from '@mui/material/Grid2';
+import { ROUTES } from '../constants/routes';
+import { BRAND } from '../theme/colors';
 // import GetawaysLogo from '../components/GetawaysLogo/GetawaysLogo.jpg';
 import background1 from '../assets/backgrounds/tenis.jpg';
 import clubView1 from '../assets/backgrounds/clubView1.png';
@@ -141,7 +143,7 @@ const LandingPage = () => {
             mt: { xs: 3, md: '5vh' }
             // pl:'10vh', pr:'10vh', mt:'5vh'
           }}>
-            <Typography variant="h5" sx={{fontWeight: 'semibold', color:'#3C1C91', fontSize: { xs: '1.4rem', sm: '1.5rem', md: '1.8rem'}}}>
+            <Typography variant="h5" sx={{fontWeight: 'semibold', color:BRAND.primary, fontSize: { xs: '1.4rem', sm: '1.5rem', md: '1.8rem'}}}>
               Nearby destinations in your area
             </Typography>
             <List>
@@ -153,8 +155,8 @@ const LandingPage = () => {
             <Typography variant="body1" className='label' sx={{ mt: 2, fontWeight: 'semibold' }}>
               Sign in and explore incredible packages!
             </Typography>
-            <Button href="/login" type="submit" variant="contained" disableElevation
-              sx={{ mt: 2, mb: 5, bgcolor: '#C9F305', color: '#1A2660', fontWeight: 'bold', borderRadius: '30px' }}
+            <Button href={ROUTES.LOGIN} type="submit" variant="contained" disableElevation
+              sx={{ mt: 2, mb: 5, bgcolor: BRAND.lime, color: BRAND.navy, fontWeight: 'bold', borderRadius: '30px' }}
             >Explore Getaways</Button>
           </Grid>
           <Grid size={{ xs: 12, md: 7 }}>
@@ -165,13 +167,13 @@ const LandingPage = () => {
         </Grid>
       </Box>
       <Box className='benefitsSection'>
-        <Typography variant="h5" className='title2' sx={{ color: '#fff', mb:2 }}>Discover all the benefits you can enjoy</Typography>
+        <Typography variant="h5" className='title2' sx={{ color: BRAND.white, mb:2 }}>Discover all the benefits you can enjoy</Typography>
         <section className='benefits'>
           <Box sx={{ width: { xs: '100%', sm: '45%', md: '40%' }, maxWidth: '400px' }}>
             <Card variant="outlined"
               className='benefitsCards2'
-              sx={{ border: 'solid 0.25em #00E392', borderRadius: '15px' }}>
-              <CardContent sx={{bgcolor:'#fff', mt:'2vh'}}>
+              sx={{ border: `solid 0.25em ${BRAND.green}`, borderRadius: '15px' }}>
+              <CardContent sx={{bgcolor: BRAND.bgPaper, mt:'2vh'}}>
                 <Typography variant="h5"> Benefits for players </Typography>
                 <List sx={{pl:'3vh', pr:'3vh'}}>
                   <ListItemText primary="Access the Getaway&trade; offer of your choice to enjoy your stay."/>
@@ -180,16 +182,16 @@ const LandingPage = () => {
                   <ListItemText primary="Enhance your travel experience by using our Racquets! AppSuite&trade; applications"/>
                 </List>
                 <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-                  <Button  href="/getaways"
-                    sx={{ m:2, padding: '5px 20px', bgcolor: '#C9F305', color: '#1A2660', fontWeight: 'semibold', borderRadius: '12px', textTransform: 'none' }}
+                  <Button  href={ROUTES.GETAWAYS}
+                    sx={{ m:2, padding: '5px 20px', bgcolor: BRAND.lime, color: BRAND.navy, fontWeight: 'semibold', borderRadius: '12px', textTransform: 'none' }}
                   >Discover Getaways&trade;</Button>
                 </Box>
               </CardContent>
             </Card>
           </Box>
           <Box sx={{ width: { xs: '100%', sm: '45%', md: '40%' }, maxWidth: '400px' }}>
-            <Card variant="outlined" className='benefitsCards2' sx={{ border: 'solid 0.25em #C9F305', borderRadius: '15px' }}>
-              <CardContent sx={{bgcolor:'#fff', mt:'2vh'}}>
+            <Card variant="outlined" className='benefitsCards2' sx={{ border: `solid 0.25em ${BRAND.lime}`, borderRadius: '15px' }}>
+              <CardContent sx={{bgcolor: BRAND.bgPaper, mt:'2vh'}}>
                 <Typography variant="h5">Benefits for RCnets</Typography>
                 <List sx={{pl:'3vh', pr:'3vh'}}>
                   <ListItemText primary="Achieve an exponential growth in player/tourist participation at your RCnet"/>
@@ -198,8 +200,8 @@ const LandingPage = () => {
                   <ListItemText primary="Enhance your travel experience by using our Racquets! AppSuite&trade; applications"/>
                 </List>
                 <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-                  <Button  href="/login"
-                    sx={{ m:2, padding: '5px 20px', bgcolor: '#00E392', color: '#1A2660', fontWeight: 'semibold', borderRadius: '12px', textTransform: 'none' }}
+                  <Button  href={ROUTES.LOGIN}
+                    sx={{ m:2, padding: '5px 20px', bgcolor: BRAND.green, color: BRAND.navy, fontWeight: 'semibold', borderRadius: '12px', textTransform: 'none' }}
                   >Offer Getaways&trade;</Button>
                 </Box>
               </CardContent>

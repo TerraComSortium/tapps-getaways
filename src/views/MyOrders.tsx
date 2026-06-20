@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { ROUTES } from '../constants/routes';
 import { Box, Stack, Pagination, Typography, CircularProgress, Alert } from '@mui/material';
 import Grid from '@mui/material/Grid2';
 import AdminSideBar from '../components/AdminSidebar';
@@ -61,7 +62,7 @@ export default function MyOrders() {
                 lodgingOptions={getaway.lodgingOptions || []}
                 sport={getSportLabel(getaway.sport)}
                 galleryPhotos={getValidImages(getaway.galleryPhotos)}
-                onViewDetails={() => navigate('/getawaydetail', { state: { getawayData: getaway } })}
+                onViewDetails={() => navigate(ROUTES.GETAWAY_DETAIL, { state: { getawayData: getaway } })}
               />
             ))}
           </Stack>

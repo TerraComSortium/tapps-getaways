@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { styled } from "@mui/material/styles";
+import { BRAND } from "../theme/colors";
 import {
   Box, Paper, Typography, Button,
   TextField, Select, MenuItem, FormControl, FormHelperText,
@@ -144,7 +145,7 @@ export function ScheduleForm({ rows, setRows }: ScheduleFormProps) {
 
   return (
     <Box>
-      <Typography variant="body1" fontWeight="bold" color="#3C1C91"> Schedule </Typography>
+      <Typography variant="body1" fontWeight="bold" color={BRAND.primary}> Schedule </Typography>
       <TableContainer component={Paper} elevation={3} sx={{ overflowX: 'auto' }}>
         <Table sx={{ minWidth: 500 }}>
           <TableHead>
@@ -288,7 +289,7 @@ export function ScheduleForm({ rows, setRows }: ScheduleFormProps) {
                 </StyledTableCell>
                 <StyledTableCell sx={{ pl:'0' }} align="center">
                   <Button variant="contained" color="primary" size="small" aria-label="save"
-                    sx={{ borderRadius:'20px', textTransform:'none', fontWeight:'bold', bgcolor: '#3C1C91',  color: '#fff', ':hover': { color: '#3C1C91', bgcolor: '#fff'}}}
+                    sx={{ borderRadius:'20px', textTransform:'none', fontWeight:'bold', bgcolor: BRAND.primary,  color: BRAND.white, ':hover': { color: BRAND.primary, bgcolor: BRAND.white}}}
                     onClick={() => handleConfirmFormRow(idx)}
                   > Save </Button>
                   {/* <IconButton onClick={() => handleRemoveFormRow(idx)} aria-label="delete"> */}
@@ -321,8 +322,8 @@ export function ScheduleForm({ rows, setRows }: ScheduleFormProps) {
         <Button startIcon={<AddIcon />} variant="outlined" disableElevation
           onClick={handleNewFormRow}
           sx={{
-            color:'#1A2660', bgcolor:'#00E392', borderRadius:'30px', fontWeight:'bold', textTransform:'none',
-            ':hover': { bgcolor:'#3C1C91', color:'white' }
+            color:BRAND.navy, bgcolor:BRAND.green, borderRadius:'30px', fontWeight:'bold', textTransform:'none',
+            ':hover': { bgcolor:BRAND.primary, color:'white' }
           }}
         > Add activity </Button>
       </Box>

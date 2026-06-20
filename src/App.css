@@ -7,22 +7,22 @@ body, html, #root {
 }
 
 .ItemCenter {
-  color: #fff;
+  color: var(--brand-white);
   text-align: center;
 }
 
 .title {
-  color: #3C1C91;
+  color: var(--text-heading);
   text-align: center;
 }
 .title3 {
-  color: #3C1C91;
+  color: var(--text-heading);
   text-align: center;
   font-size: 16px;
 }
 
 .title2 {
-  color: #fff;
+  color: var(--brand-white);
   text-align: center;
   font-size: 16px;
 }
@@ -61,13 +61,13 @@ body, html, #root {
 }
 
 .purpBtn2 {
-  color: #C9F305;
-  background-color: #3C1C91;
+  color: var(--brand-lime);
+  background-color: var(--brand-primary);
   font-weight: bold;
 }
 
 .blueBg {
-  background-color: #E1F5F4;
+  background-color: var(--surface-alt);
 }
 
 .rcnets {
@@ -81,7 +81,7 @@ body, html, #root {
 }
 
 .label {
-  color: #3C1C91;
+  color: var(--text-heading);
   font-size: 16px;
   font-weight: bold;
 }
@@ -93,7 +93,7 @@ body, html, #root {
   gap: 20px;
   align-items: stretch;
   justify-content: center;
-  color: #fff;
+  color: var(--brand-white);
   width:100%;
   max-width: 1200px;
   margin-top: 20px;
@@ -110,11 +110,11 @@ body, html, #root {
   font-size: 20px;
   font-weight: bold;
   text-align: center;
-  color: #3C1C91;
+  color: var(--text-heading);
 }
 
 .benefitsSection {
-  background-color: #3C1C91;
+  background-color: var(--brand-primary);
   padding: 40px 20px;
   display: flex;
   flex-direction: column;
@@ -170,12 +170,12 @@ body, html, #root {
 }
 
 .title5 {
-  color: #3C1C91;
+  color: var(--text-heading);
   margin: 0px;
 }
 
 .title4 {
-  color: #3C1C91;
+  color: var(--text-heading);
   margin: 0px;
 }
 
@@ -185,7 +185,7 @@ body, html, #root {
 
 .inline > h4 {
   display: inline-block;
-  color: #3C1C91;
+  color: var(--text-heading);
   margin: 0px;
 }
 

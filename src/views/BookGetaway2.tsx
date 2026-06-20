@@ -15,6 +15,8 @@ import AdminSideBar from '../components/AdminSidebar';
 import { useAuth } from '../contexts/AuthContext';
 import { useGetawayById } from '../hooks/useGetawayById';
 import { createPurchase, Reservation } from '../services/purchase/purchase';
+import { paymentPath } from '../constants/routes';
+import { BRAND } from '../theme/colors';
 
 const TAX_RATE = 0.0654;
 interface FormData {
@@ -145,7 +147,7 @@ export default function BookGetaway() {
       };
 
       localStorage.setItem('selectedData', JSON.stringify(dataForPayment));
-      navigate( `/payment/${fetchedOrderId}`, { state:{ dataForPayment }});
+      navigate(paymentPath(fetchedOrderId), { state: { dataForPayment } });
     } catch (err) {
       console.error("Error at Booking getaway, try again later", err);
     } finally {
@@ -188,7 +190,7 @@ export default function BookGetaway() {
                 disabled
               />
               <Typography variant="h6" className='purpleLabel' sx={{ mt: 2, mb: 0.5, fontSize: '14px', fontWeight: 'bold' }}>Lodging Options*</Typography>
-              <Divider aria-hidden="true" sx={{ bgcolor: '#00E392' }} />
+              <Divider aria-hidden="true" sx={{ bgcolor: BRAND.green }} />
               <Controller name="lodgingOption"
                 control={control}
                 defaultValue=""
@@ -214,7 +216,7 @@ export default function BookGetaway() {
               {errors.lodgingOption && <Typography variant="caption" color="error">{errors.lodgingOption.message}</Typography>}
 
               <Typography variant="h6" className='purpleLabel' sx={{ mt: 2, mb: 0.5, fontSize: '14px', fontWeight: 'bold' }}>Add Ons (Optional)</Typography>
-              <Divider aria-hidden="true" sx={{ bgcolor: '#00E392' }} />
+              <Divider aria-hidden="true" sx={{ bgcolor: BRAND.green }} />
               <Controller name="selectedAddOns" control={control} render={({ field }) => (
                 <FormControl component="fieldset" variant="standard"
                   sx={{ mt: 1, display: 'flex', flexDirection: 'column' }}
@@ -243,7 +245,7 @@ export default function BookGetaway() {
               )}
             />
               <Typography variant="h6" className='purpleLabel' sx={{ mt: 2, mb: 0.5, fontSize: '14px', fontWeight: 'bold' }}>Payment Details</Typography>
-              <Divider aria-hidden="true" sx={{ bgcolor: '#00E392' }} />
+              <Divider aria-hidden="true" sx={{ bgcolor: BRAND.green }} />
               <Typography variant="body2" sx={{ mt: 1 }}>Subtotal: ${(totals.subtotal || 0).toFixed(2)} USD</Typography>
               <Typography variant="body2">Taxes: ${(totals.taxes || 0).toFixed(2)} USD</Typography>
               <Typography variant="body2" sx={{ fontWeight: 'bold' }}>Total: ${ (totals.total || 0).toFixed(2)} USD</Typography>
@@ -281,19 +283,19 @@ export default function BookGetaway() {
               <Box sx={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 2, my: '20px' }}>
               <Button type="button" startIcon={<ArrowBackIcon />} variant="outlined" disableElevation
                 onClick={() => navigate(-1)}
-                sx={{ width: '135px', borderRadius: '8px', borderColor: '#3C1C91',
-                //bgcolor: '#FFF', color: '#3C1C91',
+                sx={{ width: '135px', borderRadius: '8px', borderColor: BRAND.primary,
+                //bgcolor: BRAND.white, color: BRAND.primary,
                 fontWeight: 'medium', textTransform: 'none',
-                ':hover': { bgcolor: '#3C1C91', color: 'white' } }}
+                ':hover': { bgcolor: BRAND.primary, color: 'white' } }}
               >Retry</Button>
 
               <Button
                 type="submit" startIcon={isSubmitting ? <CircularProgress size={20} /> : <ShoppingCartIcon />}
                 variant="outlined" disableElevation disabled={isSubmitting}
-                sx={{ borderRadius: '8px', bgcolor: '#3C1C91', color: '#FFF',
-                  borderColor: '#3C1C91',
+                sx={{ borderRadius: '8px', bgcolor: BRAND.primary, color: BRAND.white,
+                  borderColor: BRAND.primary,
                   fontWeight: 'medium', textTransform: 'none',
-                  ':hover': { bgcolor: 'white', color: '#3C1C91' }
+                  ':hover': { bgcolor: 'white', color: BRAND.primary }
                 }}
               > {isSubmitting ? 'Processing...' : 'Book getaway'}
               </Button>

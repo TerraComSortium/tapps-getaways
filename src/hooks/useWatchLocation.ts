@@ -20,16 +20,23 @@ export const useWatchLocation = () => {
         });
       },
       (err) => {
+        // Log del código real para diagnóstico: 1=PERMISSION_DENIED, 2=POSITION_UNAVAILABLE, 3=TIMEOUT
+        console.warn('[geo] error', err.code, err.message);
         if (err.code === err.PERMISSION_DENIED) {
           setGeoError("Location access denied. Enter your city manually.");
+        } else if (err.code === err.POSITION_UNAVAILABLE) {
+          setGeoError("Location unavailable (check your device's location service). Enter your city manually.");
+        } else if (err.code === err.TIMEOUT) {
+          setGeoError("Location request timed out. Enter your city manually.");
         } else {
           setGeoError("Could not obtain location. Enter your city manually.");
         }
       },
       {
-        enableHighAccuracy: true,
-        maximumAge: 10000,
-        timeout: 5000
+        // Precisión baja = usa ubicación por red (más rápida y fiable en desktop sin GPS).
+        enableHighAccuracy: false,
+        maximumAge: 60000,
+        timeout: 15000
       }
     );
 

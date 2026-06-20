@@ -1,5 +1,6 @@
 import { useRef, useState, useEffect } from "react";
 import { Button, Box, Typography, FormLabel, SxProps, Theme } from "@mui/material";
+import { BRAND } from "../theme/colors";
 import GpsFixedIcon from '@mui/icons-material/GpsFixed';
 import { styled } from "@mui/material/styles";
 import type { LocationEntry } from '../types/getaway';
@@ -23,7 +24,7 @@ const StyledAutocomplete = styled('input', {
   display: 'block',
   border: `1px solid ${$isError ? theme.palette.error.main : 'rgba(0, 0, 0, 0.23)'}`,
   borderRadius: '4px',
-  backgroundColor: $transparent ? 'transparent' : '#fff',
+  backgroundColor: $transparent ? 'transparent' : BRAND.white,
   height: typeof $height === 'number' ? `${$height}px` : $height,
   outline: 'none',
   color: $textColor,
@@ -40,15 +41,15 @@ const LocationButton = styled(Button, {
   ({ theme, $hasLabel, $height }) => ({
     marginTop: $hasLabel ? '28px' : '0px',
     height: typeof $height === 'number' ? `${$height}px` : $height,
-    backgroundColor: '#00E392',
-    color: '#1A2660',
+    backgroundColor: BRAND.green,
+    color: BRAND.navy,
     fontWeight: 'bold',
     borderRadius: '30px',
     textTransform: 'none',
     whiteSpace: 'nowrap',
     boxShadow: 'none',
     '&:hover': {
-      backgroundColor: '#3C1C91',
+      backgroundColor: BRAND.primary,
       color: 'white',
     },
     [theme.breakpoints.down('sm')]: {
@@ -85,7 +86,7 @@ export function AddressAutocomplete({
   height = '56px',
   transparentBackground = false,
   labelColor,
-  inputTextColor = '#000',
+  inputTextColor = BRAND.black,
 }: AddressAutocompleteProps) {
   const [isLoadingGeo, setIsLoadingGeo] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);

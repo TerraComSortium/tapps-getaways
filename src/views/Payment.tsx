@@ -15,6 +15,8 @@ import '../App.css';
 
 import { processPayment } from '../services/payment/payment';
 import { listSavedCards, type SavedCard } from '../services/payment/paymentMethods';
+import { ROUTES } from '../constants/routes';
+import { BRAND } from '../theme/colors';
 
 const NEW_CARD = 'new';
 
@@ -171,7 +173,7 @@ function CheckoutForm({ orderId, amount, user }: { orderId: string; amount: numb
 
       // 4. Éxito → navegar a /paid con el paymentResult que espera la vista Paid
       localStorage.removeItem('selectedData');
-      navigate('/paid', {
+      navigate(ROUTES.PAID, {
         state: {
           paymentResult: {
             success: payRes?.success ?? true,
@@ -208,8 +210,8 @@ function CheckoutForm({ orderId, amount, user }: { orderId: string; amount: numb
           height: 214,
           maxWidth: '90vw',
           borderRadius: '16px',
-          color: '#fff',
-          background: 'linear-gradient(135deg, #3C1C91 0%, #371984 60%, #5B2BD6 100%)',
+          color: BRAND.white,
+          background: `linear-gradient(135deg, ${BRAND.primary} 0%, ${BRAND.purpleBg} 60%, ${BRAND.primaryLight} 100%)`,
           boxShadow: '0 10px 25px rgba(0,0,0,0.35)',
           position: 'relative',
           overflow: 'hidden',
@@ -260,7 +262,7 @@ function CheckoutForm({ orderId, amount, user }: { orderId: string; amount: numb
 
       {/* Selector de método de pago: tarjetas guardadas + tarjeta nueva */}
       <Box sx={{ width: 340, maxWidth: '90vw', mb: 1 }}>
-        <Typography variant="caption" sx={{ color: '#fff', display: 'block', mb: 0.5, fontWeight: 'bold' }}>
+        <Typography variant="caption" sx={{ color: BRAND.white, display: 'block', mb: 0.5, fontWeight: 'bold' }}>
           Payment method
         </Typography>
         <RadioGroup
@@ -271,9 +273,9 @@ function CheckoutForm({ orderId, amount, user }: { orderId: string; amount: numb
             <FormControlLabel
               key={c.id}
               value={c.id}
-              control={<Radio size="small" sx={{ color: '#fff', '&.Mui-checked': { color: '#00E392' } }} />}
+              control={<Radio size="small" sx={{ color: BRAND.white, '&.Mui-checked': { color: BRAND.green } }} />}
               label={
-                <Typography variant="body2" sx={{ color: '#fff' }}>
+                <Typography variant="body2" sx={{ color: BRAND.white }}>
                   {(c.brand || 'card').toUpperCase()} •••• {c.last4} — {String(c.expMonth).padStart(2, '0')}/{c.expYear}
                 </Typography>
               }
@@ -281,15 +283,15 @@ function CheckoutForm({ orderId, amount, user }: { orderId: string; amount: numb
           ))}
           <FormControlLabel
             value={NEW_CARD}
-            control={<Radio size="small" sx={{ color: '#fff', '&.Mui-checked': { color: '#00E392' } }} />}
-            label={<Typography variant="body2" sx={{ color: '#fff' }}>Use a new card</Typography>}
+            control={<Radio size="small" sx={{ color: BRAND.white, '&.Mui-checked': { color: BRAND.green } }} />}
+            label={<Typography variant="body2" sx={{ color: BRAND.white }}>Use a new card</Typography>}
           />
         </RadioGroup>
 
         {/* Campo real de tarjeta (solo si se eligió tarjeta nueva) */}
         {usingNewCard && (
           <>
-            <Box sx={{ bgcolor: '#fff', borderRadius: '8px', p: 1.5, mt: 0.5 }}>
+            <Box sx={{ bgcolor: BRAND.white, borderRadius: '8px', p: 1.5, mt: 0.5 }}>
               <CardElement options={CARD_ELEMENT_OPTIONS} />
             </Box>
             <FormControlLabel
@@ -299,11 +301,11 @@ function CheckoutForm({ orderId, amount, user }: { orderId: string; amount: numb
                   size="small"
                   checked={saveCard}
                   onChange={(e) => setSaveCard(e.target.checked)}
-                  sx={{ color: '#fff', '&.Mui-checked': { color: '#00E392' } }}
+                  sx={{ color: BRAND.white, '&.Mui-checked': { color: BRAND.green } }}
                 />
               }
               label={
-                <Typography variant="caption" sx={{ color: '#fff' }}>
+                <Typography variant="caption" sx={{ color: BRAND.white }}>
                   Guardar esta tarjeta para futuros pagos
                 </Typography>
               }
@@ -324,22 +326,22 @@ function CheckoutForm({ orderId, amount, user }: { orderId: string; amount: numb
           sx={{
             minWidth: 130,
             borderRadius: '8px',
-            bgcolor: '#FFF', color: '#3C1C91',
+            bgcolor: BRAND.white, color: BRAND.primary,
             fontWeight: 'medium', textTransform: 'none',
-            ':hover': { bgcolor: '#3C1C91', color: 'white' },
+            ':hover': { bgcolor: BRAND.primary, color: BRAND.white },
           }}
         >Retry</Button>
         <Button
           onClick={handleConfirm}
-          startIcon={processing ? <CircularProgress size={18} sx={{ color: '#fff' }} /> : <CreditCardIcon />}
+          startIcon={processing ? <CircularProgress size={18} sx={{ color: BRAND.white }} /> : <CreditCardIcon />}
           variant="contained"
           disabled={!stripe || processing}
           sx={{
             minWidth: 160,
-            bgcolor: '#3C1C91', color: '#FFF',
+            bgcolor: BRAND.primary, color: BRAND.white,
             fontWeight: 'bold', textTransform: 'none',
             borderRadius: '8px', borderColor: 'primary.main', border: 1,
-            ':hover': { bgcolor: 'white', color: '#3C1C91' },
+            ':hover': { bgcolor: BRAND.white, color: BRAND.primary },
           }}
         >{processing ? 'Processing…' : 'Confirm payment'}</Button>
       </Box>
@@ -368,7 +370,7 @@ function Payment() {
 
   useEffect(() => {
     if (!paymentDetails?.Total) {
-      navigate('/getaways', { replace: true });
+      navigate(ROUTES.GETAWAYS, { replace: true });
     }
   }, [paymentDetails, navigate]);
 
@@ -388,17 +390,17 @@ function Payment() {
             pt: 5,
             padding: '16px',
             alignItems: 'center', justifyContent: 'center',
-            bgcolor: '#371984', borderRadius: '8px',
+            bgcolor: BRAND.purpleBg, borderRadius: '8px',
           }}
         >
           <Typography
             component="h3"
-            variant="body1" sx={{ mt: 4, color: '#fff', fontWeight: 'semibold', textAlign: 'center' }}>
+            variant="body1" sx={{ mt: 4, color: BRAND.white, fontWeight: 'semibold', textAlign: 'center' }}>
             Order summary
           </Typography>
           <Box sx={{ px: { xs: 2, sm: 4 }, pb: 3 }}>
             {/* Encabezado del getaway */}
-            <Box sx={{ color: '#fff', mb: 2 }}>
+            <Box sx={{ color: BRAND.white, mb: 2 }}>
               <Typography variant="h6" sx={{ fontWeight: 'bold' }}>{getawayTitle}</Typography>
               <Typography variant="body2" sx={{ opacity: 0.85 }}>📍 {getawayAddress}</Typography>
               <Typography variant="body2" sx={{ opacity: 0.85 }}>🗓️ {getawayDates}</Typography>
@@ -410,11 +412,11 @@ function Payment() {
                 bgcolor: 'rgba(255,255,255,0.08)',
                 borderRadius: '10px',
                 p: 2,
-                color: '#fff',
+                color: BRAND.white,
               }}
             >
               <Box sx={{ mb: 1.5 }}>
-                <Typography variant="caption" sx={{ color: '#00E392', fontWeight: 'bold', letterSpacing: 0.5 }}>
+                <Typography variant="caption" sx={{ color: BRAND.green, fontWeight: 'bold', letterSpacing: 0.5 }}>
                   LODGING
                 </Typography>
                 <Typography variant="body2">
@@ -423,7 +425,7 @@ function Payment() {
               </Box>
 
               <Box sx={{ mb: 1.5 }}>
-                <Typography variant="caption" sx={{ color: '#00E392', fontWeight: 'bold', letterSpacing: 0.5 }}>
+                <Typography variant="caption" sx={{ color: BRAND.green, fontWeight: 'bold', letterSpacing: 0.5 }}>
                   ADD-ONS
                 </Typography>
                 {optionalAddOns.length > 0 ? (
@@ -454,16 +456,16 @@ function Payment() {
                   }}
                 >
                   <Typography sx={{ fontWeight: 'bold' }}>Total</Typography>
-                  <Typography sx={{ fontWeight: 'bold', color: '#00E392', fontSize: '1.15rem' }}>
+                  <Typography sx={{ fontWeight: 'bold', color: BRAND.green, fontSize: '1.15rem' }}>
                     {paymentDetails.Total}
                   </Typography>
                 </Box>
               </Stack>
             </Box>
           </Box>
-          <Divider aria-hidden="true" sx={{ borderColor: 'white', borderStyle: 'dashed' }} />
-          <Stack sx={{ fontSize: 15, ml: 2, color: '#fff', p: 3, pb: 0 }}>
-            <Typography sx={{ color: '#fff', textDecoration: 'none' }}>
+          <Divider aria-hidden="true" sx={{ borderColor: BRAND.white, borderStyle: 'dashed' }} />
+          <Stack sx={{ fontSize: 15, ml: 2, color: BRAND.white, p: 3, pb: 0 }}>
+            <Typography sx={{ color: BRAND.white, textDecoration: 'none' }}>
               The payment will be submitted from your Racquets!™ account:
             </Typography>
           </Stack>

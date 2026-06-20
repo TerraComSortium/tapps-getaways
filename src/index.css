@@ -1,3 +1,32 @@
 :root {
   font-family: Montserrat, Inter, Avenir, Helvetica,  sans-serif;
+
+  /* === Colores de marca (FUENTE ÚNICA). No cambian entre claro/oscuro. === */
+  --brand-primary: #3C1C91;
+  --brand-primary-dark: #300E8E;
+  --brand-primary-light: #5B2BD6;
+  --brand-purple-bg: #371984;
+  --brand-green: #00E392;
+  --brand-green-dark: #00695C;
+  --brand-lime: #C9F305;
+  --brand-lime-alt: #B8FF00;
+  --brand-navy: #1A2660;
+  --brand-white: #ffffff;
+  --brand-black: #000000;
+
+  /* === Superficie y texto (SÍ cambian en modo oscuro) === */
+  --bg-default: #ffffff;
+  --bg-paper: #ffffff;
+  --surface-alt: #E1F5F4;       /* fondos suaves de sección (.blueBg) */
+  --text-primary: #1A2660;
+  --text-heading: #3C1C91;      /* títulos morados → legibles en ambos modos */
+}
+
+/* El ColorModeProvider pone data-theme="dark" en <html> y estas variables flipean. */
+:root[data-theme="dark"] {
+  --bg-default: #0E0A1F;
+  --bg-paper: #171229;
+  --surface-alt: #101A30;
+  --text-primary: #ffffff;
+  --text-heading: #C9B8F5;      /* lavanda claro, legible sobre fondo oscuro */
 }

@@ -18,6 +18,8 @@ import {
   getValidImages,
   isGetawayExpired,
 } from '../utils/getawayHelpers';
+import { ROUTES, bookingPath } from '../constants/routes';
+import { Role } from '../constants/roles';
 
 export default function Mygetaways() {
   // App.tsx already calls useWatchLocation — no second watcher needed here
@@ -132,12 +134,12 @@ export default function Mygetaways() {
   };
 
   const handleViewDetails = (getaway: Getaway) => {
-    navigate('/getawaydetail', { state: { getawayData: getaway } });
+    navigate(ROUTES.GETAWAY_DETAIL, { state: { getawayData: getaway } });
     //navigate(`/getawaydetail`, { state:{ getawayData: getaway} })
   };
   const handleBooking = (getaway: Getaway) => {
     // navigate('/bookgetaway', { state: { getawayData: getaway } });
-    navigate(`/booking/${getaway.id}`, { state: { getawayData: getaway } });
+    navigate(bookingPath(getaway._id), { state: { getawayData: getaway } });
   };
   //initial search with userLocation
   const handleChange = (_event: React.ChangeEvent<unknown>, value: number) => {
@@ -197,16 +199,13 @@ export default function Mygetaways() {
                 <GetawayItem
                   key={getaway._id || `fallback-key-${index}`}
                   name={getaway.title || "Untitled Offer"}
-                  getawayAddress={getaway.getawayAddress}
-                  // address={getaway.address || (getaway as any).getawayAddress?.address}
-                  // address={ getaway.getawayAddress}
                   dates={`${getaway.startDate} - ${getaway.endDate}`}
                   lodgingOptions={getaway.lodgingOptions || []}
                   sport={getSportLabel(getaway.sport)}
                   galleryPhotos={getValidImages(getaway.galleryPhotos)}
                   // isLoading={isLoading}
                   onViewDetails={() => handleViewDetails(getaway)}
-                  onBookNow={role === 'player' && !isGetawayExpired(getaway) ? () => handleBooking(getaway) : undefined}
+                  onBookNow={role === Role.PLAYER && !isGetawayExpired(getaway) ? () => handleBooking(getaway) : undefined}
                   // onEdit={role === 'admin' ? () => handleEdit(getaway.id) : undefined}
                   // onDelete={role === 'admin' ? () => (getaway._id, getaway.title) : undefined}
                 />

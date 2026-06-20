@@ -26,6 +26,8 @@ import prevPhoto from '../assets/backgrounds/hotel.jpg';
 
 import type { Getaway } from '../types/getaway';
 import { isGetawayExpired } from '../utils/getawayHelpers';
+import { ROUTES } from '../constants/routes';
+import { BRAND } from '../theme/colors';
 
 function GetawayDetail() {
   const navigate = useNavigate();
@@ -82,7 +84,7 @@ function GetawayDetail() {
   };
 
   const handleBookNow = () => {
-    navigate('/bookgetaway', { state: { getawayData: getaway } });
+    navigate(ROUTES.BOOK_GETAWAY, { state: { getawayData: getaway } });
   };
 
   //unavailable getaway error
@@ -92,10 +94,10 @@ function GetawayDetail() {
         <Typography variant="h4">Getaway not found</Typography>
         <Typography sx={{ mb: 2 }}>The offer data could not be loaded.</Typography>
         <Button size="medium" variant="contained" startIcon={<ArrowBackIcon />}
-          onClick={() => navigate('/getaways')}
+          onClick={() => navigate(ROUTES.GETAWAYS)}
           sx={{
             m: '1em 0', p: '8px 0.8em', width: '220px',
-            borderRadius:'8px', color:'#fff', bgcolor: '#3C1C91', textTransform: 'none',
+            borderRadius:'8px', color:BRAND.white, bgcolor: BRAND.primary, textTransform: 'none',
           }}
         > Search more getaways
         </Button>
@@ -107,11 +109,11 @@ function GetawayDetail() {
     <>
       <Container sx={{ display:"flex", flexDirection: 'column' }}>
         <Stack>
-          <Button href="/getaways"
+          <Button href={ROUTES.GETAWAYS}
             startIcon={<ArrowBackIcon />} variant="text" size="medium"
             sx={{
               m: '1em 0', p: '8px 0.8em', width: '220px',
-              borderRadius:'8px', color:'#000',  textTransform: 'none',
+              borderRadius:'8px', color:BRAND.black,  textTransform: 'none',
             }}
           > Search more getaways! </Button>
         </Stack>
@@ -156,7 +158,7 @@ function GetawayDetail() {
                       backgroundColor: 'black',
                       display: 'flex',
                       alignItems: 'center', justifyContent: 'center',
-                      color: 'white',
+                      color: BRAND.white,
                       cursor: 'pointer'
                     }} onMouseOver={() => change("video")} onMouseOut={revert}
                     onClick={() => openFullScreen(index + 1)}
@@ -224,9 +226,9 @@ function GetawayDetail() {
                 startIcon={<ShoppingCartIcon />} variant="contained"
                 sx={{
                   mt: 1, mb: 3, width: '15vw', borderRadius:'8px',
-                  bgcolor: '#3C1C91', color: '#FFF', fontWeight: 'bold', textTransform: 'none',
+                  bgcolor: BRAND.primary, color: BRAND.white, fontWeight: 'bold', textTransform: 'none',
                   ':hover': {
-                    bgcolor: 'white', color: '#3C1C91',
+                    bgcolor: BRAND.white, color: BRAND.primary,
                   }
                 }}
               > Book now </Button>
@@ -234,23 +236,23 @@ function GetawayDetail() {
           </Stack>
         </Stack>
 
-        <Modal sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor:'#371984' }}
+        <Modal sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor:BRAND.purpleBg }}
           open={isFullScreen} onClose={closeFullScreen}
         >
-          <Box sx={{ position: 'relative', width: '90%', height: '90%', color: '#fff' }}>
+          <Box sx={{ position: 'relative', width: '90%', height: '90%', color: BRAND.white }}>
             <IconButton
-              sx={{ position: 'absolute', top: 10, right: 10, color: 'white' }}
+              sx={{ position: 'absolute', top: 10, right: 10, color: BRAND.white }}
               onClick={closeFullScreen}
             > <CloseIcon />
             </IconButton>
 
             <IconButton onClick={handlePrev}
-              sx={{ position: 'absolute', top: '50%', left: 10, color: 'white', transform: 'translateY(-50%)' }}
+              sx={{ position: 'absolute', top: '50%', left: 10, color: BRAND.white, transform: 'translateY(-50%)' }}
             > <ArrowBackIosIcon />
             </IconButton>
 
             <IconButton
-              sx={{ position: 'absolute', top: '50%', right: 10, color: 'white', transform: 'translateY(-50%)' }}
+              sx={{ position: 'absolute', top: '50%', right: 10, color: BRAND.white, transform: 'translateY(-50%)' }}
               onClick={handleNext}
             > <ArrowForwardIosIcon />
             </IconButton>
@@ -270,7 +272,7 @@ function GetawayDetail() {
                 alignItems: 'flex-start', alignContent: 'flex-start',
                 flexWrap : 'wrap',
                 justifyContent: 'space-around',
-                color: '#fff'
+                color: BRAND.white
               }}
             >
               <Stack sx={{ fontSize: 15, width: '60vw' }}>
@@ -282,8 +284,8 @@ function GetawayDetail() {
                   sx={{
                     mt: 1, mb: 3, borderRadius:'8px',
                     minWidth: '12vw', maxWidth: '13vw',
-                    bgcolor: '#3C1C91', color: '#FFF', fontWeight: 'bold', textTransform: 'none',
-                    ':hover': { bgcolor: 'white', color: '#3C1C91'},
+                    bgcolor: BRAND.primary, color: BRAND.white, fontWeight: 'bold', textTransform: 'none',
+                    ':hover': { bgcolor: BRAND.white, color: BRAND.primary},
                     borderColor: 'primary.main', border: 1
                   }}
                 > Book now </Button>
@@ -295,13 +297,13 @@ function GetawayDetail() {
       <Container sx={{ display:"flex", flexDirection: 'column', mt: 3, mb: 3 }} >
         <Stack>
           <h4 className='title4'>Description</h4>
-          <Divider aria-hidden="true" sx={{bgcolor:'#3C1C91'}} />
+          <Divider aria-hidden="true" sx={{bgcolor:BRAND.primary}} />
           <p>
             {getaway.mainDescription || 'No description provided' }
           </p>
 
           <h4 className='title4'>Weekend Schedule</h4>
-          <Divider aria-hidden="true" sx={{bgcolor:'#3C1C91'}} />
+          <Divider aria-hidden="true" sx={{bgcolor:BRAND.primary}} />
           <Stack sx={{ flexWrap: 'wrap' }}>
             <table>
               <col />
@@ -367,8 +369,8 @@ function GetawayDetail() {
               sx={{
                 mt: 1, mb: 2, borderRadius:'8px',
                 width: '12vw',
-                bgcolor: '#3C1C91', color: '#FFF', fontWeight: 'bold', textTransform: 'none',
-                ':hover': { bgcolor: 'white', color: '#3C1C91'}
+                bgcolor: BRAND.primary, color: BRAND.white, fontWeight: 'bold', textTransform: 'none',
+                ':hover': { bgcolor: BRAND.white, color: BRAND.primary}
               }}
             > Send mail
             </Button>
@@ -378,8 +380,8 @@ function GetawayDetail() {
               sx={{
                 mt: 1, mb: 2, borderRadius:'8px',
                 width: '12vw',
-                bgcolor: '#3C1C91', color: '#FFF', fontWeight: 'bold', textTransform: 'none',
-                ':hover': { bgcolor: 'white', color: '#3C1C91' }
+                bgcolor: BRAND.primary, color: BRAND.white, fontWeight: 'bold', textTransform: 'none',
+                ':hover': { bgcolor: BRAND.white, color: BRAND.primary }
               }}
             > WhatsApp </Button>
             <Button startIcon={<HelpCenterIcon />}
@@ -388,8 +390,8 @@ function GetawayDetail() {
               sx={{
                 mt: 1, mb: 4, borderRadius:'8px',
                 width: '12vw',
-                bgcolor: '#3C1C91', color: '#FFF', fontWeight: 'bold', textTransform: 'none',
-                ':hover': { bgcolor: 'white', color: '#3C1C91' }
+                bgcolor: BRAND.primary, color: BRAND.white, fontWeight: 'bold', textTransform: 'none',
+                ':hover': { bgcolor: BRAND.white, color: BRAND.primary }
               }}
             > FAQs </Button>
           </Stack>

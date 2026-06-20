@@ -1,5 +1,7 @@
 import * as React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { ROUTES } from '../constants/routes';
+import { BRAND } from '../theme/colors';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { Box, Container, Typography, TextField, Button } from '@mui/material';
 import Grid from '@mui/material/Grid2';
@@ -44,7 +46,7 @@ const Login: React.FC = () => {
 
   const onSubmit = async(data: LoginInput) => {
     await login(data)
-    navigate('/getaways');
+    navigate(ROUTES.GETAWAYS);
   };
 
   return (
@@ -63,7 +65,7 @@ const Login: React.FC = () => {
             boxShadow: '0 8px 32px rgba(0,0,0,0.45)',
           }}
         >
-          <Typography component="h1" variant="h5" sx={{ color:'#C9F305', fontWeight:'bold' }}> Log in </Typography>
+          <Typography component="h1" variant="h5" sx={{ color:BRAND.lime, fontWeight:'bold' }}> Log in </Typography>
           <Box component="form" onSubmit={handleSubmit(onSubmit)} noValidate sx={{ m: 1, width: '100%' }}>
             <Controller name="email" defaultValue=""
               control={control}
@@ -78,8 +80,8 @@ const Login: React.FC = () => {
                   helperText={errors.email ? errors.email.message : ''}
                   InputLabelProps={{ shrink: true }}
                   sx={{
-                    '& .MuiInputLabel-root': { color: '#C9F305' },
-                    '& .MuiInputLabel-root.Mui-focused': { color: '#C9F305' },
+                    '& .MuiInputLabel-root': { color: BRAND.lime },
+                    '& .MuiInputLabel-root.Mui-focused': { color: BRAND.lime },
                     '& .MuiInputLabel-root.MuiInputLabel-shrink': {
                       backgroundColor: 'rgba(20, 8, 60, 0.85)',
                       px: '4px',
@@ -87,14 +89,14 @@ const Login: React.FC = () => {
                     },
                     '& .MuiFormHelperText-root': { color: '#ffb3b3' },
                     '& .MuiOutlinedInput-root': { backgroundColor: 'rgba(255,255,255,0.08)' },
-                    '& .MuiInputBase-input': { color: '#fff' },
+                    '& .MuiInputBase-input': { color: BRAND.white },
                     '& .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(201,243,5,0.5)' },
-                    '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#C9F305' },
-                    '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#C9F305' },
+                    '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: BRAND.lime },
+                    '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: BRAND.lime },
                     '& input:-webkit-autofill, & input:-webkit-autofill:hover, & input:-webkit-autofill:focus': {
                       WebkitBoxShadow: '0 0 0 1000px rgba(20, 8, 60, 0.95) inset',
-                      WebkitTextFillColor: '#fff',
-                      caretColor: '#fff',
+                      WebkitTextFillColor: BRAND.white,
+                      caretColor: BRAND.white,
                     },
                   }}
                 />
@@ -113,8 +115,8 @@ const Login: React.FC = () => {
                   helperText={errors.password ? errors.password.message : ''}
                   InputLabelProps={{ shrink: true }}
                   sx={{
-                    '& .MuiInputLabel-root': { color: '#C9F305' },
-                    '& .MuiInputLabel-root.Mui-focused': { color: '#C9F305' },
+                    '& .MuiInputLabel-root': { color: BRAND.lime },
+                    '& .MuiInputLabel-root.Mui-focused': { color: BRAND.lime },
                     '& .MuiInputLabel-root.MuiInputLabel-shrink': {
                       backgroundColor: 'rgba(20, 8, 60, 0.85)',
                       px: '4px',
@@ -122,14 +124,14 @@ const Login: React.FC = () => {
                     },
                     '& .MuiFormHelperText-root': { color: '#ffb3b3' },
                     '& .MuiOutlinedInput-root': { backgroundColor: 'rgba(255,255,255,0.08)' },
-                    '& .MuiInputBase-input': { color: '#fff' },
+                    '& .MuiInputBase-input': { color: BRAND.white },
                     '& .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(201,243,5,0.5)' },
-                    '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#C9F305' },
-                    '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#C9F305' },
+                    '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: BRAND.lime },
+                    '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: BRAND.lime },
                     '& input:-webkit-autofill, & input:-webkit-autofill:hover, & input:-webkit-autofill:focus': {
                       WebkitBoxShadow: '0 0 0 1000px rgba(20, 8, 60, 0.95) inset',
-                      WebkitTextFillColor: '#fff',
-                      caretColor: '#fff',
+                      WebkitTextFillColor: BRAND.white,
+                      caretColor: BRAND.white,
                     },
                   }}
                 />
@@ -139,15 +141,15 @@ const Login: React.FC = () => {
               className="greenBtn"
               sx={{
                 mt: 3, mb: 2, borderRadius: '8px', padding: '5px 15px',
-                bgcolor: '#3C1C91', color: '#FFF', fontWeight: 'bold',
+                bgcolor: BRAND.primary, color: BRAND.white, fontWeight: 'bold',
                 textTransform: 'none',
-                ':hover': { bgcolor: 'white', color: '#3C1C91' }
+                ':hover': { bgcolor: BRAND.white, color: BRAND.primary }
                }}
             > Log In </Button>
             <Grid container sx={{ marginTop: 2, display: 'flex', flexDirection: 'column', alignItems: 'center'}} >
               <Grid>
                 <Typography
-                  sx={{ color: '#fff', textDecoration: 'none' }}>
+                  sx={{ color: BRAND.white, textDecoration: 'none' }}>
                   Don't have a Racquets! AppSuite™ account?
                 </Typography>
               </Grid>
@@ -161,9 +163,9 @@ const Login: React.FC = () => {
                     href="https://play.google.com/store/apps/details?id=com.terracomsortium.tapps&hl=es_CO"
                     sx={{
                       borderRadius: '8px', padding: '5px 15px',
-                      bgcolor: '#3C1C91', color: '#FFF', fontWeight: 'bold',
+                      bgcolor: BRAND.primary, color: BRAND.white, fontWeight: 'bold',
                       textTransform: 'none',
-                      ':hover': { bgcolor: 'white', color: '#3C1C91' }
+                      ':hover': { bgcolor: BRAND.white, color: BRAND.primary }
                      }}
                   > Google store </Button>
                 </Grid>
@@ -172,9 +174,9 @@ const Login: React.FC = () => {
                     href="https://apps.apple.com/co/app/racquetsappsuite/id1592585843"
                     sx={{
                       borderRadius: '8px', padding: '5px 15px',
-                      bgcolor: '#3C1C91', color: '#FFF', fontWeight: 'bold',
+                      bgcolor: BRAND.primary, color: BRAND.white, fontWeight: 'bold',
                       textTransform: 'none',
-                      ':hover': { bgcolor: 'white', color: '#3C1C91' }
+                      ':hover': { bgcolor: BRAND.white, color: BRAND.primary }
                     }}
                   > Apple Store </Button>
                 </Grid>

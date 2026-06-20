@@ -10,7 +10,7 @@ export const useAuthRole = () => {
       if(user){
         try{
           const tokenResult = await user.getIdTokenResult();
-          setRole(tokenResult.claims.role || 'user');
+          setRole((tokenResult.claims.role as string) || 'user');
         } catch(error){
           console.error("Error getting claims:", error);
           setRole('user');

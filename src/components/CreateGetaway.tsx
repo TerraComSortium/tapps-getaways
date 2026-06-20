@@ -1,5 +1,7 @@
 import * as React from 'react';
 import { useForm, Controller, useFieldArray, SubmitHandler } from 'react-hook-form';
+import { ROUTES } from '../constants/routes';
+import { BRAND } from '../theme/colors';
 import { Box, TextField, Button, Divider, Typography, Card, Snackbar, Alert, MenuItem } from '@mui/material';
 // import MenuItem from '@mui/material/MenuItem';
 import Grid from '@mui/material/Grid2';
@@ -273,21 +275,21 @@ export default function CreateGetaway() {
             <Card
               sx={{
                 borderRadius: '0 24px', m: '20px 0', p: '20px 25px',
-                bgcolor: '#3C1C91', color: '#FFF', fontWeight: 'medium', textTransform: 'none',
-                ':hover': { bgcolor: '#300e8eff' }
+                bgcolor: BRAND.primary, color: BRAND.white, fontWeight: 'medium', textTransform: 'none',
+                ':hover': { bgcolor: BRAND.primaryDark }
               }}>
               <h3 className='titleLeft'>Want your Getaways to stand out?</h3>
               <p>We offer professional photography and video services to enhance the beauty of your facilities and capture the essence of your club.
               Make your Getaways irresistible!</p>
               <Button startIcon={<LightbulbIcon />} href="https://racquetsappsuite.com/" target="_blank" disableElevation
                 sx={{
-                  mb: 1, padding: '5px 15px', borderRadius: '8px', bgcolor: '#FFF', color: '#3C1C91', fontWeight: 'medium', textTransform: 'none',
-                  ':hover': { bgcolor: '#3C1C91', color: 'white'}
+                  mb: 1, padding: '5px 15px', borderRadius: '8px', bgcolor: BRAND.white, color: BRAND.primary, fontWeight: 'medium', textTransform: 'none',
+                  ':hover': { bgcolor: BRAND.primary, color: 'white'}
                 }}
               > Learn more </Button>
             </Card>
 
-            <Typography variant="h6" color="#3C1C91" sx={{ m: '1 0', fontWeight:"bold"  }}> Getaway details </Typography>
+            <Typography variant="h6" color={BRAND.primary} sx={{ m: '1 0', fontWeight:"bold"  }}> Getaway details </Typography>
             <Divider aria-hidden="true"/>
 
             <Controller name="mainDescription" defaultValue="" control={control}
@@ -307,7 +309,7 @@ export default function CreateGetaway() {
               )}
             />
 
-            <Typography variant="h6" color="#3C1C91" sx={{ m: '1 0', fontSize: '14px', fontWeight:"bold"  }}> Lodging options(Single or double occupancy)</Typography>
+            <Typography variant="h6" color={BRAND.primary} sx={{ m: '1 0', fontSize: '14px', fontWeight:"bold"  }}> Lodging options(Single or double occupancy)</Typography>
             <Divider aria-hidden="true"/>
             {lodgingFields.map((field, index) => (
               <Box key={field.id} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'start', flexWrap: 'wrap', gap: 1 }}>
@@ -364,8 +366,8 @@ export default function CreateGetaway() {
 
                 <Button startIcon={<DeleteIcon />} variant="outlined" disableElevation size="medium" aria-label="delete"
                   sx={{
-                    p:'5px 16px', m:'0 2px',  borderRadius: "10px", textTransform: "none", bgcolor: '#3C1C91', color: '#fff', fontWeight: 'bold',
-                    ':hover': { color: '#3C1C91', bgcolor: '#fff'  }
+                    p:'5px 16px', m:'0 2px',  borderRadius: "10px", textTransform: "none", bgcolor: BRAND.primary, color: BRAND.white, fontWeight: 'bold',
+                    ':hover': { color: BRAND.primary, bgcolor: BRAND.white  }
                   }}
                   onClick={() => removeLodging(index)}
                   // disabled={activeForms.length === 1}
@@ -376,13 +378,13 @@ export default function CreateGetaway() {
               startIcon={<AddIcon />} variant="contained"
               onClick={() => appendLodging({ name: "", price: 0})}
               sx={{
-                mt: 0, mb: 3, bgcolor: '#00E392', color: '#1A2660', fontWeight: 'bold', borderRadius: '30px', textTransform: 'none',
-                ':hover': { bgcolor: '#3C1C91', color: 'white' }
+                mt: 0, mb: 3, bgcolor: BRAND.green, color: BRAND.navy, fontWeight: 'bold', borderRadius: '30px', textTransform: 'none',
+                ':hover': { bgcolor: BRAND.primary, color: 'white' }
               }}
               disableElevation
             > Add item </Button>
 
-            <Typography variant="h6" color="#3C1C91" sx={{ m: '1 0', fontSize: '14px', fontWeight:"bold"  }}> Optional Add Ons [name, price] </Typography>
+            <Typography variant="h6" color={BRAND.primary} sx={{ m: '1 0', fontSize: '14px', fontWeight:"bold"  }}> Optional Add Ons [name, price] </Typography>
             <Divider aria-hidden="true" />
 
             {addOnFields.map((field, index) => (
@@ -439,8 +441,8 @@ export default function CreateGetaway() {
                 <Button startIcon={<DeleteIcon />} variant="outlined" disableElevation size="medium" aria-label="delete"
                   sx={{
                     p:'5px 16px', m:'0 2px', borderRadius: "10px",
-                    textTransform: "none", bgcolor: '#3C1C91', color: '#fff', fontWeight: 'bold',
-                    ':hover': { color: '#3C1C91', bgcolor: '#fff'  }
+                    textTransform: "none", bgcolor: BRAND.primary, color: BRAND.white, fontWeight: 'bold',
+                    ':hover': { color: BRAND.primary, bgcolor: BRAND.white  }
                   }}
                   onClick={() => removeAddOn(index)}
                   // disabled={activeForms.length === 1}
@@ -451,12 +453,12 @@ export default function CreateGetaway() {
             <Button startIcon={<AddIcon />} variant="contained" disableElevation
               onClick={() => appendAddOn({ name: "", price: 0 })}
               sx={{
-                mt: 0, mb: 2, bgcolor: '#00E392', color: '#1A2660', fontWeight: 'bold', borderRadius: '30px', textTransform: 'none',
-                ':hover': { bgcolor: '#3C1C91', color: 'white' }
+                mt: 0, mb: 2, bgcolor: BRAND.green, color: BRAND.navy, fontWeight: 'bold', borderRadius: '30px', textTransform: 'none',
+                ':hover': { bgcolor: BRAND.primary, color: 'white' }
               }}
             > Add item </Button>
 
-            <Typography variant="h6" color="#3C1C91" sx={{ m: '1 0', fontSize: '14px', fontWeight:"bold"  }}> Services & amenities included </Typography>
+            <Typography variant="h6" color={BRAND.primary} sx={{ m: '1 0', fontSize: '14px', fontWeight:"bold"  }}> Services & amenities included </Typography>
             <Divider aria-hidden="true" sx={{ pt:0, mt: 0 }} />
             {amenityFields.map((field, index) => (
               <Box key={field.id} sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
@@ -478,8 +480,8 @@ export default function CreateGetaway() {
                 <Button startIcon={<DeleteIcon />} variant="outlined" disableElevation size="medium"
                   sx={{
                     p:'5px 16px', m:'0 3px', borderRadius: "10px", textTransform: "none",
-                    bgcolor: '#3C1C91', color: '#fff', fontWeight: 'bold',
-                    ':hover': { color: '#3C1C91', bgcolor: '#fff'  }
+                    bgcolor: BRAND.primary, color: BRAND.white, fontWeight: 'bold',
+                    ':hover': { color: BRAND.primary, bgcolor: BRAND.white  }
                   }}
                   onClick={() => removeAmenity(index)} aria-label="delete"
                 > Remove </Button>
@@ -488,8 +490,8 @@ export default function CreateGetaway() {
             <Button startIcon={<AddIcon />} variant="contained" aria-label="Add amenity" disableElevation
               onClick={() => appendAmenity({ name: "" })}
               sx={{
-                mb: 3, bgcolor: '#00E392', color: '#1A2660', borderRadius: '30px', fontWeight: 'bold', textTransform: 'none',
-                ':hover': { bgcolor: '#3C1C91', color: 'white' }
+                mb: 3, bgcolor: BRAND.green, color: BRAND.navy, borderRadius: '30px', fontWeight: 'bold', textTransform: 'none',
+                ':hover': { bgcolor: BRAND.primary, color: 'white' }
               }}
             > Add item </Button>
 
@@ -503,11 +505,11 @@ export default function CreateGetaway() {
             <Box
               sx={{
                 borderRadius: '0 24px', m: '25px 0', p: '30px 25px',
-                bgcolor: '#3C1C91', color:'white', fontWeight: 'medium', textTransform: 'none',
-                ':hover': { bgcolor: '#300e8eff' }
+                bgcolor: BRAND.primary, color:'white', fontWeight: 'medium', textTransform: 'none',
+                ':hover': { bgcolor: BRAND.primaryDark }
               }}
             >
-              <Typography variant="h3" color="#fff" sx={{ m: '1 0', fontSize: '16px', fontWeight:"medium"  }}> Discount management </Typography>
+              <Typography variant="h3" color={BRAND.white} sx={{ m: '1 0', fontSize: '16px', fontWeight:"medium"  }}> Discount management </Typography>
               {discountFields.map((field, index) => (
                 <DiscountForm
                   key={field.id}
@@ -528,8 +530,8 @@ export default function CreateGetaway() {
                   isActive: true
                 })}
                 sx={{
-                  mt: 2, mb: 3, bgcolor: '#fff', color: '#1A2660', borderRadius: '30px', fontWeight: 'bold', textTransform: 'none',
-                  ':hover': { bgcolor: '#3C1C91', color: 'white' }
+                  mt: 2, mb: 3, bgcolor: BRAND.white, color: BRAND.navy, borderRadius: '30px', fontWeight: 'bold', textTransform: 'none',
+                  ':hover': { bgcolor: BRAND.primary, color: 'white' }
                 }}
               > Add item </Button>
             </Box>
@@ -561,11 +563,11 @@ export default function CreateGetaway() {
             />
 
             <Box style={{ display: 'flex', justifyContent: 'center', gap: 18, margin:'20px 0' }}>
-              <Button type="button" href="/getaways"
+              <Button type="button" href={ROUTES.GETAWAYS}
               startIcon={<ArrowBackIcon />} variant="outlined" disableElevation
                 sx={{
-                  width:'135px', borderRadius: '8px', bgcolor: '#FFF', color: '#3C1C91', fontWeight: 'medium', textTransform: 'none',
-                  ':hover': { bgcolor: '#3C1C91', color: 'white' }
+                  width:'135px', borderRadius: '8px', bgcolor: BRAND.white, color: BRAND.primary, fontWeight: 'medium', textTransform: 'none',
+                  ':hover': { bgcolor: BRAND.primary, color: 'white' }
                 }}
               > Retry </Button>
 
@@ -574,8 +576,8 @@ export default function CreateGetaway() {
                 // className={`className ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
                 sx={{
                   width:'150px',
-                  borderRadius: '8px', bgcolor: '#3C1C91', color: '#FFF', fontWeight: 'medium', textTransform: 'none',
-                  ':hover': { bgcolor: 'white', color: '#3C1C91' }
+                  borderRadius: '8px', bgcolor: BRAND.primary, color: BRAND.white, fontWeight: 'medium', textTransform: 'none',
+                  ':hover': { bgcolor: 'white', color: BRAND.primary }
                 }}
               > {isLoading ? 'Saving...' : 'Save changes '}
               </Button>

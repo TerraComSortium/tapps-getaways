@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import {
   Box, Button, Dialog, DialogTitle, DialogContent, IconButton, Typography, Divider
 } from '@mui/material';
+import { BRAND } from '../theme/colors';
 import Grid from '@mui/material/Grid2';
 import { styled } from '@mui/material/styles';
 import Table from '@mui/material/Table';
@@ -139,7 +140,7 @@ function Reservations() {
                         startIcon={<CreditCardIcon />}
                         sx={{
                           padding: '0px 18px',
-                          bgcolor: '#3C1C91', color: '#FFF', fontWeight: 'medium', textTransform: 'none',
+                          bgcolor: BRAND.primary, color: BRAND.white, fontWeight: 'medium', textTransform: 'none',
                         }}
                       >
                         Sale details

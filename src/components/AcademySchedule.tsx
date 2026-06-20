@@ -1,5 +1,6 @@
 import * as React from "react";
 import { styled } from "@mui/material/styles";
+import { BRAND } from "../theme/colors";
 import {
   Box, Divider, Paper, Stack, Button, Typography,
   Card, CardContent, CardActions
@@ -66,7 +67,7 @@ const StyledTableCell = styled(TableCell)(({ theme }) => ({
 }));
 
 const StyledTableRow = styled(TableRow)(({ theme }) => ({
-  backgroundColor: '#fff',
+  backgroundColor: theme.palette.background.paper,
   "&:last-child td, &:last-child th": {
     border: 0,
   },
@@ -159,7 +160,7 @@ export default function AcademyTable() {
             onClick={handleResetTable}
             // color="primary"
             sx={{ mt:2,
-              bgcolor: '#3C1C91',
+              bgcolor: BRAND.primary,
               textTransform: 'none',
               borderRadius: '20px',
               px: 4
@@ -174,7 +175,7 @@ export default function AcademyTable() {
             bgcolor: '#F8F9FA', border: '1px dashed #bdbdbd'
           }}>
           <CardContent>
-            <Typography variant="h6" component="div" gutterBottom sx={{ fontWeight: 'bold', color: '#3C1C91' }}> Enhance your Getaway </Typography>
+            <Typography variant="h6" component="div" gutterBottom sx={{ fontWeight: 'bold', color: BRAND.primary }}> Enhance your Getaway </Typography>
             <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
               Do you want to see available <strong>Racquets Academy&trade;</strong> sessions for these dates?
             </Typography>
@@ -182,7 +183,7 @@ export default function AcademyTable() {
           <CardActions sx={{ justifyContent: 'center' }}>
             <Button startIcon={<CheckCircleOutlineIcon />} variant="contained"  size="large"
               onClick={() => setShowTable(true)}
-              sx={{ px: 4, borderRadius: '20px', bgcolor: '#3C1C91', textTransform: 'none' }}
+              sx={{ px: 4, borderRadius: '20px', bgcolor: BRAND.primary, textTransform: 'none' }}
             > Show available sessions
             </Button>
           </CardActions>

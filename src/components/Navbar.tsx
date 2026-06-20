@@ -1,21 +1,30 @@
 import * as React from 'react';
+import { ROUTES } from '../constants/routes';
 import GetawaysLogo from './GetawaysLogo/GetawaysLogo.jpg';
 // import RcnetIcon from '../assets/RappsIcons/RCnet icon.png';
 import playerIcon from '../assets/RappsIcons/PlayersProfile.png';
 
 import {
   Link as RouterLink,
-  // useNavigate
+  useNavigate,
 } from 'react-router-dom';
 import {
   AppBar, Container, Box, Typography,
   Button, IconButton, Menu, MenuItem,
-  Toolbar, Tooltip
+  Toolbar, Tooltip, Chip
 } from '@mui/material';
 import '../App.css';
 // import Toolbar from '@mui/material/Toolbar';import Avatar from '@mui/material/Avatar';
 // import Tooltip from '@mui/material/Tooltip';
 import MenuIcon from '@mui/icons-material/Menu';
+// Toggle de tema deshabilitado temporalmente (se mantiene el modo claro por defecto)
+// import Brightness4Icon from '@mui/icons-material/Brightness4';
+// import Brightness7Icon from '@mui/icons-material/Brightness7';
+// import { useColorMode } from '../theme/ColorModeContext';
+import { BRAND } from '../theme/colors';
+import { useAuth } from '../contexts/AuthContext';
+import { signOut } from 'firebase/auth';
+import { auth } from '../lib/firebase';
 const pages = ['Login',
   // 'Sign up'
 ];
@@ -24,6 +33,11 @@ const settings = [
   'Logout'];
 
 function NavBar() {
+  // const { mode, toggleColorMode } = useColorMode(); // toggle de tema deshabilitado temporalmente
+  const { user, role } = useAuth();
+  const navigate = useNavigate();
+  // Con sesión iniciada no se muestra "Login" en la navegación.
+  const visiblePages = user ? pages.filter((p) => p !== 'Login') : pages;
   const [anchorElNav, setAnchorElNav] = React.useState<null | HTMLElement>(
     null
   );
@@ -46,14 +60,24 @@ function NavBar() {
     setAnchorElUser(null);
   };
 
+  const handleLogout = async () => {
+    handleCloseUserMenu();
+    try {
+      await signOut(auth);
+      navigate(ROUTES.LOGIN);
+    } catch (err) {
+      console.error('Error al cerrar sesión:', err);
+    }
+  };
+
   return (
     //CustomAppBar
-    <AppBar position="sticky" sx={{ backgroundColor: "#3C1C91" }}>
+    <AppBar position="sticky" sx={{ backgroundColor: BRAND.primary }}>
       <Container maxWidth="xl">
         <Toolbar disableGutters>
           {/* logo large */}
           <Typography
-            variant="h6" component="a" noWrap href="/"
+            variant="h6" component="a" noWrap href={ROUTES.LANDING}
             sx={{
               mr: 2, flexGrow: 8,
               display: { xs: 'none', md: 'flex' },
@@ -64,7 +88,7 @@ function NavBar() {
 
           {/* logo xs */}
           <Typography
-            variant="h5" component="a" noWrap  href="/"
+            variant="h5" component="a" noWrap  href={ROUTES.LANDING}
             sx={{
               mr: 2,
               flexGrow: 8,
@@ -108,7 +132,7 @@ function NavBar() {
                 },
               }}
             >
-              {pages.map((page) => (
+              {visiblePages.map((page) => (
                 <MenuItem key={page} onClick={handleCloseNavMenu}>
                   <Button to={`/${page}`}
                     component={RouterLink}
@@ -122,7 +146,7 @@ function NavBar() {
             </Menu>
           </Box>
           <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' } }}>
-            {pages.map((page) => (
+            {visiblePages.map((page) => (
               <Button
                 component={RouterLink}
                 onClick={handleCloseNavMenu}
@@ -135,6 +159,46 @@ function NavBar() {
             ))}
           </Box>
 
+          {/* Toggle de tema claro/oscuro deshabilitado temporalmente
+          <Tooltip title={mode === 'light' ? 'Dark mode' : 'Light mode'}>
+            <IconButton onClick={toggleColorMode} sx={{ color: BRAND.white, mr: 1 }}>
+              {mode === 'light' ? <Brightness4Icon /> : <Brightness7Icon />}
+            </IconButton>
+          </Tooltip>
+          */}
+
+          {user && (
+            <Box
+              sx={{
+                display: { xs: 'none', sm: 'flex' },
+                flexDirection: 'column',
+                alignItems: 'flex-end',
+                mr: 1.25,
+                lineHeight: 1.1,
+              }}
+            >
+              <Typography variant="body2" sx={{ color: BRAND.white, fontWeight: 'bold', lineHeight: 1.2 }}>
+                {user.displayName || user.email}
+              </Typography>
+              <Chip
+                label={role || 'user'}
+                size="small"
+                sx={{
+                  height: 18,
+                  mt: 0.25,
+                  bgcolor: BRAND.lime,
+                  color: BRAND.navy,
+                  fontWeight: 'bold',
+                  fontSize: '0.62rem',
+                  textTransform: 'capitalize',
+                  letterSpacing: 0.3,
+                  '& .MuiChip-label': { px: 0.75 },
+                }}
+              />
+            </Box>
+          )}
+
+          {user && (
           <Box sx={{ flexGrow: 0 }}>
             <Tooltip title="Open settings">
               <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
@@ -159,12 +223,16 @@ function NavBar() {
               onClose={handleCloseUserMenu}
             >
               {settings.map((setting) => (
-                <MenuItem key={setting} onClick={handleCloseUserMenu}>
+                <MenuItem
+                  key={setting}
+                  onClick={setting === 'Logout' ? handleLogout : handleCloseUserMenu}
+                >
                   <Typography textAlign="center">{setting}</Typography>
                 </MenuItem>
               ))}
             </Menu>
           </Box>
+          )}
         </Toolbar>
       </Container>
     </AppBar>
@@ -172,7 +240,7 @@ function NavBar() {
 }
 const routes = [];
 routes.push({
-    to: '/login',
+    to: ROUTES.LOGIN,
     id: 'login',
     text: 'Iniciar sesión',
     publicOnly: true,

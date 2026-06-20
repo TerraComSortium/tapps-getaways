@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { ROUTES } from '../constants/routes';
 import { useFormData } from '../contexts/FormDataContext';
 import { handleGetawaySubmit, handleCouponSubmit } from '../services/getaways/getawayCreate';
 import type { GetawayFormData, GetawayPayload, CouponPayload, ScheduleRow } from '../types/getaway';
@@ -8,7 +9,11 @@ import { mapScheduleRowsToApiFormat } from '../utils/dataMappers';
 
 interface UseCreateGetawayReturn {
   isLoading: boolean;
-  submitGetaway: (data: GetawayFormData, scheduleRows: ScheduleRow[]) => Promise<void>;
+  submitGetaway: (
+    data: GetawayFormData,
+    scheduleRows: ScheduleRow[],
+    cleanedAddOns: { name: string; price: number }[]
+  ) => Promise<void>;
 }
 
 interface SnackbarState {
@@ -61,7 +66,7 @@ export function useCreateGetaway(
 
         showSnackbar('Getaway created successfully!', 'success');
         setSubmissionData(result);
-        navigate('/data-view');
+        navigate(ROUTES.DATA_VIEW);
       } else {
         showSnackbar(
           'Connection error. Check your internet connection and try again.',

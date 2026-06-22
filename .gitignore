@@ -29,3 +29,4 @@ dist-ssr
 #others
 .npmrc
 .nvmrc
+package-lock.json

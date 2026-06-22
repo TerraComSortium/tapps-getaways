@@ -25,6 +25,7 @@ interface GetawayItemProps {
   lodgingOptions: { name: string, price: number }[];
   sport: string;
   galleryPhotos: string[];
+  bookedDate?: string;
   isLoading?: boolean;
   onViewDetails?: () => void;
   onBookNow?: () => void;
@@ -37,7 +38,7 @@ interface GetawayItemProps {
 
 export const GetawayItem = memo(
   ({
-    name, dates, lodgingOptions, sport, galleryPhotos, isLoading = false, onViewDetails, onBookNow, onOrderDetails, onViewBookings, onEdit, onDelete, isDeleting = false
+    name, dates, lodgingOptions, sport, galleryPhotos, bookedDate, isLoading = false, onViewDetails, onBookNow, onOrderDetails, onViewBookings, onEdit, onDelete, isDeleting = false
   }: GetawayItemProps ) =>
   {
     // const { role, isLoading } = useAuth();
@@ -105,6 +106,14 @@ export const GetawayItem = memo(
               <Typography variant="subtitle2" sx={{ color: 'text.secondary', fontWeight: 'normal'}}>
                 Dates: {dates}
               </Typography>
+
+              {bookedDate && (
+                <Chip
+                  label={`Booked: ${bookedDate}`}
+                  size="small"
+                  sx={{ width: 'fit-content', m: '3px 0', bgcolor: BRAND.green, color: BRAND.navy, fontWeight: 'bold' }}
+                />
+              )}
 
               <Box sx={{ display: 'flex', alignItems: 'flex-start', mb:1 }}>
                 <Box >

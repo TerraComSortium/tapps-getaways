@@ -8,7 +8,7 @@ import { GetawayItem } from '../components/GetawayItem';
 
 import { useAuth } from '../contexts/AuthContext';
 import { useSubscribedGetaways } from '../hooks/useSubscribedGetaways';
-import { normalizeGetawayData, getSportLabel, getValidImages } from '../utils/getawayHelpers';
+import { normalizeGetawayData, getSportLabel, getValidImages, formatGetawayDates, parseFirestoreDate } from '../utils/getawayHelpers';
 
 export default function MyOrders() {
   const navigate = useNavigate();
@@ -42,7 +42,7 @@ export default function MyOrders() {
     <>
       <Grid container rowSpacing={1} columnSpacing={{ xs: 1, sm: 2, md: 3 }}>
         <AdminSideBar />
-        <Grid size={{ xs: 12, sm: 9, md: 10 }} className="section blueBg">
+        <Grid size={{ xs: 12, sm: 10 }} className="section blueBg">
           <Box sx={{ mb: 3 }}>
             <Typography variant="h6" sx={{ mb: 1, fontWeight: 'bold' }}>My bookings</Typography>
             {displayError && <Alert severity="info" sx={{ mb: 2 }}>{displayError}</Alert>}
@@ -58,11 +58,13 @@ export default function MyOrders() {
               <GetawayItem
                 key={getaway._id || getaway.id || ''}
                 name={getaway.title || 'Untitled getaway'}
-                dates={`${getaway.startDate} - ${getaway.endDate}`}
+                dates={formatGetawayDates(getaway.startDate, getaway.endDate)}
                 lodgingOptions={getaway.lodgingOptions || []}
                 sport={getSportLabel(getaway.sport)}
                 galleryPhotos={getValidImages(getaway.galleryPhotos)}
+                bookedDate={parseFirestoreDate(getaway.subscribedAt)}
                 onViewDetails={() => navigate(ROUTES.GETAWAY_DETAIL, { state: { getawayData: getaway } })}
+                onOrderDetails={() => navigate(ROUTES.GETAWAY_DETAIL, { state: { getawayData: getaway } })}
               />
             ))}
           </Stack>

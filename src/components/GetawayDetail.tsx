@@ -26,7 +26,7 @@ import prevPhoto from '../assets/backgrounds/hotel.jpg';
 
 import type { Getaway } from '../types/getaway';
 import { isGetawayExpired } from '../utils/getawayHelpers';
-import { ROUTES } from '../constants/routes';
+import { ROUTES, bookingPath } from '../constants/routes';
 import { BRAND } from '../theme/colors';
 
 function GetawayDetail() {
@@ -84,7 +84,8 @@ function GetawayDetail() {
   };
 
   const handleBookNow = () => {
-    navigate(ROUTES.BOOK_GETAWAY, { state: { getawayData: getaway } });
+    if (!getaway?._id) return;
+    navigate(bookingPath(getaway._id), { state: { getawayData: getaway } });
   };
 
   //unavailable getaway error

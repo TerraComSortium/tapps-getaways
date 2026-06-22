@@ -5,7 +5,6 @@ export const ROUTES = {
   GETAWAYS: '/getaways',
   MY_GETAWAYS: '/mygetaways',
   GETAWAY_DETAIL: '/getawaydetail',
-  BOOK_GETAWAY: '/bookgetaway',
   BOOKING: '/booking', // dinámica → /booking/:id
   MY_ORDERS: '/myorders',
   PAYMENT: '/payment', // dinámica → /payment/:orderId

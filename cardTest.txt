@@ -1,0 +1,46 @@
+TARJETAS DE PRUEBA DE STRIPE (solo modo TEST)
+==============================================
+
+Requisitos:
+- Frontend: VITE_STRIPE_PUBLISHABLE_KEY = pk_test_...
+- Backend:  STRIPE_SECRET_KEY = sk_test_...
+- Ambas claves deben ser del MISMO modo (test) y de la MISMA cuenta de Stripe.
+
+Datos a usar con cualquiera de estas tarjetas:
+- Fecha de expiracion: cualquier fecha FUTURA (ej. 12/34)
+- CVC: cualquier 3 digitos (ej. 123)
+- ZIP / codigo postal: cualquiera (ej. 12345) 
+
+
+PAGOS EXITOSOS
+--------------
+4242 4242 4242 4242   Visa            -> pago exitoso
+4000 0566 5566 5556   Visa (debito)   -> pago exitoso
+5555 5555 5555 4444   Mastercard      -> pago exitoso
+2223 0031 2200 3222   Mastercard (2-series) -> pago exitoso
+3782 822463 10005      American Express -> pago exitoso (CVC de 4 digitos)
+6011 1111 1111 1117   Discover        -> pago exitoso
+
+
+3D SECURE / AUTENTICACION (flujo requiresAction)
+------------------------------------------------
+4000 0025 0000 3155   requiere autenticacion 3D Secure
+4000 0027 6000 3184   requiere 3D Secure en cada pago
+
+
+TARJETAS RECHAZADAS (para probar manejo de errores)
+---------------------------------------------------
+4000 0000 0000 0002   rechazo generico (card_declined)
+4000 0000 0000 9995   fondos insuficientes (insufficient_funds)
+4000 0000 0000 9987   tarjeta perdida (lost_card)
+4000 0000 0000 9979   tarjeta robada (stolen_card)
+4000 0000 0000 0069   tarjeta expirada (expired_card)
+4000 0000 0000 0127   CVC incorrecto (incorrect_cvc)
+4000 0000 0000 0119   error de procesamiento (processing_error)
+
+
+NOTAS
+-----
+- Estas tarjetas NO funcionan con claves live (pk_live/sk_live); seran rechazadas.
+- No mueven dinero real: solo simulan respuestas en el entorno de test.
+- Mas tarjetas y escenarios: https://stripe.com/docs/testing

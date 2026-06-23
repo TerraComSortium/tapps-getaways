@@ -1,17 +1,13 @@
+import * as React from 'react';
 import{ useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
   Container, Box,
-  Divider, Button, IconButton,
-  Stack,
-  Modal,
-  Typography,
-  Radio, RadioGroup, FormControlLabel, FormControl
+  Stack, Modal,
+  Typography, Divider, Button, IconButton,
+  Radio, RadioGroup, FormControlLabel, FormControl,
+  ListItem, ListItemText, ListItemIcon,
 } from '@mui/material';
-
-// import view1 from '../assets/backgrounds/clubView1.png';
-// import view2 from '../assets/backgrounds/hotel.jpg';
-// import view4 from '../assets/backgrounds/padel.jpg';
 
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
@@ -23,22 +19,25 @@ import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 
 import prevPhoto from '../assets/backgrounds/hotel.jpg';
-
+import { useAuth } from '../contexts/AuthContext';
 import type { Getaway } from '../types/getaway';
 import { isGetawayExpired } from '../utils/getawayHelpers';
 import { ROUTES, bookingPath } from '../constants/routes';
 import { BRAND } from '../theme/colors';
+import { Role } from '../constants/roles';
 
 function GetawayDetail() {
   const navigate = useNavigate();
   const location = useLocation();
   const getaway: Getaway | null = location.state?.getawayData;
   const expired = isGetawayExpired(getaway);
+  const { role, isLoading: isAuthLoading } = useAuth();
 
+  // console.log("Estado de carga:", isLoading, "Rol recibido:", role);
   const [mainImage, setMainImage] = useState<string | "video">(prevPhoto);
   const [galleryImages, setGalleryImages] = useState<(string | "video")[]>([]);
   const [selectedLodging, setSelectedLodging] = useState<string>("");
-
+  const [selectedAddon, setSelectedAddon] = useState<string>("");
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
 
@@ -54,6 +53,9 @@ function GetawayDetail() {
 
       if (getaway.lodgingOptions && getaway.lodgingOptions.length > 0) {
         setSelectedLodging(getaway.lodgingOptions[0].name);
+      }
+      if(getaway.optionalAddOns && getaway.optionalAddOns.length > 0){
+        setSelectedAddon(getaway.optionalAddOns[0].name);
       }
     }
   }, [getaway]);
@@ -86,6 +88,7 @@ function GetawayDetail() {
   const handleBookNow = () => {
     if (!getaway?._id) return;
     navigate(bookingPath(getaway._id), { state: { getawayData: getaway } });
+    navigate('/booking', { state: { getawayData: getaway } });
   };
 
   //unavailable getaway error
@@ -106,6 +109,14 @@ function GetawayDetail() {
     );
   }
 
+  // if(isLoading){
+  //   return(
+  //     <Box display="flex" justifyContent="center" alignItems="center" height={400}>
+  //       <CircularProgress />
+  //     </Box>
+  //   );
+  //   //(<Skeleton variant="rectangular" width={300} height={400} sx={{borderRadius:'15px'}}/>);
+  // }
   return (
     <>
       <Container sx={{ display:"flex", flexDirection: 'column' }}>
@@ -157,15 +168,12 @@ function GetawayDetail() {
                     sx={{
                       width: '160px', height: '100px',
                       backgroundColor: 'black',
-                      display: 'flex',
-                      alignItems: 'center', justifyContent: 'center',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
                       color: BRAND.white,
                       cursor: 'pointer'
                     }} onMouseOver={() => change("video")} onMouseOut={revert}
                     onClick={() => openFullScreen(index + 1)}
-                  >
-                    Video
-                  </Box>
+                  > Video </Box>
                 ) : (
                   <img key={index} src={image} className="thumbnail"
                     alt={`getaway photo ${index + 2}`}
@@ -179,15 +187,20 @@ function GetawayDetail() {
 
           <Stack sx={{ fontSize: 15, ml: 2, flexGrow: 1 }}>
             <h3 className='title4'> {getaway.title} </h3>
-            <h5 className='title4'>
-              {getaway.getawayAddress?.address || 'No address provided'}
-            </h5>
-            <h5 className='title4'>
-              By
-              {/* {rcnet.name ||  */}
-               {' Getaway name unavailable'}
-              {/* } */}
-            </h5>
+            {getaway.getawayAddress?.address ? (
+              <h5 className='title4'> {getaway.getawayAddress?.address} </h5>
+            ):(
+              <Typography sx={{fontStyle:'italic', color:'text.secondary'}}>No address provided</Typography>
+            )}
+
+            {rcnet.name ? (
+              <h5 className='title4'>
+                By RCnet
+                {rcnet.name}
+              </h5>
+            ):(
+              <Typography sx={{fontStyle:'italic', color:'text.secondary'}}>Provider name unavailable</Typography>
+            )}
             <p> {getaway.overview} </p>
 
             <div className='inline'>
@@ -213,7 +226,7 @@ function GetawayDetail() {
                     />
                   ))
                 ) : (
-                  <Typography sx={{ fontStyle: 'italic', color: 'text.secondary' }}>Unavailable prices</Typography>
+                  <Typography sx={{ fontStyle: 'italic', color: 'text.secondary' }}>Unavailable lodging prices</Typography>
                 )}
               </RadioGroup>
             </FormControl>
@@ -223,16 +236,18 @@ function GetawayDetail() {
                 This getaway has ended — subscription is no longer available.
               </Typography>
             ) : (
-              <Button type="submit" onClick={handleBookNow}
-                startIcon={<ShoppingCartIcon />} variant="contained"
-                sx={{
-                  mt: 1, mb: 3, width: '15vw', borderRadius:'8px',
-                  bgcolor: BRAND.primary, color: BRAND.white, fontWeight: 'bold', textTransform: 'none',
-                  ':hover': {
-                    bgcolor: BRAND.white, color: BRAND.primary,
-                  }
-                }}
-              > Book now </Button>
+              role === Role.PLAYER && (
+                <Button type="submit" onClick={handleBookNow}
+                  startIcon={<ShoppingCartIcon />} variant="contained"
+                  sx={{
+                    mt: 1, mb: 3, width: '15vw', borderRadius:'8px',
+                    bgcolor: BRAND.primary, color: BRAND.white, fontWeight: 'bold', textTransform: 'none',
+                    ':hover': {
+                      bgcolor: BRAND.white, color: BRAND.primary,
+                    }
+                  }}
+                > Book now </Button>
+              )
             )}
           </Stack>
         </Stack>
@@ -279,17 +294,19 @@ function GetawayDetail() {
               <Stack sx={{ fontSize: 15, width: '60vw' }}>
                 <p> {getaway.mainDescription || getaway.overview } </p>
               </Stack>
-              {!expired && (
-                <Button type="submit" startIcon={<ShoppingCartIcon />} variant="contained"
-                  onClick={handleBookNow}
-                  sx={{
-                    mt: 1, mb: 3, borderRadius:'8px',
-                    minWidth: '12vw', maxWidth: '13vw',
-                    bgcolor: BRAND.primary, color: BRAND.white, fontWeight: 'bold', textTransform: 'none',
-                    ':hover': { bgcolor: BRAND.white, color: BRAND.primary},
-                    borderColor: 'primary.main', border: 1
-                  }}
-                > Book now </Button>
+              {!expired && ( 
+                role === Role.PLAYER && (
+                  <Button type="submit" startIcon={<ShoppingCartIcon />} variant="contained"
+                    onClick={handleBookNow}
+                    sx={{
+                      mt: 1, mb: 3, borderRadius:'8px',
+                      minWidth: '12vw', maxWidth: '13vw',
+                      bgcolor: BRAND.primary, color: BRAND.white, fontWeight: 'bold', textTransform: 'none',
+                      ':hover': { bgcolor: BRAND.white, color: BRAND.primary},
+                      borderColor: 'primary.main', border: 1
+                    }}
+                  > Book now </Button>
+                )
               )}
             </Stack>
           </Box>
@@ -307,9 +324,11 @@ function GetawayDetail() {
           <Divider aria-hidden="true" sx={{bgcolor:BRAND.primary}} />
           <Stack sx={{ flexWrap: 'wrap' }}>
             <table>
-              <col />
-              <col />
-              <col />
+              <colgroup>
+                <col />
+                <col />
+                <col />
+              </colgroup>
               <thead>
                 <tr>
                   <th>Day</th>
@@ -330,57 +349,85 @@ function GetawayDetail() {
                     </tr>
                   ))
                 ) : (
-                  <tr><td colSpan={3}>The schedule is not currently available</td></tr>
+                  <tr>
+                    <td colSpan={3}>
+                      <Typography sx={{fontStyle:'italic', color:'text.secondary'}}>The schedule is not currently available</Typography>
+                    </td>
+                  </tr>
                 )}
               </tbody>
             </table>
           </Stack>
           <Stack spacing={1} sx={{ mt: 2, flexWrap: 'wrap', justifyContent: 'flex-start' }} >
             <h5 className='title4'>This getaway includes</h5>
-            <ul>
-              {getaway.amenities && getaway.amenities.length > 0 ? (
-                getaway.amenities.map((item, index) => (
+            {getaway.amenities && getaway.amenities.length > 0 ? (
+              <ul>
+                {getaway.amenities.map((item, index) => (
                   <li key={index}>{item.name || 'No amenities included.'}</li>
-                ))
-              ) : (
-                <li> No amenities included yet </li> //not shown
-              )}
-            </ul>
+                ))}
+              </ul>
+            ) : (
+              <Typography sx={{fontStyle:'italic', color:'text.secondary'}}> No amenities included yet </Typography>
+            )}
           </Stack>
-          <Stack spacing={1} sx={{ mt: 2, mb: 2, justifyContent: 'flex-start', flexWrap: 'wrap' }} >
+          <Stack 
+            // spacing={1} 
+            sx={{ mt: 2, flexWrap: 'wrap', justifyContent: 'flex-start' }}>        
+            <h5 className='title4'> Optional Add Ons </h5>
+            {getaway.optionalAddOns && getaway.optionalAddOns.length > 0 ? (
+              getaway.optionalAddOns.map((option, index) => (
+                <ListItem>
+                  <ListItemText
+                    key={index}
+                    primary={option.name}
+                    secondary={`$ ${option.price}`}
+                  />
+                </ListItem>
+              ))
+            ):(
+              <Typography sx={{fontStyle:'italic', color:'text.secondary'}}>Unavailable Add Ons</Typography>
+            )}
+          </Stack>
+          <Stack spacing={1} sx={{ mt:2, justifyContent:'flex-start', flexWrap:'wrap' }} >
             <h5 className='title4'>Payments & Policies</h5>
-            <p>{getaway.policies || 'No included'}</p>
+            {getaway.policies ? (
+              <p style={{ whiteSpace: 'pre-wrap' }}> {getaway.policies} </p>
+            ):(
+              <Typography sx={{fontStyle:'italic', color:'text.secondary'}}>No included</Typography>
+            )}
           </Stack>
-          <Stack spacing={1} sx={{ mt: 2, mb: 2, justifyContent: 'flex-start', flexWrap: 'wrap' }} >
+          <Stack spacing={1} sx={{ mt: 2, justifyContent: 'flex-start', flexWrap: 'wrap' }} >
             <h5 className='title4'>Términos y Condiciones</h5>
-            <p style={{ whiteSpace: 'pre-wrap' }}>{getaway.terms || 'No included'}</p>
+            {getaway.terms ? (
+              <p style={{ whiteSpace: 'pre-wrap' }}> {getaway.terms} </p>
+            ):(
+              <Typography sx={{fontStyle:'italic', color:'text.secondary'}}>No included</Typography>
+            )}
           </Stack>
           <Stack direction="row" spacing={3}
             sx={{
-              mt: 2, mb: 2,
-              flexWrap: 'wrap',
-              justifyContent: 'flex-start',
-              alignItems: 'center', alignContent: 'center'
+              mt: 2, mb: 2, flexWrap: 'wrap',
+              justifyContent:{ xs:'center', md:'flex-start'},
+              alignItems: 'center', alignContent: 'center', gap:{ xs:'12px'}
             }}
           >
             <h5 className='title5'>For more information:</h5>
             <Button target="_blank"
               startIcon={<MailIcon />} size="small" variant="contained"
-              href="https://calendar.google.com/calendar/u/0/appointments/schedules/AcZssZ2uQZp2vPrJmwVmMkqMgVci1kx_lFIPox1JCBWoQfmLMymNhbW6k54PNtVBesApbXi7BdVBDewG"
+              // href="https://calendar.google.com/calendar/u/0/appointments/schedules/AcZssZ2uQZp2vPrJmwVmMkqMgVci1kx_lFIPox1JCBWoQfmLMymNhbW6k54PNtVBesApbXi7BdVBDewG"
               sx={{
                 mt: 1, mb: 2, borderRadius:'8px',
-                width: '12vw',
+                width: '12vw', minWidth:'125px',
                 bgcolor: BRAND.primary, color: BRAND.white, fontWeight: 'bold', textTransform: 'none',
                 ':hover': { bgcolor: BRAND.white, color: BRAND.primary}
               }}
-            > Send mail
-            </Button>
+            > Send mail </Button>
             <Button startIcon={<WhatsAppIcon />}
               href="https://wa.me/codeNumber"
               size="small" target="_blank" variant="contained"
               sx={{
                 mt: 1, mb: 2, borderRadius:'8px',
-                width: '12vw',
+                width: '12vw', minWidth:'125px',
                 bgcolor: BRAND.primary, color: BRAND.white, fontWeight: 'bold', textTransform: 'none',
                 ':hover': { bgcolor: BRAND.white, color: BRAND.primary }
               }}
@@ -390,7 +437,7 @@ function GetawayDetail() {
               href="https://racquetsappsuite.com/"
               sx={{
                 mt: 1, mb: 4, borderRadius:'8px',
-                width: '12vw',
+                width: '12vw', minWidth:'125px',
                 bgcolor: BRAND.primary, color: BRAND.white, fontWeight: 'bold', textTransform: 'none',
                 ':hover': { bgcolor: BRAND.white, color: BRAND.primary }
               }}

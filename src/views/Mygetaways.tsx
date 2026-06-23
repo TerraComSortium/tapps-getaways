@@ -73,9 +73,9 @@ export default function Mygetaways() {
           <CircularProgress size={24}/>
         </Box>
       )}
-      <Grid container rowSpacing={1} columnSpacing={{ xs: 1, sm: 2, md: 3 }}>
+      <Grid container columnSpacing={{ xs: 0, sm: 2, md: 3 }}>
         <AdminSideBar />
-        <Grid size={{ xs: 12, sm: 10 }} className="section blueBg">
+        <Grid size={{ xs: 12, sm: 9, md:10 }} className="section blueBg">
           <Box>
             <Box sx={{ mb: 3 }}>
               <Typography variant="h6" sx={{ mb: 1, fontWeight: 'bold' }}>My getaways</Typography>

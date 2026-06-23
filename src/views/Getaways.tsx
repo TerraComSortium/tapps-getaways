@@ -165,10 +165,9 @@ export default function Mygetaways() {
   // console.log("structure getaway received API:", getaways[0]);
   return (
     <>
-      <Grid container rowSpacing={1} columnSpacing={{ xs: 1, sm: 2, md: 3 }} >
+      <Grid container columnSpacing={{ xs: 0, sm: 2, md: 3 }} >
         <AdminSideBar />
-        {/* <Grid size={{ xs:1 }}/> */}
-        <Grid size={{ xs:12, sm: 10 }}
+        <Grid size={{ xs:12, sm: 9, md: 10 }}
           className="section blueBg">
           <SearchBar onSearch={handleSearchFromBar} />
           <Box>
@@ -207,7 +206,6 @@ export default function Mygetaways() {
                   onViewDetails={() => handleViewDetails(getaway)}
                   onBookNow={role === Role.PLAYER && !isGetawayExpired(getaway) ? () => handleBooking(getaway) : undefined}
                   // onEdit={role === 'admin' ? () => handleEdit(getaway.id) : undefined}
-                  // onDelete={role === 'admin' ? () => (getaway._id, getaway.title) : undefined}
                 />
               ))
             )}

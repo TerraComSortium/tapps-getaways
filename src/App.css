@@ -192,3 +192,9 @@ body, html, #root {
 .prices {
   margin: 0px;
 }
+
+.paragraph{
+  margin-block: 1em;
+  margin-block: 1lh;
+  max-width: 85ch;
+}

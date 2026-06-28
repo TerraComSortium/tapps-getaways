@@ -8,7 +8,7 @@ import {
   Radio, RadioGroup, FormControlLabel, FormControl,
   ListItem, ListItemText, ListItemIcon,
 } from '@mui/material';
-
+import Grid from '@mui/material/Grid2';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import MailIcon from '@mui/icons-material/Mail';
@@ -25,7 +25,9 @@ import { isGetawayExpired } from '../utils/getawayHelpers';
 import { ROUTES, bookingPath } from '../constants/routes';
 import { BRAND } from '../theme/colors';
 import { Role } from '../constants/roles';
-
+import '../App.css';
+import GetawaySchedule from './GetawaySchedule';
+ 
 function GetawayDetail() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -34,6 +36,7 @@ function GetawayDetail() {
   const { role, isLoading: isAuthLoading } = useAuth();
 
   // console.log("Estado de carga:", isLoading, "Rol recibido:", role);
+  console.log(getaway);
   const [mainImage, setMainImage] = useState<string | "video">(prevPhoto);
   const [galleryImages, setGalleryImages] = useState<(string | "video")[]>([]);
   const [selectedLodging, setSelectedLodging] = useState<string>("");
@@ -119,7 +122,7 @@ function GetawayDetail() {
   // }
   return (
     <>
-      <Container sx={{ display:"flex", flexDirection: 'column' }}>
+      <Container sx={{ display:"flex", flexDirection:'column' }}>
         <Stack>
           <Button href={ROUTES.GETAWAYS}
             startIcon={<ArrowBackIcon />} variant="text" size="medium"
@@ -129,128 +132,130 @@ function GetawayDetail() {
             }}
           > Search more getaways! </Button>
         </Stack>
-        <Stack gap={1}
-          sx={{
-            display:"flex", flexDirection: 'row',
-            alignItems: 'flex-start', alignContent: 'flex-start', justifyContent: 'flex-start',
-          }}
-        >
-          <Stack>
-            {mainImage === "video" ? (
-              <iframe width="1280" height="519"
-                // src="https://www.youtube.com/embed/dv_hzU3gw34"
-                src={getaway.galleryVideo}
-                title={getaway.title} frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerPolicy="strict-origin-when-cross-origin" allowFullScreen
-                style={{ maxWidth: '39vw', marginBottom: '5px', objectFit: 'contain' }}
-              />
-            ) : (
-              <img src={mainImage} id="mainImage"
-                onClick={() => openFullScreen(galleryImages.indexOf(mainImage))}
-                alt={getaway.caption || getaway.title}
-                style={{
-                  maxHeight: '30vw',
-                  maxWidth: '39vw',
-                  marginBottom: '5px',
-                  objectFit: 'contain'
-              }} />
-            )}
-            <Stack
-              sx={{
-                display: "flex", flexDirection: 'row',
-                width: '39vw',
-                maxHeight: '30vw', maxWidth: '39vw',
-                flexWrap: 'wrap', alignItems: 'center', alignContent: 'center', justifyContent: 'space-between',
-              }}
-            >
-              {galleryImages.slice(1).map((image, index) => (
-                image === "video" ? (
-                  <Box key={index}
-                    sx={{
-                      width: '160px', height: '100px',
-                      backgroundColor: 'black',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      color: BRAND.white,
-                      cursor: 'pointer'
-                    }} onMouseOver={() => change("video")} onMouseOut={revert}
-                    onClick={() => openFullScreen(index + 1)}
-                  > Video </Box>
-                ) : (
-                  <img key={index} src={image} className="thumbnail"
-                    alt={`getaway photo ${index + 2}`}
-                    style={{ width: '160px', height: '100px'}}
-                    onMouseOver={() => change(image)}
-                    onMouseOut={revert} onClick={() => openFullScreen(index + 1)} />
-                )
-              ))}
-            </Stack>
-          </Stack>
-
-          <Stack sx={{ fontSize: 15, ml: 2, flexGrow: 1 }}>
-            <h3 className='title4'> {getaway.title} </h3>
-            {getaway.getawayAddress?.address ? (
-              <h5 className='title4'> {getaway.getawayAddress?.address} </h5>
-            ):(
-              <Typography sx={{fontStyle:'italic', color:'text.secondary'}}>No address provided</Typography>
-            )}
-
-            {rcnet.name ? (
-              <h5 className='title4'>
-                By RCnet
-                {rcnet.name}
-              </h5>
-            ):(
-              <Typography sx={{fontStyle:'italic', color:'text.secondary'}}>Provider name unavailable</Typography>
-            )}
-            <p> {getaway.overview} </p>
-
-            <div className='inline'>
-              <h4 className='title4'>Dates:</h4>
-              <span> {getaway.startDate} - {getaway.endDate}</span>
-            </div>
-
-            <FormControl>
-              <h4 className='title4'>Rates Start at:</h4>
-              <RadioGroup
-                aria-labelledby="demo-controlled-radio-buttons-group"
-                name="controlled-radio-buttons-group"
-                value={selectedLodging}
-                onChange={(e) => setSelectedLodging(e.target.value)}
-              >
-                {getaway.lodgingOptions && getaway.lodgingOptions.length > 0 ? (
-                  getaway.lodgingOptions.map((option, index) => (
-                    <FormControlLabel
-                      key={index}
-                      value={option.name}
-                      control={<Radio />}
-                      label={`${option.name} - $${option.price} ` }
-                    />
-                  ))
-                ) : (
-                  <Typography sx={{ fontStyle: 'italic', color: 'text.secondary' }}>Unavailable lodging prices</Typography>
-                )}
-              </RadioGroup>
-            </FormControl>
-
-            {expired ? (
-              <Typography sx={{ mt: 1, mb: 3, fontStyle: 'italic', color: 'text.secondary' }}>
-                This getaway has ended — subscription is no longer available.
-              </Typography>
-            ) : (
-              role === Role.PLAYER && (
-                <Button type="submit" onClick={handleBookNow}
-                  startIcon={<ShoppingCartIcon />} variant="contained"
-                  sx={{
-                    mt: 1, mb: 3, width: '15vw', borderRadius:'8px',
-                    bgcolor: BRAND.primary, color: BRAND.white, fontWeight: 'bold', textTransform: 'none',
-                    ':hover': {
-                      bgcolor: BRAND.white, color: BRAND.primary,
-                    }
+        
+        <Grid container spacing={4} sx={{ width: '100%', alignItems: 'flex-start' }}>
+          <Grid size={{ xs: 12, md: 5 }} >
+            <Stack direction="column" alignItems={{ xs:'center' }}>
+              {mainImage === "video" ? (
+                <iframe 
+                  src={getaway.galleryVideo}
+                  title={getaway.title} frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerPolicy="strict-origin-when-cross-origin" allowFullScreen
+                  style={{ 
+                    width: '100%', maxWidth: '100%', 
+                    aspectRatio: '16/9', marginBottom: '5px', objectFit: 'contain' 
                   }}
-                > Book now </Button>
-              )
-            )}
-          </Stack>
-        </Stack>
+                />
+              ) : (
+                <img src={mainImage} id="mainImage"
+                  onClick={() => openFullScreen(galleryImages.indexOf(mainImage))}
+                  alt={getaway.caption || getaway.title}
+                  style={{
+                    width: '100%', maxHeight: '350px',
+                    marginBottom: '5px', objectFit: 'cover'
+                }} />
+              )}
+
+              {/* minigallery */}
+              <Stack direction= 'row' gap={1} sx={{ flexWrap: 'wrap', justifyContent: 'flex-start' }}>
+                {galleryImages.slice(1).map((image, index) => (
+                  image === "video" ? (
+                    <Box key={index}
+                      sx={{
+                        width: '100px',
+                        height: '70px',
+                        backgroundColor: 'black',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        color: BRAND.white, borderRadius: '4px',
+                        cursor: 'pointer'
+                      }} onMouseOver={() => change("video")} onMouseOut={revert}
+                      onClick={() => openFullScreen(index + 1)}
+                    > Video </Box>
+                  ) : (
+                    <img key={index} src={image} className="thumbnail"
+                      alt={`getaway photo ${index + 2}`}
+                      style={{
+                      // width: '100px',
+                      height: '80px', 
+                      objectFit: 'cover', borderRadius: '4px', cursor: 'pointer'}}
+                      onMouseOver={() => change(image)}
+                      onMouseOut={revert} onClick={() => openFullScreen(index + 1)} 
+                    />
+                  )
+                ))}
+              </Stack>
+            </Stack>
+          </Grid>
+
+          <Grid size={{ xs: 12, md: 7 }}>
+            <Stack sx={{ fontSize: 15 }}>
+              <h3 className='title4'> {getaway.title} </h3>
+              {getaway.getawayAddress?.address ? (
+                <h5 className='title4'> {getaway.getawayAddress?.address} </h5>
+              ):(
+                <Typography variant="subtitle2" sx={{fontStyle:'italic', color:'text.secondary'}}>
+                No address provided</Typography>
+              )}
+
+              {/* {rcnet.name ? ( */}
+                <h5 className='title4'>
+                  By RCnet
+                  {/* {rcnet.name} */}
+                </h5>
+              {/* ):( */}
+                <Typography variant="subtitle2" sx={{fontStyle:'italic', color:'text.secondary'}}>Provider name unavailable</Typography>
+              {/* )} */}
+              <p className='paragraph'> {getaway.overview} </p>
+              <div className='inline'>
+                <h4 className='title4'>Dates:</h4>
+                <span> {getaway.startDate} - {getaway.endDate}</span>
+              </div>
+
+              <FormControl>
+                <h4 className='title4'>Rates Start at:</h4>
+                <RadioGroup
+                  aria-labelledby="demo-controlled-radio-buttons-group"
+                  name="controlled-radio-buttons-group"
+                  value={selectedLodging}
+                  onChange={(e) => setSelectedLodging(e.target.value)}
+                >
+                  {getaway.lodgingOptions && getaway.lodgingOptions.length > 0 ? (
+                    getaway.lodgingOptions.map((option, index) => (
+                      <FormControlLabel 
+                        // variant="subtitle2"???
+                        sx={{mt:0}}
+                        key={index}
+                        value={option.name}
+                        control={<Radio />}
+                        label={`${option.name} - $${option.price} ` }
+                      />
+                    ))
+                  ) : (
+                    <Typography variant="subtitle2" sx={{ fontStyle: 'italic', color: 'text.secondary' }}>Unavailable lodging prices</Typography>
+                  )}
+                </RadioGroup>
+              </FormControl>
+
+              {expired ? (
+                <Typography sx={{ mt: 1, mb: 3, fontStyle: 'italic', color: 'text.secondary' }}>
+                  This getaway has ended — subscription is no longer available.
+                </Typography>
+              ) : (
+                role === Role.PLAYER && (
+                  <Button type="submit" onClick={handleBookNow}
+                    startIcon={<ShoppingCartIcon />} variant="contained"
+                    sx={{
+                      mt: 1, mb: 3, width: '15vw', borderRadius:'8px',
+                      bgcolor: BRAND.primary, color: BRAND.white, fontWeight: 'bold', textTransform: 'none',
+                      ':hover': {
+                        bgcolor: BRAND.white, color: BRAND.primary,
+                      }
+                    }}
+                  > Book now </Button>
+                )
+              )}
+            </Stack>
+          </Grid>
+        </Grid>
 
         <Modal sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor:BRAND.purpleBg }}
           open={isFullScreen} onClose={closeFullScreen}
@@ -292,7 +297,7 @@ function GetawayDetail() {
               }}
             >
               <Stack sx={{ fontSize: 15, width: '60vw' }}>
-                <p> {getaway.mainDescription || getaway.overview } </p>
+                <p className='paragraph'> {getaway.mainDescription || getaway.overview } </p>
               </Stack>
               {!expired && ( 
                 role === Role.PLAYER && (
@@ -316,13 +321,17 @@ function GetawayDetail() {
         <Stack>
           <h4 className='title4'>Description</h4>
           <Divider aria-hidden="true" sx={{bgcolor:BRAND.primary}} />
-          <p>
-            {getaway.mainDescription || 'No description provided' }
-          </p>
-
+          {getaway.mainDescription ? (
+            <p className='paragraph'> {getaway.mainDescription} </p>
+          ):( 
+            <Typography variant="subtitle2" sx={{ mt: 1, mb: 3, fontStyle: 'italic', color: 'text.secondary' }}>
+              No description provided
+            </Typography>
+          )}
           <h4 className='title4'>Weekend Schedule</h4>
           <Divider aria-hidden="true" sx={{bgcolor:BRAND.primary}} />
-          <Stack sx={{ flexWrap: 'wrap' }}>
+          <GetawaySchedule schedule={getaway.schedule}/>
+          {/* <Stack sx={{ flexWrap: 'wrap' }}>
             <table>
               <colgroup>
                 <col />
@@ -341,8 +350,10 @@ function GetawayDetail() {
                   getaway.schedule.map((item, index) => (
                     <tr key={index}>
                       <td>
-                        {item.date}
-                        {/* {item.date.hour} */}
+                        <Stack direction="column" spacing={0.5}>
+                          <strong>{item.date}</strong>
+                          <span>{item.startTime}-{item.endTime}</span>
+                        </Stack>
                       </td>
                       <td>{item.activity}</td>
                       <td>{item.location}</td>
@@ -357,7 +368,7 @@ function GetawayDetail() {
                 )}
               </tbody>
             </table>
-          </Stack>
+          </Stack> */}
           <Stack spacing={1} sx={{ mt: 2, flexWrap: 'wrap', justifyContent: 'flex-start' }} >
             <h5 className='title4'>This getaway includes</h5>
             {getaway.amenities && getaway.amenities.length > 0 ? (
@@ -388,10 +399,10 @@ function GetawayDetail() {
               <Typography sx={{fontStyle:'italic', color:'text.secondary'}}>Unavailable Add Ons</Typography>
             )}
           </Stack>
-          <Stack spacing={1} sx={{ mt:2, justifyContent:'flex-start', flexWrap:'wrap' }} >
+          <Stack spacing={1} sx={{ mt:0, justifyContent:'flex-start', flexWrap:'wrap' }} >
             <h5 className='title4'>Payments & Policies</h5>
             {getaway.policies ? (
-              <p style={{ whiteSpace: 'pre-wrap' }}> {getaway.policies} </p>
+              <p className='paragraph'> {getaway.policies} </p>
             ):(
               <Typography sx={{fontStyle:'italic', color:'text.secondary'}}>No included</Typography>
             )}
@@ -399,7 +410,7 @@ function GetawayDetail() {
           <Stack spacing={1} sx={{ mt: 2, justifyContent: 'flex-start', flexWrap: 'wrap' }} >
             <h5 className='title4'>Términos y Condiciones</h5>
             {getaway.terms ? (
-              <p style={{ whiteSpace: 'pre-wrap' }}> {getaway.terms} </p>
+              <p className='paragraph'> {getaway.terms} </p>
             ):(
               <Typography sx={{fontStyle:'italic', color:'text.secondary'}}>No included</Typography>
             )}

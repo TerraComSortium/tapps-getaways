@@ -1,12 +1,11 @@
-import * as React from 'react';
-import{ useState, useEffect } from 'react';
+// import * as React from 'react';
+import{ useState, useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
-  Container, Box,
-  Stack, Modal,
+  Container, Box, Stack, Modal,
   Typography, Divider, Button, IconButton,
   Radio, RadioGroup, FormControlLabel, FormControl,
-  ListItem, ListItemText, ListItemIcon,
+  ListItem, ListItemText
 } from '@mui/material';
 import Grid from '@mui/material/Grid2';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
@@ -27,7 +26,7 @@ import { BRAND } from '../theme/colors';
 import { Role } from '../constants/roles';
 import '../App.css';
 import GetawaySchedule from './GetawaySchedule';
- 
+
 function GetawayDetail() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -37,12 +36,26 @@ function GetawayDetail() {
 
   // console.log("Estado de carga:", isLoading, "Rol recibido:", role);
   console.log(getaway);
+  const [imageLoaded, setImageLoaded] = useState(false);
+  const mainBoxRef = useRef<HTMLDivElement>(null);
+  const [mainBoxWidth, setMainBoxWidth] = useState(0);
+
   const [mainImage, setMainImage] = useState<string | "video">(prevPhoto);
   const [galleryImages, setGalleryImages] = useState<(string | "video")[]>([]);
   const [selectedLodging, setSelectedLodging] = useState<string>("");
-  const [selectedAddon, setSelectedAddon] = useState<string>("");
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
+
+  //Observer for gallery container
+  useEffect(() => {
+    const el = mainBoxRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver(([entry]) => {
+      setMainBoxWidth(entry.contentRect.width);
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
 
   useEffect(() => {
     if (getaway) {
@@ -57,13 +70,11 @@ function GetawayDetail() {
       if (getaway.lodgingOptions && getaway.lodgingOptions.length > 0) {
         setSelectedLodging(getaway.lodgingOptions[0].name);
       }
-      if(getaway.optionalAddOns && getaway.optionalAddOns.length > 0){
-        setSelectedAddon(getaway.optionalAddOns[0].name);
-      }
     }
   }, [getaway]);
 
   const change = (newSrc: string | "video") => {
+    setImageLoaded(false);
     setMainImage(newSrc);
   };
 
@@ -132,57 +143,108 @@ function GetawayDetail() {
             }}
           > Search more getaways! </Button>
         </Stack>
-        
+
         <Grid container spacing={4} sx={{ width: '100%', alignItems: 'flex-start' }}>
           <Grid size={{ xs: 12, md: 5 }} >
-            <Stack direction="column" alignItems={{ xs:'center' }}>
-              {mainImage === "video" ? (
-                <iframe 
-                  src={getaway.galleryVideo}
-                  title={getaway.title} frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerPolicy="strict-origin-when-cross-origin" allowFullScreen
-                  style={{ 
-                    width: '100%', maxWidth: '100%', 
-                    aspectRatio: '16/9', marginBottom: '5px', objectFit: 'contain' 
-                  }}
-                />
-              ) : (
-                <img src={mainImage} id="mainImage"
-                  onClick={() => openFullScreen(galleryImages.indexOf(mainImage))}
-                  alt={getaway.caption || getaway.title}
-                  style={{
-                    width: '100%', maxHeight: '350px',
-                    marginBottom: '5px', objectFit: 'cover'
-                }} />
-              )}
-
-              {/* minigallery */}
-              <Stack direction= 'row' gap={1} sx={{ flexWrap: 'wrap', justifyContent: 'flex-start' }}>
-                {galleryImages.slice(1).map((image, index) => (
-                  image === "video" ? (
-                    <Box key={index}
-                      sx={{
-                        width: '100px',
-                        height: '70px',
-                        backgroundColor: 'black',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        color: BRAND.white, borderRadius: '4px',
-                        cursor: 'pointer'
-                      }} onMouseOver={() => change("video")} onMouseOut={revert}
-                      onClick={() => openFullScreen(index + 1)}
-                    > Video </Box>
-                  ) : (
-                    <img key={index} src={image} className="thumbnail"
-                      alt={`getaway photo ${index + 2}`}
+            <Stack direction="column" onMouseLeave={revert}>
+              <Box ref={mainBoxRef}
+                sx={{
+                  width: '100%',
+                  paddingTop: '56.25%', // 16/9 = 56.25% aspectRatio
+                  position: 'relative',
+                  marginBottom: '15px',
+                  backgroundColor: '#fff',
+                  overflow: 'hidden',
+                  borderRadius: '4px',
+                  flexShrink: 0,
+                  flexGrow: 0,
+                }}
+              >
+                {mainImage === "video" ? (
+                  <iframe
+                    src={getaway.galleryVideo}
+                    title={getaway.title}
+                    frameBorder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    referrerPolicy="strict-origin-when-cross-origin"
+                    allowFullScreen
+                    style={{
+                      position: 'absolute', top: 0, left: 0,
+                      width: '100%', height: '100%',
+                    }}
+                  />
+                ) : (
+                  <>
+                    {!imageLoaded && (
+                      <Box sx={{
+                        position: 'absolute', inset: 0,
+                        backgroundColor: '#2a2a2a',
+                        animation: 'pulse 1.5s ease-in-out infinite',
+                        '@keyframes pulse': {
+                          '0%, 100%': { opacity: 1 },
+                          '50%': { opacity: 0.4 },
+                        }
+                      }} />
+                    )}
+                    <img
+                      src={mainImage} id="mainImage"
+                      onLoad={() => setImageLoaded(true)}
+                      onClick={() => openFullScreen(galleryImages.indexOf(mainImage))}
+                      alt={getaway.caption || getaway.title}
                       style={{
-                      // width: '100px',
-                      height: '80px', 
-                      objectFit: 'cover', borderRadius: '4px', cursor: 'pointer'}}
-                      onMouseOver={() => change(image)}
-                      onMouseOut={revert} onClick={() => openFullScreen(index + 1)} 
+                        position: 'absolute', top: 0, left: 0,
+                        width: '100%', height: '100%',
+                        objectFit: 'contain',
+                        opacity: imageLoaded ? 1 : 0,
+                        transition: 'opacity 0.2s ease-in-out',
+                      }}
                     />
-                  )
-                ))}
-              </Stack>
+                  </>
+                )}
+              </Box>
+
+              {/* mini gallery */}
+              {mainBoxWidth >= 200 && galleryImages.length > 1 && (
+                <Box sx={{
+                  width: '100%',
+                  minHeight: '88px', // 80px thumbnail + 8px gap buffer since previous render
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}>
+                  <Stack direction='row' gap={1}
+                    sx={{ flexWrap: 'wrap', justifyContent: 'flex-start', alignItems: 'flex-start', alignContent: 'flex-start'}}
+                  >
+                    {galleryImages.slice(1).map((image, index) => {
+                      const isVideo = image === "video";
+                      return (
+                        <Box key={index}
+                          sx={{
+                            width: '100px',
+                            height: '80px',
+                            minHeight: '80px',
+                            backgroundColor: 'black',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            borderRadius: '4px',
+                            cursor: 'pointer',
+                            overflow: 'hidden',
+                            flexShrink: 0,
+                          }}
+                          onMouseEnter={() => change(isVideo ? "video" : image)}
+                          onClick={() => openFullScreen(index + 1)}
+                        >
+                          {isVideo ? (
+                            <span style={{ color: BRAND.white, fontSize: '14px' }}>Video</span>
+                          ) : (
+                            <img
+                              src={image} alt={`getaway photo ${index + 2}`}
+                              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                            />
+                          )}
+                        </Box>
+                      );
+                    })}
+                  </Stack>
+                </Box>
+              )}
             </Stack>
           </Grid>
 
@@ -220,8 +282,7 @@ function GetawayDetail() {
                 >
                   {getaway.lodgingOptions && getaway.lodgingOptions.length > 0 ? (
                     getaway.lodgingOptions.map((option, index) => (
-                      <FormControlLabel 
-                        // variant="subtitle2"???
+                      <FormControlLabel
                         sx={{mt:0}}
                         key={index}
                         value={option.name}
@@ -299,7 +360,7 @@ function GetawayDetail() {
               <Stack sx={{ fontSize: 15, width: '60vw' }}>
                 <p className='paragraph'> {getaway.mainDescription || getaway.overview } </p>
               </Stack>
-              {!expired && ( 
+              {!expired && (
                 role === Role.PLAYER && (
                   <Button type="submit" startIcon={<ShoppingCartIcon />} variant="contained"
                     onClick={handleBookNow}
@@ -323,7 +384,7 @@ function GetawayDetail() {
           <Divider aria-hidden="true" sx={{bgcolor:BRAND.primary}} />
           {getaway.mainDescription ? (
             <p className='paragraph'> {getaway.mainDescription} </p>
-          ):( 
+          ):(
             <Typography variant="subtitle2" sx={{ mt: 1, mb: 3, fontStyle: 'italic', color: 'text.secondary' }}>
               No description provided
             </Typography>
@@ -331,44 +392,7 @@ function GetawayDetail() {
           <h4 className='title4'>Weekend Schedule</h4>
           <Divider aria-hidden="true" sx={{bgcolor:BRAND.primary}} />
           <GetawaySchedule schedule={getaway.schedule}/>
-          {/* <Stack sx={{ flexWrap: 'wrap' }}>
-            <table>
-              <colgroup>
-                <col />
-                <col />
-                <col />
-              </colgroup>
-              <thead>
-                <tr>
-                  <th>Day</th>
-                  <th>Activity</th>
-                  <th>Location</th>
-                </tr>
-              </thead>
-              <tbody>
-                {getaway.schedule && getaway.schedule.length > 0 ? (
-                  getaway.schedule.map((item, index) => (
-                    <tr key={index}>
-                      <td>
-                        <Stack direction="column" spacing={0.5}>
-                          <strong>{item.date}</strong>
-                          <span>{item.startTime}-{item.endTime}</span>
-                        </Stack>
-                      </td>
-                      <td>{item.activity}</td>
-                      <td>{item.location}</td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan={3}>
-                      <Typography sx={{fontStyle:'italic', color:'text.secondary'}}>The schedule is not currently available</Typography>
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </Stack> */}
+
           <Stack spacing={1} sx={{ mt: 2, flexWrap: 'wrap', justifyContent: 'flex-start' }} >
             <h5 className='title4'>This getaway includes</h5>
             {getaway.amenities && getaway.amenities.length > 0 ? (
@@ -381,15 +405,14 @@ function GetawayDetail() {
               <Typography sx={{fontStyle:'italic', color:'text.secondary'}}> No amenities included yet </Typography>
             )}
           </Stack>
-          <Stack 
-            // spacing={1} 
-            sx={{ mt: 2, flexWrap: 'wrap', justifyContent: 'flex-start' }}>        
+          <Stack
+            // spacing={1}
+            sx={{ mt: 2, flexWrap: 'wrap', justifyContent: 'flex-start' }}>
             <h5 className='title4'> Optional Add Ons </h5>
             {getaway.optionalAddOns && getaway.optionalAddOns.length > 0 ? (
               getaway.optionalAddOns.map((option, index) => (
-                <ListItem>
+                <ListItem key={index}>
                   <ListItemText
-                    key={index}
                     primary={option.name}
                     secondary={`$ ${option.price}`}
                   />
@@ -423,9 +446,9 @@ function GetawayDetail() {
             }}
           >
             <h5 className='title5'>For more information:</h5>
-            <Button target="_blank"
+            <Button target="_blank" component="a"
               startIcon={<MailIcon />} size="small" variant="contained"
-              // href="https://calendar.google.com/calendar/u/0/appointments/schedules/AcZssZ2uQZp2vPrJmwVmMkqMgVci1kx_lFIPox1JCBWoQfmLMymNhbW6k54PNtVBesApbXi7BdVBDewG"
+              href="https://racquetsappsuite.com/contact/general-support/"
               sx={{
                 mt: 1, mb: 2, borderRadius:'8px',
                 width: '12vw', minWidth:'125px',
@@ -433,7 +456,7 @@ function GetawayDetail() {
                 ':hover': { bgcolor: BRAND.white, color: BRAND.primary}
               }}
             > Send mail </Button>
-            <Button startIcon={<WhatsAppIcon />}
+            <Button startIcon={<WhatsAppIcon />} component="a"
               href="https://wa.me/codeNumber"
               size="small" target="_blank" variant="contained"
               sx={{

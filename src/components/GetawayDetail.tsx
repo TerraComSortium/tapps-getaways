@@ -305,7 +305,7 @@ function GetawayDetail() {
                   <Button type="submit" onClick={handleBookNow}
                     startIcon={<ShoppingCartIcon />} variant="contained"
                     sx={{
-                      mt: 1, mb: 3, width: '15vw', borderRadius:'8px',
+                      mt: 1, mb: 3, width:'128px', borderRadius:'8px',
                       bgcolor: BRAND.primary, color: BRAND.white, fontWeight: 'bold', textTransform: 'none',
                       ':hover': {
                         bgcolor: BRAND.white, color: BRAND.primary,
@@ -366,7 +366,7 @@ function GetawayDetail() {
                     onClick={handleBookNow}
                     sx={{
                       mt: 1, mb: 3, borderRadius:'8px',
-                      minWidth: '12vw', maxWidth: '13vw',
+                      minWidth: '14vw', maxWidth: '13vw',
                       bgcolor: BRAND.primary, color: BRAND.white, fontWeight: 'bold', textTransform: 'none',
                       ':hover': { bgcolor: BRAND.white, color: BRAND.primary},
                       borderColor: 'primary.main', border: 1

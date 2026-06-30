@@ -5,7 +5,7 @@ import {
   Container, Box, Stack, Modal,
   Typography, Divider, Button, IconButton,
   Radio, RadioGroup, FormControlLabel, FormControl,
-  ListItem, ListItemText
+  ListItem, ListItemText, CircularProgress
 } from '@mui/material';
 import Grid from '@mui/material/Grid2';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
@@ -29,13 +29,13 @@ import GetawaySchedule from './GetawaySchedule';
 
 function GetawayDetail() {
   const navigate = useNavigate();
+  const { role, isLoading: isAuthLoading } = useAuth();
   const location = useLocation();
   const getaway: Getaway | null = location.state?.getawayData;
   const expired = isGetawayExpired(getaway);
-  const { role, isLoading: isAuthLoading } = useAuth();
 
   // console.log("Estado de carga:", isLoading, "Rol recibido:", role);
-  console.log(getaway);
+  // console.log(getaway);
   const [imageLoaded, setImageLoaded] = useState(false);
   const mainBoxRef = useRef<HTMLDivElement>(null);
   const [mainBoxWidth, setMainBoxWidth] = useState(0);
@@ -123,14 +123,14 @@ function GetawayDetail() {
     );
   }
 
-  // if(isLoading){
-  //   return(
-  //     <Box display="flex" justifyContent="center" alignItems="center" height={400}>
-  //       <CircularProgress />
-  //     </Box>
-  //   );
-  //   //(<Skeleton variant="rectangular" width={300} height={400} sx={{borderRadius:'15px'}}/>);
-  // }
+  if (isAuthLoading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+
   return (
     <>
       <Container sx={{ display:"flex", flexDirection:'column' }}>

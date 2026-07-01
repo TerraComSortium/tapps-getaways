@@ -18,7 +18,10 @@ import {
   getValidImages,
   isGetawayExpired,
 } from '../utils/getawayHelpers';
-import { ROUTES, bookingPath } from '../constants/routes';
+import {
+  // ROUTES,
+  getawayDetailPath,
+  bookingPath } from '../constants/routes';
 import { Role } from '../constants/roles';
 
 export default function Mygetaways() {
@@ -134,11 +137,9 @@ export default function Mygetaways() {
   };
 
   const handleViewDetails = (getaway: Getaway) => {
-    navigate(ROUTES.GETAWAY_DETAIL, { state: { getawayData: getaway } });
-    //navigate(`/getawaydetail`, { state:{ getawayData: getaway} })
+    navigate(getawayDetailPath(getaway._id), { state: { getawayData: getaway } });
   };
   const handleBooking = (getaway: Getaway) => {
-    // navigate('/bookgetaway', { state: { getawayData: getaway } });
     navigate(bookingPath(getaway._id), { state: { getawayData: getaway } });
   };
   //initial search with userLocation

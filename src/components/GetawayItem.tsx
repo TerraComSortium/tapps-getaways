@@ -12,7 +12,6 @@ import '../App.css';
 // import {Skeleton} from '@mui/material';
 // import { useAuthRole } from '../hooks/useAuthRole';
 // import { useAuth } from '../contexts/AuthContext';
-// import { useNavigate } from 'react-router-dom';
 
 const isPhotoUrl = (url: string): boolean => {
   if (!url) return false;
@@ -43,7 +42,6 @@ export const GetawayItem = memo(
   {
     // const { role, isLoading } = useAuth();
     // console.log("Estado de carga:", isLoading, "Rol recibido:", role);
-    // const navigate = useNavigate();
 
     // const editGetaway = () => {
     //   navigate('/creategetaway');
@@ -51,9 +49,6 @@ export const GetawayItem = memo(
     // const bookings = () => {
     //   navigate('/reservations');
     // };
-    //const toGetaway = () => {
-    //  navigate('/getawaydetail');
-    //};
 
     //previewImg Check
     const getDisplayImage = (): string => {
@@ -83,13 +78,13 @@ export const GetawayItem = memo(
         <Card elevation={0} sx={{ display: "flex", mb:2, borderRadius: "10px", backgroundColor: BRAND.bgPaper, boxShadow: "0 2px 8px 0 #c1c9d7, 0 -2px 8px 0 #cce1e9"}}>
           <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', textAlign: 'left' }} >
             <Box>
+              {/* { onViewDetails && ( */}
               <Typography
-                // onClick={toGetaway}
                 onClick={onViewDetails}
                 sx={{ fontSize: '16px', color:BRAND.primary, fontWeight: '600', cursor: onViewDetails ? 'pointer': 'default'}}
                 // style={{ cursor: 'pointer' }}
               > {name} </Typography>
-
+              {/* )} */}
               <Typography variant="subtitle2" sx={{ color: 'text.secondary', fontWeight: 'normal'}}>
                 By
                 {/* {rcnet.name ||  */}

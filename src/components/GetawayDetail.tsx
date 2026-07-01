@@ -1,11 +1,11 @@
 // import * as React from 'react';
-import{ useState, useEffect, useRef } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import{ useEffect, useState, useRef } from 'react';
+import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import {
   Container, Box, Stack, Modal,
   Typography, Divider, Button, IconButton,
   Radio, RadioGroup, FormControlLabel, FormControl,
-  ListItem, ListItemText, CircularProgress
+  ListItem, ListItemText, CircularProgress, Alert
 } from '@mui/material';
 import Grid from '@mui/material/Grid2';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
@@ -18,20 +18,25 @@ import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 
 import prevPhoto from '../assets/backgrounds/hotel.jpg';
+import { BRAND } from '../theme/colors';
+import '../App.css';
+
 import { useAuth } from '../contexts/AuthContext';
 import type { Getaway } from '../types/getaway';
+import { useGetawayById } from '../hooks/useGetawayById';
 import { isGetawayExpired } from '../utils/getawayHelpers';
 import { ROUTES, bookingPath } from '../constants/routes';
-import { BRAND } from '../theme/colors';
 import { Role } from '../constants/roles';
-import '../App.css';
 import GetawaySchedule from './GetawaySchedule';
 
 function GetawayDetail() {
   const navigate = useNavigate();
-  const { role, isLoading: isAuthLoading } = useAuth();
+  const { id } = useParams<{ id: string }>();
+  // const { role, isLoading: isAuthLoading } = useAuth();
+  const { role } = useAuth();
   const location = useLocation();
-  const getaway: Getaway | null = location.state?.getawayData;
+  const { data: apiGetaway, loading, error } = useGetawayById(id || '');
+  const getaway: Getaway | null = location.state?.getawayData || apiGetaway;
   const expired = isGetawayExpired(getaway);
 
   // console.log("Estado de carga:", isLoading, "Rol recibido:", role);
@@ -102,7 +107,6 @@ function GetawayDetail() {
   const handleBookNow = () => {
     if (!getaway?._id) return;
     navigate(bookingPath(getaway._id), { state: { getawayData: getaway } });
-    navigate('/booking', { state: { getawayData: getaway } });
   };
 
   //unavailable getaway error
@@ -123,12 +127,16 @@ function GetawayDetail() {
     );
   }
 
-  if (isAuthLoading) {
+  // if (isAuthLoading) {
+  if (loading && !location.state?.getawayData) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
         <CircularProgress />
       </Box>
     );
+  }
+  if (error && !location.state?.getawayData) {
+    return <Alert severity="error" sx={{ m: 4 }}>{error}</Alert>;
   }
 
   return (
@@ -303,7 +311,7 @@ function GetawayDetail() {
               ) : (
                 role === Role.PLAYER && (
                   <Button type="submit" onClick={handleBookNow}
-                    startIcon={<ShoppingCartIcon />} variant="contained"
+                    startIcon={<ShoppingCartIcon/>} variant="contained"
                     sx={{
                       mt: 1, mb: 3, width:'128px', borderRadius:'8px',
                       bgcolor: BRAND.primary, color: BRAND.white, fontWeight: 'bold', textTransform: 'none',
@@ -348,16 +356,17 @@ function GetawayDetail() {
                 <img src={galleryImages[currentIndex]} alt="Full screen" style={{ width:'55vw', maxHeight: '35vw', objectFit:'contain' }} />
               )}
             </center>
-            <Stack gap={1}
+            <Stack
               sx={{
                 display:"flex", flexDirection: 'row',
-                alignItems: 'flex-start', alignContent: 'flex-start',
+                alignItems: 'center',
+                alignContent: 'center',
                 flexWrap : 'wrap',
-                justifyContent: 'space-around',
+                justifyContent: 'space-evenly',
                 color: BRAND.white
               }}
             >
-              <Stack sx={{ fontSize: 15, width: '60vw' }}>
+              <Stack sx={{ fontSize: 15, width: '55vw' }}>
                 <p className='paragraph'> {getaway.mainDescription || getaway.overview } </p>
               </Stack>
               {!expired && (
@@ -366,12 +375,12 @@ function GetawayDetail() {
                     onClick={handleBookNow}
                     sx={{
                       mt: 1, mb: 3, borderRadius:'8px',
-                      minWidth: '14vw', maxWidth: '13vw',
+                      width:'130px',
                       bgcolor: BRAND.primary, color: BRAND.white, fontWeight: 'bold', textTransform: 'none',
                       ':hover': { bgcolor: BRAND.white, color: BRAND.primary},
                       borderColor: 'primary.main', border: 1
                     }}
-                  > Book now </Button>
+                  >Book now</Button>
                 )
               )}
             </Stack>
@@ -391,7 +400,7 @@ function GetawayDetail() {
           )}
           <h4 className='title4'>Weekend Schedule</h4>
           <Divider aria-hidden="true" sx={{bgcolor:BRAND.primary}} />
-          <GetawaySchedule schedule={getaway.schedule}/>
+          <GetawaySchedule schedule={getaway.schedule || []}/>
 
           <Stack spacing={1} sx={{ mt: 2, flexWrap: 'wrap', justifyContent: 'flex-start' }} >
             <h5 className='title4'>This getaway includes</h5>

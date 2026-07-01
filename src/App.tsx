@@ -126,7 +126,7 @@ function App() {
                       <Route path={ROUTES.LOGIN} element={<Login />} />
                       <Route path={ROUTES.GETAWAYS} element={<Getaways/>} />
                       <Route path={ROUTES.MY_GETAWAYS} element={<ProtectedRoute><Mygetaways/></ProtectedRoute>}/>
-                      <Route path={ROUTES.GETAWAY_DETAIL} element={<GetawayDetail/>} />
+                      <Route path={ROUTE_PATTERNS.GETAWAY_DETAIL} element={<ProtectedRoute><GetawayDetail /></ProtectedRoute>} />
                       <Route path={ROUTE_PATTERNS.BOOKING} element={<ProtectedRoute><BookGetaway2 /></ProtectedRoute>} />
                       <Route path={ROUTES.MY_ORDERS} element={<ProtectedRoute><MyOrders /></ProtectedRoute>} />
                       <Route path={ROUTE_PATTERNS.PAYMENT} element={ <ProtectedRoute><Payment /></ProtectedRoute> } />

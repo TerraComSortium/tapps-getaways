@@ -19,8 +19,10 @@ export const ROUTES = {
 export const ROUTE_PATTERNS = {
   BOOKING: `${ROUTES.BOOKING}/:id`,
   PAYMENT: `${ROUTES.PAYMENT}/:orderId`,
+  GETAWAY_DETAIL: `${ROUTES.GETAWAY_DETAIL}/:id`,
 } as const;
 
 // Constructores para navegar a rutas con parámetros.
 export const bookingPath = (id: string) => `${ROUTES.BOOKING}/${id}`;
 export const paymentPath = (orderId: string) => `${ROUTES.PAYMENT}/${orderId}`;
+export const getawayDetailPath = (id: string) => `${ROUTES.GETAWAY_DETAIL}/${id}`;

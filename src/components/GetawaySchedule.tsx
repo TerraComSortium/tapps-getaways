@@ -71,20 +71,38 @@ export default function GetawaySchedule({ schedule }: GetawayScheduleProps) {
           <TableBody>
             {hasSchedule ? (
               schedule.map((item, index) => {
+                const safeRender = (field: any): string => {
+                  if (!field) return '';
+                  if (typeof field === 'string') return field;
+                  if (typeof field === 'object' && field._seconds) {
+                    return new Date(field._seconds * 1000).toLocaleDateString('en-US', {
+                      month: 'short', day: 'numeric', year: 'numeric'
+                    });
+                  }
+                  return String(field);
+                };
+
+                //Extract clean values
+                const cleanDate = safeRender(item.date);
+                const cleanStartTime = safeRender(item.startTime);
+                const cleanEndTime = safeRender(item.endTime);
+                const cleanActivity = safeRender(item.activity);
+                const cleanLocation = safeRender(item.location);
+
                 const dayName = getDayOfWeek(item.date);
                 return(
                   <TableRow hover tabIndex={-1} key={index}>
                     <TableCell>
                       <Stack direction="column" spacing={0.2}>
                         <strong style={{ textTransform: 'capitalize' }}>{dayName}</strong>
-                        <strong>{item.date}</strong>
+                        <strong>{cleanDate}</strong>
                         <Typography variant="subtitle2" color="text.secondary">
-                          {item.startTime} - {item.endTime}
+                          {cleanStartTime} {cleanEndTime ? `- ${cleanEndTime}` : ''}
                         </Typography>
                       </Stack>
                     </TableCell>
-                    <TableCell>{item.activity}</TableCell>
-                    <TableCell>{item.location}</TableCell>
+                    <TableCell>{cleanActivity}</TableCell>
+                    <TableCell>{cleanLocation}</TableCell>
                   </TableRow>
                 )
               })

@@ -16,7 +16,8 @@ import HelpCenterIcon from '@mui/icons-material/HelpCenter';
 import CloseIcon from '@mui/icons-material/Close';
 import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
-
+import ShareIcon from '@mui/icons-material/Share';
+import CheckIcon from '@mui/icons-material/Check';
 import prevPhoto from '../assets/backgrounds/hotel.jpg';
 import { BRAND } from '../theme/colors';
 import '../App.css';
@@ -50,6 +51,7 @@ function GetawayDetail() {
   const [selectedLodging, setSelectedLodging] = useState<string>("");
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [copied, setCopied] = useState(false);
 
   //Observer for gallery container
   useEffect(() => {
@@ -107,6 +109,30 @@ function GetawayDetail() {
   const handleBookNow = () => {
     if (!getaway?._id) return;
     navigate(bookingPath(getaway._id), { state: { getawayData: getaway } });
+  };
+
+  const handleShare = async () => {
+    const currentUrl = window.location.href; //capture url
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: getaway?.title || 'Check out this Getaway!',
+          text: getaway?.overview || 'Look at this amazing padel getaway.',
+          url: currentUrl,
+        });
+        return;
+      } catch (err) {
+        console.log('Navegador canceló o bloqueó el share nativo, usando fallback...');
+      }
+    }
+    // Fallback web
+    try {
+      await navigator.clipboard.writeText(currentUrl);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);//revert
+    } catch (err) {
+      console.error('Error while copying url: ', err);
+    }
   };
 
   //unavailable getaway error
@@ -309,18 +335,34 @@ function GetawayDetail() {
                   This getaway has ended — subscription is no longer available.
                 </Typography>
               ) : (
-                role === Role.PLAYER && (
-                  <Button type="submit" onClick={handleBookNow}
-                    startIcon={<ShoppingCartIcon/>} variant="contained"
+                <Stack direction="row" spacing={2} sx={{ mt: 1, mb: 1, }}
+                  alignItems={{ xs:'center', md:'flex-start'}}
+                >
+                  { role === Role.PLAYER && (
+                    <Button type="submit" onClick={handleBookNow}
+                      startIcon={<ShoppingCartIcon/>} variant="contained"
+                      sx={{
+                        width:'128px', borderRadius:'8px',
+                        bgcolor: BRAND.primary, color: BRAND.white, fontWeight: 'semibold', textTransform: 'none',
+                        ':hover': { bgcolor: BRAND.white, color: BRAND.primary }
+                      }}
+                    >Book now</Button>
+                  )}
+                  <Button variant="contained"
+                    onClick={handleShare} startIcon={copied ? <CheckIcon /> : <ShareIcon />} 
                     sx={{
-                      mt: 1, mb: 3, width:'128px', borderRadius:'8px',
-                      bgcolor: BRAND.primary, color: BRAND.white, fontWeight: 'bold', textTransform: 'none',
+                      width:'128px', borderRadius:'8px',
+                      bgcolor: copied ? '#00E392' : BRAND.primary,
+                      fontWeight: 'semibold', textTransform: 'none',
+                      color: copied ? BRAND.primary : BRAND.white,
+                      transition: 'all 0.3s ease',
                       ':hover': {
-                        bgcolor: BRAND.white, color: BRAND.primary,
+                        bgcolor: copied ? '#00c77f' : BRAND.white, 
+                        color: copied ? BRAND.primary : BRAND.primary,
                       }
                     }}
-                  > Book now </Button>
-                )
+                  >{copied ? 'Copied!' : 'Share'}</Button>
+                </Stack>
               )}
             </Stack>
           </Grid>
@@ -415,7 +457,6 @@ function GetawayDetail() {
             )}
           </Stack>
           <Stack
-            // spacing={1}
             sx={{ mt: 2, flexWrap: 'wrap', justifyContent: 'flex-start' }}>
             <h5 className='title4'> Optional Add Ons </h5>
             {getaway.optionalAddOns && getaway.optionalAddOns.length > 0 ? (

@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ROUTES } from '../constants/routes';
+import { ROUTES, reservationsPath } from '../constants/routes';
 import { Box, Stack, Pagination, Typography, CircularProgress, Alert } from '@mui/material';
 import Grid from '@mui/material/Grid2';
 import AdminSideBar from '../components/AdminSidebar';
 import { GetawayItem } from '../components/GetawayItem';
 
 import { useAuth } from '../contexts/AuthContext';
+import { Role } from '../constants/roles';
 import { useDeleteGetaway } from '../hooks/useDeleteGetaway';
 import { useOwnerGetaways } from '../hooks/useOwnerGetaways';
 import { getSportLabel, getValidImages, formatGetawayDates } from '../utils/getawayHelpers';
@@ -21,17 +22,22 @@ export default function Mygetaways() {
   // const userLocation = useUserStore((state) => state.userLocation);
   // console.log('userLocation:', userLocation);
 
+  // const { role, isLoading: isAuthLoading } = useAuth();
+  const { role, isLoading } = useAuth();
   const navigate = useNavigate();
-  const { role, isLoading: isAuthLoading } = useAuth();
   //localStates
   const [page, setPage] = useState(1);
   const [successDeleteMsg, setSuccessDeleteMsg] = useState<string | null>(null);
   const ITEMS_PER_PAGE = 10;
 
-  const isUserValid = !isAuthLoading && !!role;
+  // const isUserValid = !isAuthLoading && !!role;
+  const isUserValid = !isLoading && !!role;
+
   const { data: getaways = [], isLoading: isDataLoading, error: queryError } = useOwnerGetaways(isUserValid);
   const { removeGetaway, isDeleting } = useDeleteGetaway();
-  const authError = !isAuthLoading && !role ? "Youn must be logged to review your getaways" : null;
+  // const authError = !isAuthLoading && !role ? "Youn must be logged to review your getaways" : null;
+  const authError = !isLoading && !role ? "Youn must be logged to review your getaways" : null;
+
   const displayError = authError || (queryError instanceof Error ? queryError.message : null);
   const handlePageChange = (_: any, value: number) => setPage(value);
   // const [isOfflineMode, setIsOfflineMode] = useState<boolean>(false);
@@ -40,6 +46,11 @@ export default function Mygetaways() {
     (page - 1) * ITEMS_PER_PAGE,
     page * ITEMS_PER_PAGE
   );
+
+  const handleViewReservations = (id:string) => {
+    if(!id)return;
+    navigate (reservationsPath(id))
+  }
 
   const handleDeleteClick = (getawayId: string, getawayTitle: string) => {
     const isConfirmed = window.confirm(`Are you sure you want to delete getaway: "${getawayTitle}"?. This action cannot be undone.`);
@@ -59,7 +70,9 @@ export default function Mygetaways() {
     });
   };
 
-  if (isAuthLoading || isDataLoading) {
+  if (
+    // isAuthLoading
+    isLoading || isDataLoading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
         <CircularProgress />
@@ -79,7 +92,6 @@ export default function Mygetaways() {
           <Box>
             <Box sx={{ mb: 3 }}>
               <Typography variant="h6" sx={{ mb: 1, fontWeight: 'bold' }}>My getaways</Typography>
-              {/* <h4>My getaways</h4> */}
               {displayError && (
                 <Alert severity="info" sx={{ mb: 2 }}> {displayError} </Alert>
               )}
@@ -121,7 +133,10 @@ export default function Mygetaways() {
                 isDeleting={isDeleting}
                 onDelete={() => handleDeleteClick(getaway._id, getaway.title)}
                 // onEdit={role === 'admin' ? () => handleEdit(getaway.id) : undefined}
-                // onViewBookings ={role === 'admin' ? () => handleBookNow(getaway) : undefined}
+                // onViewBookings ={role === 'admin' ? () => 
+                onViewBookings ={role === Role.ADMIN ? () =>
+                  handleViewReservations(getaway._id) : undefined}
+                // badgeCount={getaway.subscribersCount || 0} //toDo
               />
             ))}
           </Stack>

@@ -1,18 +1,30 @@
 import { memo } from 'react';
-import { Card, CardContent, CardMedia, Typography, Button, Box, CircularProgress, Chip } from '@mui/material';
+import { Card, CardContent, CardMedia, Typography, Button, Box, CircularProgress, Chip, IconButton } from '@mui/material';
 import SportsTennisIcon from '@mui/icons-material/SportsTennis';
 import RoomServiceIcon from '@mui/icons-material/RoomService';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import ReceiptIcon from '@mui/icons-material/Receipt';
-import prevPhoto from '../assets/backgrounds/hotel.jpg';
+// import Badge, { badgeClasses } from '@mui/material/Badge';
+import { styled } from '@mui/material/styles';
+
 import { BRAND } from '../theme/colors';
+import prevPhoto from '../assets/backgrounds/hotel.jpg';
 import '../App.css';
 // import {Skeleton} from '@mui/material';
 // import { useAuthRole } from '../hooks/useAuthRole';
 // import { useAuth } from '../contexts/AuthContext';
 
+// const CartBadge = styled(Badge)`
+//   & .${badgeClasses.badge} {
+//     top: -4px;
+//     right: -76px;
+//     background-color: ${BRAND.green};
+//     color: ${BRAND.white};
+//     border: 1px solid ${BRAND.white};
+//   }
+// `;
 const isPhotoUrl = (url: string): boolean => {
   if (!url) return false;
   const videoRegex = /youtube\.com|youtu\.be|vimeo\.com/;
@@ -30,6 +42,7 @@ interface GetawayItemProps {
   onBookNow?: () => void;
   onOrderDetails?: () => void;
   onViewBookings?: () => void;
+  // badgeCount?: number;
   onEdit?: () => void;
   onDelete?: () => void;
   isDeleting?: boolean;
@@ -37,7 +50,9 @@ interface GetawayItemProps {
 
 export const GetawayItem = memo(
   ({
-    name, dates, lodgingOptions, sport, galleryPhotos, bookedDate, isLoading = false, onViewDetails, onBookNow, onOrderDetails, onViewBookings, onEdit, onDelete, isDeleting = false
+    name, dates, lodgingOptions, sport, galleryPhotos, bookedDate, isLoading = false, onViewDetails, onBookNow, onOrderDetails, onViewBookings, 
+    // badgeCount = 0, 
+    onEdit, onDelete, isDeleting = false
   }: GetawayItemProps ) =>
   {
     // const { role, isLoading } = useAuth();
@@ -45,9 +60,6 @@ export const GetawayItem = memo(
 
     // const editGetaway = () => {
     //   navigate('/creategetaway');
-    // };
-    // const bookings = () => {
-    //   navigate('/reservations');
     // };
 
     //previewImg Check
@@ -156,10 +168,25 @@ export const GetawayItem = memo(
                 > Order Details </Button>
               )}
               { onViewBookings && (
-                <Button startIcon={<RoomServiceIcon />} onClick={ onViewBookings } disableElevation
+                <Button aria-label="view offer's bookings"
+                  // onClick={ onViewBookings } 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onViewBookings?.(); 
+                  }}
+                  disableElevation
+                  startIcon={
+                    // <CartBadge 
+                      // badgeContent={1} 
+                      // // badgeContent={badgeCount} 
+                      // overlap="circular">
+                      <RoomServiceIcon />
+                    // </CartBadge>
+                  }
                   sx={{
-                    width: 122, m: '0 0.5rem',
-                    borderRadius: '30px',
+                    width: 120, 
+                    m: '0 0.5rem',
+                    borderRadius: '24px',
                     bgcolor: BRAND.primary, color: BRAND.white,
                     fontVariantCaps: 'normal', textTransform: 'none',
                   }}
@@ -206,14 +233,11 @@ export const GetawayItem = memo(
               <Button startIcon={<EditIcon />} onClick={onEdit} disableElevation size="medium"
                 sx={{
                   width:145,
-                  // padding: '8px 20px',
-                  // m:'0 0.3rem',
                   color: BRAND.navy, bgcolor: BRAND.green,
                   borderRadius: '30px',
                   fontWeight: 'bold', textTransform: 'none',
                 }}
-              > Edit getaway
-              </Button>
+              > Edit getaway </Button>
             )}
           </Box>
         </Box>

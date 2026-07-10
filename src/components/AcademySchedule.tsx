@@ -13,6 +13,7 @@ import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import DeleteIcon from '@mui/icons-material/Delete';
+import { useTranslation } from 'react-i18next';
 import academy from '../assets/RappsIcons/academyLogo.svg';
 
 export interface AcademyRow {
@@ -74,6 +75,7 @@ const StyledTableRow = styled(TableRow)(({ theme }) => ({
 }));
 
 export default function AcademyTable() {
+  const { t } = useTranslation();
   const [rows, setRows] = React.useState<AcademyRow[]>(initialRows);
 
   //Conditional table rendering state
@@ -101,18 +103,18 @@ export default function AcademyTable() {
       {showTable ? (
         <>
           <Typography variant="body1" sx={{ mb: 2 }}>
-            Select the Academy&trade; class sessions you want to include:
+            {t('academy.selectSessions')}
           </Typography>
 
           <TableContainer component={Paper} elevation={3}>
             <Table aria-label="customized table" sx={{ minWidth:700 }}>
               <TableHead>
                 <TableRow>
-                  <StyledTableCell align="left">Weekday</StyledTableCell>
-                  <StyledTableCell align="left">Location</StyledTableCell>
-                  <StyledTableCell align="left">Trainer</StyledTableCell>
-                  <StyledTableCell align="left">Price</StyledTableCell>
-                  <StyledTableCell align="center">Include</StyledTableCell>
+                  <StyledTableCell align="left">{t('academy.weekday')}</StyledTableCell>
+                  <StyledTableCell align="left">{t('academy.location')}</StyledTableCell>
+                  <StyledTableCell align="left">{t('academy.trainer')}</StyledTableCell>
+                  <StyledTableCell align="left">{t('academy.price')}</StyledTableCell>
+                  <StyledTableCell align="center">{t('academy.include')}</StyledTableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -128,7 +130,7 @@ export default function AcademyTable() {
                     <StyledTableCell component="th" scope="row">
                       <Stack direction="column" spacing={0.5}>
                         <strong>{row.location}</strong>
-                        <span>Court: {row.court}</span>
+                        <span>{t('academy.court')}: {row.court}</span>
                       </Stack>
                     </StyledTableCell>
                     <StyledTableCell component="th" scope="row">
@@ -165,7 +167,7 @@ export default function AcademyTable() {
               borderRadius: '20px',
               px: 4
             }}
-          > Remove Selection
+          > {t('academy.removeSelection')}
           </Button>
         </>
 
@@ -175,16 +177,16 @@ export default function AcademyTable() {
             bgcolor: '#F8F9FA', border: '1px dashed #bdbdbd'
           }}>
           <CardContent>
-            <Typography variant="h6" component="div" gutterBottom sx={{ fontWeight: 'bold', color: BRAND.primary }}> Enhance your Getaway </Typography>
+            <Typography variant="h6" component="div" gutterBottom sx={{ fontWeight: 'bold', color: BRAND.primary }}> {t('academy.enhance')} </Typography>
             <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
-              Do you want to see available <strong>Racquets Academy&trade;</strong> sessions for these dates?
+              {t('academy.prompt')}
             </Typography>
           </CardContent>
           <CardActions sx={{ justifyContent: 'center' }}>
             <Button startIcon={<CheckCircleOutlineIcon />} variant="contained"  size="large"
               onClick={() => setShowTable(true)}
               sx={{ px: 4, borderRadius: '20px', bgcolor: BRAND.primary, textTransform: 'none' }}
-            > Show available sessions
+            > {t('academy.showSessions')}
             </Button>
           </CardActions>
         </Card>

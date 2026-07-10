@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import i18n from '../i18n';
 import { getStatus } from '../services/authentication/status';
 import { getAllGetaways, getGetawayById, getGetawaysByOwner, getSubscribedGetaways } from '../services/getaways/getaways';
 import { getCoupons } from '../services/coupons/coupons';
@@ -23,7 +25,7 @@ const useEndpoint = () => {
       const data = await fn();
       setState({ data, loading: false, error: null });
     } catch (err: unknown) {
-      setState({ data: null, loading: false, error: err instanceof Error ? err.message : 'Error desconocido' });
+      setState({ data: null, loading: false, error: err instanceof Error ? err.message : i18n.t('testApi.unknownError') });
     }
   };
 
@@ -48,14 +50,14 @@ const Btn = ({
       borderRadius: '6px',
     }}
   >
-    {loading ? 'Cargando...' : label}
+    {loading ? i18n.t('testApi.loading') : label}
   </button>
 );
 
 const Result = ({ label, state }: { label: string; state: EndpointState }) => (
   <>
     {state.error && (
-      <p style={{ color: '#d32f2f', marginBottom: '8px' }}>{label} Error: {state.error}</p>
+      <p style={{ color: '#d32f2f', marginBottom: '8px' }}>{label} {i18n.t('testApi.error')}: {state.error}</p>
     )}
     {state.data !== null && (
       <>
@@ -72,6 +74,7 @@ const inp = (style?: React.CSSProperties): React.CSSProperties => ({
 });
 
 export default function TestApi() {
+  const { t } = useTranslation();
   const me = useEndpoint();
   const allGetaways = useEndpoint();
   const getawayById = useEndpoint();
@@ -117,7 +120,7 @@ export default function TestApi() {
         </div>
 
         <div style={{ ...rowStyle, marginTop: '12px' }}>
-          <input style={inp()} placeholder="ID del getaway" value={getawayId} onChange={e => setGetawayId(e.target.value)} />
+          <input style={inp()} placeholder={t('testApi.getawayIdPlaceholder')} value={getawayId} onChange={e => setGetawayId(e.target.value)} />
           <Btn label={`GET /getaways/:id`} loading={getawayById.state.loading} onClick={() => getawayById.call(() => getGetawayById(getawayId))} color="#5e35b1" />
         </div>
 
@@ -145,7 +148,7 @@ export default function TestApi() {
         </div>
 
         <div style={{ ...rowStyle, marginTop: '12px' }}>
-          <input style={inp()} placeholder="término de búsqueda" value={autocompleteQ} onChange={e => setAutocompleteQ(e.target.value)} />
+          <input style={inp()} placeholder={t('testApi.searchTermPlaceholder')} value={autocompleteQ} onChange={e => setAutocompleteQ(e.target.value)} />
           <Btn label="GET /search/autocomplete" loading={autocomplete.state.loading} onClick={() => autocomplete.call(() => searchAutocomplete(autocompleteQ))} color="#00695c" />
         </div>
 

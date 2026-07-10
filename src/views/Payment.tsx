@@ -11,9 +11,11 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import CreditCardIcon from '@mui/icons-material/CreditCard';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
+import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import '../App.css';
 
-import { processPayment } from '../services/payment/payment';
+import { processPayment, confirmPayment } from '../services/payment/payment';
 import { listSavedCards, type SavedCard } from '../services/payment/paymentMethods';
 import { ROUTES } from '../constants/routes';
 import { BRAND } from '../theme/colors';
@@ -22,25 +24,19 @@ const NEW_CARD = 'new';
 
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || '');
 
-// Mensaje genérico cuando el fallo es del sistema (clave de Stripe vencida/sin
-// permisos, backend caído, red, etc.): el usuario no debe ver el detalle técnico,
-// solo saber que debe reportarlo. El detalle real queda en la consola para revisión.
-const GENERIC_PAYMENT_ERROR =
-  'No pudimos procesar tu pago en este momento. No se realizó ningún cargo. ' +
-  'Por favor inténtalo más tarde o comunícate con el administrador de la aplicación.';
+// Códigos de error de tarjeta accionables por el usuario (el texto vive en i18n:
+// payment.card.<code>).
+const CARD_ERROR_CODES = new Set([
+  'card_declined',
+  'insufficient_funds',
+  'incorrect_cvc',
+  'incorrect_number',
+  'expired_card',
+  'processing_error',
+]);
 
-// Errores de tarjeta accionables por el usuario (mapeados a un texto claro).
-const CARD_ERROR_MESSAGES: Record<string, string> = {
-  card_declined: 'Tu tarjeta fue rechazada. Intenta con otra tarjeta.',
-  insufficient_funds: 'La tarjeta no tiene fondos suficientes.',
-  incorrect_cvc: 'El código de seguridad (CVC) es incorrecto.',
-  incorrect_number: 'El número de tarjeta es incorrecto.',
-  expired_card: 'La tarjeta está vencida.',
-  processing_error: 'Hubo un problema al procesar la tarjeta. Inténtalo de nuevo.',
-};
-
-// Códigos de error que genera nuestro propio backend (no Stripe): su mensaje es
-// seguro y entendible, así que se muestra tal cual al usuario.
+// Códigos de error que genera nuestro propio backend (no Stripe): su mensaje ya
+// viene traducido por el server (Accept-Language) → se muestra tal cual.
 const SAFE_BACKEND_CODES = new Set([
   'amount_mismatch',
   'order_not_found',
@@ -54,27 +50,26 @@ const SAFE_BACKEND_CODES = new Set([
  * - Errores de validación de Stripe.js (tarjeta incompleta) → su mensaje, ya es claro.
  * - Cualquier otro (config/sistema) → mensaje genérico para contactar al administrador.
  */
-function getFriendlyPaymentError(e: any): string {
+function getFriendlyPaymentError(e: any, t: TFunction): string {
   const data = e?.response?.data;
 
   // Error proveniente del backend (POST /payment)
   if (data) {
     const code: string | undefined = data.code || data.declineCode;
-    if (code && CARD_ERROR_MESSAGES[code]) return CARD_ERROR_MESSAGES[code];
-    // Errores de validación que genera nuestro propio backend (monto no coincide,
-    // orden no encontrada / ya pagada): el mensaje es seguro y claro → se muestra tal cual.
+    if (code && CARD_ERROR_CODES.has(code)) return t(`payment.card.${code}`);
+    // Errores de validación que genera nuestro propio backend (ya localizados por el server).
     if (code && SAFE_BACKEND_CODES.has(code) && typeof data.error === 'string') return data.error;
     // El backend marca los errores de tarjeta con type StripeCardError y nos manda
     // un mensaje seguro en data.error. El resto se oculta tras el genérico.
     if (data.type === 'StripeCardError' && typeof data.error === 'string') return data.error;
-    return GENERIC_PAYMENT_ERROR;
+    return t('payment.genericError');
   }
 
   // Error de Stripe.js en el navegador (createPaymentMethod): validación de tarjeta.
-  if (e?.code && CARD_ERROR_MESSAGES[e.code]) return CARD_ERROR_MESSAGES[e.code];
+  if (e?.code && CARD_ERROR_CODES.has(e.code)) return t(`payment.card.${e.code}`);
   if (e?.type === 'validation_error' && typeof e?.message === 'string') return e.message;
 
-  return GENERIC_PAYMENT_ERROR;
+  return t('payment.genericError');
 }
 
 const CARD_ELEMENT_OPTIONS = {
@@ -93,6 +88,7 @@ const CARD_ELEMENT_OPTIONS = {
 // La orden ya fue creada en BookGetaway2 (orderId viene por la URL), así que aquí
 // solo se cobra la tarjeta real con ese orderId.
 function CheckoutForm({ orderId, amount, user }: { orderId: string; amount: number; user: any }) {
+  const { t } = useTranslation();
   const stripe = useStripe();
   const elements = useElements();
   const navigate = useNavigate();
@@ -156,7 +152,7 @@ function CheckoutForm({ orderId, amount, user }: { orderId: string; amount: numb
         saveCard: usingNewCard ? saveCard : false,
       };
       console.log('%c[STRIPE] Paso 2 — POST /payment (enviando)', 'color:#5B2BD6;font-weight:bold', paymentPayload);
-      const payRes = await processPayment(paymentPayload);
+      let payRes = await processPayment(paymentPayload);
       console.log('%c[STRIPE] Paso 2 — /payment OK (respuesta)', 'color:#00A36C;font-weight:bold', payRes);
 
       // 3. 3D Secure — si la tarjeta requiere autenticación adicional
@@ -167,8 +163,11 @@ function CheckoutForm({ orderId, amount, user }: { orderId: string; amount: numb
           console.error('[STRIPE] error 3DS:', confirmError);
           throw new Error(confirmError.message);
         }
-        // TODO(backend): tras 3DS el backend no marca la orden como 'paid'
-        // (no hay webhook ni endpoint de confirmación). Pendiente de resolver en backend.
+        // Tras autenticar, el backend re-consulta el PaymentIntent y finaliza la orden
+        // (paid + factura + suscripción). Usamos su respuesta como resultado final.
+        console.log('%c[STRIPE] Paso 3b — 3DS OK, POST /payment/confirm...', 'color:#E69500;font-weight:bold');
+        payRes = await confirmPayment(orderId);
+        console.log('%c[STRIPE] Paso 3b — /payment/confirm OK', 'color:#00A36C;font-weight:bold', payRes);
       }
 
       // 4. Éxito → navegar a /paid con el paymentResult que espera la vista Paid
@@ -179,8 +178,9 @@ function CheckoutForm({ orderId, amount, user }: { orderId: string; amount: numb
             success: payRes?.success ?? true,
             orderId: payRes?.orderId ?? orderId,
             paymentStatus: payRes?.paymentStatus,
-            requiresAction: payRes?.requiresAction,
-            clientSecret: payRes?.clientSecret,
+            invoiceNumber: payRes?.invoiceNumber,
+            // Tras confirmar, ya no hay acción pendiente.
+            requiresAction: false,
           },
         },
       });
@@ -194,7 +194,7 @@ function CheckoutForm({ orderId, amount, user }: { orderId: string; amount: numb
         backendError: e?.response?.data,
       });
       // Al usuario solo se le muestra un mensaje amable (tarjeta accionable o genérico).
-      setErrorMsg(getFriendlyPaymentError(e));
+      setErrorMsg(getFriendlyPaymentError(e, t));
     } finally {
       setProcessing(false);
     }
@@ -244,15 +244,15 @@ function CheckoutForm({ orderId, amount, user }: { orderId: string; amount: numb
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
             <Box>
               <Typography variant="caption" sx={{ opacity: 0.7, display: 'block', lineHeight: 1 }}>
-                CARDHOLDER
+                {t('payment.cardholder')}
               </Typography>
               <Typography sx={{ fontWeight: 'bold', textTransform: 'uppercase' }}>
-                {user?.name || 'Player Name'}
+                {user?.name || t('payment.playerName')}
               </Typography>
             </Box>
             <Box sx={{ textAlign: 'right' }}>
               <Typography variant="caption" sx={{ opacity: 0.7, display: 'block', lineHeight: 1 }}>
-                EXPIRES
+                {t('payment.expires')}
               </Typography>
               <Typography sx={{ fontWeight: 'bold' }}>••/••</Typography>
             </Box>
@@ -263,7 +263,7 @@ function CheckoutForm({ orderId, amount, user }: { orderId: string; amount: numb
       {/* Selector de método de pago: tarjetas guardadas + tarjeta nueva */}
       <Box sx={{ width: 340, maxWidth: '90vw', mb: 1 }}>
         <Typography variant="caption" sx={{ color: BRAND.white, display: 'block', mb: 0.5, fontWeight: 'bold' }}>
-          Payment method
+          {t('payment.methodLabel')}
         </Typography>
         <RadioGroup
           value={selectedMethod}
@@ -284,7 +284,7 @@ function CheckoutForm({ orderId, amount, user }: { orderId: string; amount: numb
           <FormControlLabel
             value={NEW_CARD}
             control={<Radio size="small" sx={{ color: BRAND.white, '&.Mui-checked': { color: BRAND.green } }} />}
-            label={<Typography variant="body2" sx={{ color: BRAND.white }}>Use a new card</Typography>}
+            label={<Typography variant="body2" sx={{ color: BRAND.white }}>{t('payment.useNewCard')}</Typography>}
           />
         </RadioGroup>
 
@@ -306,7 +306,7 @@ function CheckoutForm({ orderId, amount, user }: { orderId: string; amount: numb
               }
               label={
                 <Typography variant="caption" sx={{ color: BRAND.white }}>
-                  Guardar esta tarjeta para futuros pagos
+                  {t('payment.saveCard')}
                 </Typography>
               }
             />
@@ -330,7 +330,7 @@ function CheckoutForm({ orderId, amount, user }: { orderId: string; amount: numb
             fontWeight: 'medium', textTransform: 'none',
             ':hover': { bgcolor: BRAND.primary, color: BRAND.white },
           }}
-        >Retry</Button>
+        >{t('payment.retry')}</Button>
         <Button
           onClick={handleConfirm}
           startIcon={processing ? <CircularProgress size={18} sx={{ color: BRAND.white }} /> : <CreditCardIcon />}
@@ -343,13 +343,14 @@ function CheckoutForm({ orderId, amount, user }: { orderId: string; amount: numb
             borderRadius: '8px', borderColor: 'primary.main', border: 1,
             ':hover': { bgcolor: BRAND.white, color: BRAND.primary },
           }}
-        >{processing ? 'Processing…' : 'Confirm payment'}</Button>
+        >{processing ? t('payment.processing') : t('payment.confirm')}</Button>
       </Box>
     </Box>
   );
 }
 
 function Payment() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { orderId } = useParams<{ orderId: string }>();
   const location = useLocation();
@@ -360,9 +361,9 @@ function Payment() {
   const lodgingOption = orderData?.lodgingOption || {};
   const optionalAddOns = orderData?.optionalAddOns || [];
   const user = orderData?.user || {};
-  const getawayTitle = orderData?.getawayTitle || "Unavailable getaway name";
-  const getawayAddress = orderData?.getawayAddress || "Unavailable address";
-  const getawayDates = orderData?.getawayDates || "Unavailable dates";
+  const getawayTitle = orderData?.getawayTitle || t('payment.unavailableName');
+  const getawayAddress = orderData?.getawayAddress || t('payment.unavailableAddress');
+  const getawayDates = orderData?.getawayDates || t('payment.unavailableDates');
 
   // Monto numérico para Stripe (paymentDetails.Total viene como "X.XX USD")
   const numericTotal = parseFloat((paymentDetails.Total || '0').replace('USD', ''));
@@ -396,7 +397,7 @@ function Payment() {
           <Typography
             component="h3"
             variant="body1" sx={{ mt: 4, color: BRAND.white, fontWeight: 'semibold', textAlign: 'center' }}>
-            Order summary
+            {t('payment.orderSummary')}
           </Typography>
           <Box sx={{ px: { xs: 2, sm: 4 }, pb: 3 }}>
             {/* Encabezado del getaway */}
@@ -417,7 +418,7 @@ function Payment() {
             >
               <Box sx={{ mb: 1.5 }}>
                 <Typography variant="caption" sx={{ color: BRAND.green, fontWeight: 'bold', letterSpacing: 0.5 }}>
-                  LODGING
+                  {t('payment.lodging')}
                 </Typography>
                 <Typography variant="body2">
                   {lodgingOption.option ? `${lodgingOption.option} - $${lodgingOption.price}` : '—'}
@@ -426,14 +427,14 @@ function Payment() {
 
               <Box sx={{ mb: 1.5 }}>
                 <Typography variant="caption" sx={{ color: BRAND.green, fontWeight: 'bold', letterSpacing: 0.5 }}>
-                  ADD-ONS
+                  {t('payment.addons')}
                 </Typography>
                 {optionalAddOns.length > 0 ? (
                   optionalAddOns.map((addon: any, index: number) => (
                     <Typography key={index} variant="body2">• {addon.addonName} - ${addon.price} USD</Typography>
                   ))
                 ) : (
-                  <Typography variant="body2" sx={{ opacity: 0.7 }}>None</Typography>
+                  <Typography variant="body2" sx={{ opacity: 0.7 }}>{t('payment.none')}</Typography>
                 )}
               </Box>
 
@@ -442,11 +443,11 @@ function Payment() {
               {/* Desglose de precios */}
               <Stack spacing={0.75}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <Typography variant="body2" sx={{ opacity: 0.85 }}>Subtotal</Typography>
+                  <Typography variant="body2" sx={{ opacity: 0.85 }}>{t('payment.subtotal')}</Typography>
                   <Typography variant="body2">{paymentDetails.Subtotal}</Typography>
                 </Box>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <Typography variant="body2" sx={{ opacity: 0.85 }}>Taxes</Typography>
+                  <Typography variant="body2" sx={{ opacity: 0.85 }}>{t('payment.taxes')}</Typography>
                   <Typography variant="body2">{paymentDetails.Taxes}</Typography>
                 </Box>
                 <Box
@@ -455,7 +456,7 @@ function Payment() {
                     mt: 0.5, pt: 1.25, borderTop: '1px solid rgba(255,255,255,0.25)',
                   }}
                 >
-                  <Typography sx={{ fontWeight: 'bold' }}>Total</Typography>
+                  <Typography sx={{ fontWeight: 'bold' }}>{t('payment.total')}</Typography>
                   <Typography sx={{ fontWeight: 'bold', color: BRAND.green, fontSize: '1.15rem' }}>
                     {paymentDetails.Total}
                   </Typography>
@@ -466,7 +467,7 @@ function Payment() {
           <Divider aria-hidden="true" sx={{ borderColor: BRAND.white, borderStyle: 'dashed' }} />
           <Stack sx={{ fontSize: 15, ml: 2, color: BRAND.white, p: 3, pb: 0 }}>
             <Typography sx={{ color: BRAND.white, textDecoration: 'none' }}>
-              The payment will be submitted from your Racquets!™ account:
+              {t('payment.fromAccount')}
             </Typography>
           </Stack>
 

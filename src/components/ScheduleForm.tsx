@@ -15,6 +15,7 @@ import IconButton from '@mui/material/IconButton';
 
 import type { ScheduleRow } from '../types/getaway';
 import { compareTimes } from '../utils/dataMappers';
+import { useTranslation } from 'react-i18next';
 const StyledTableCell = styled(TableCell)(({ theme }) => ({
   [`&.${tableCellClasses.head}`]: {
     backgroundColor: theme.palette.common.black,
@@ -54,6 +55,7 @@ const periodOptions = ["AM", "PM"];
 const generateId = () => Math.random().toString(36).substr(2, 9);
 
 export function ScheduleForm({ rows, setRows }: ScheduleFormProps) {
+  const { t } = useTranslation();
   const [activeForms, setActiveForms] = useState<ScheduleRow[]>([
     {
       id: generateId(),
@@ -73,19 +75,19 @@ export function ScheduleForm({ rows, setRows }: ScheduleFormProps) {
 
   function validateFormRow(form: ScheduleRow): RowError {
     const error: RowError = {};
-    if (!form.date) error.date = "Required";
-    if (!form.startHour) error.startHour = "Required";
-    if (!form.startMinute) error.startMinute = "Required";
-    if (!form.endHour) error.endHour = "Required";
-    if (!form.endMinute) error.endMinute = "Required";
+    if (!form.date) error.date = t('sched.required');
+    if (!form.startHour) error.startHour = t('sched.required');
+    if (!form.startMinute) error.startMinute = t('sched.required');
+    if (!form.endHour) error.endHour = t('sched.required');
+    if (!form.endMinute) error.endMinute = t('sched.required');
     if (
       form.startHour && form.startMinute && form.endHour && form.endMinute &&
       (!compareTimes(form.startHour, form.startMinute, form.startPeriod, form.endHour, form.endMinute, form.endPeriod))
     ) {
-      error.endPeriod = "Must be after start time";
+      error.endPeriod = t('sched.afterStart');
     }
-    if (!form.activity) error.activity = "Required";
-    if (!form.location) error.location = "Required";
+    if (!form.activity) error.activity = t('sched.required');
+    if (!form.location) error.location = t('sched.required');
     return error;
   }
 
@@ -145,16 +147,16 @@ export function ScheduleForm({ rows, setRows }: ScheduleFormProps) {
 
   return (
     <Box>
-      <Typography variant="body1" fontWeight="bold" color={BRAND.primary}> Schedule </Typography>
+      <Typography variant="body1" fontWeight="bold" color={BRAND.primary}> {t('sched.schedule')} </Typography>
       <TableContainer component={Paper} elevation={3} sx={{ overflowX: 'auto' }}>
         <Table sx={{ minWidth: 500 }}>
           <TableHead>
             <StyledTableRow>
-              <StyledTableCell sx={{ p:'1 0 1 1', width:'90px', minWidth:'90px',}}> Date </StyledTableCell>
-              <StyledTableCell sx={{ p:'0', pl:1, width: '110px' }}> Start time </StyledTableCell>
-              <StyledTableCell sx={{ p:'0', minWidth: '50px' }}> End time </StyledTableCell>
-              <StyledTableCell sx={{ p:'0', minWidth: '150px'}}> Activity </StyledTableCell>
-              <StyledTableCell sx={{ p:'0', minWidth: '150px' }}> Location </StyledTableCell>
+              <StyledTableCell sx={{ p:'1 0 1 1', width:'90px', minWidth:'90px',}}> {t('sched.date')} </StyledTableCell>
+              <StyledTableCell sx={{ p:'0', pl:1, width: '110px' }}> {t('sched.startTime')} </StyledTableCell>
+              <StyledTableCell sx={{ p:'0', minWidth: '50px' }}> {t('sched.endTime')} </StyledTableCell>
+              <StyledTableCell sx={{ p:'0', minWidth: '150px'}}> {t('sched.activity')} </StyledTableCell>
+              <StyledTableCell sx={{ p:'0', minWidth: '150px' }}> {t('sched.location')} </StyledTableCell>
               <StyledTableCell sx={{ p:'0', width: '10px' }} align="center"></StyledTableCell>
             </StyledTableRow>
           </TableHead>
@@ -185,7 +187,7 @@ export function ScheduleForm({ rows, setRows }: ScheduleFormProps) {
                         value={form.startHour}
                         onChange={e => handleFormChange(idx, e)}
                       >
-                        <MenuItem value="">Hr</MenuItem>
+                        <MenuItem value="">{t('sched.hr')}</MenuItem>
                         {hourOptions.map(hr => (
                           <MenuItem key={hr} value={hr}>{hr}</MenuItem>
                         ))}
@@ -198,7 +200,7 @@ export function ScheduleForm({ rows, setRows }: ScheduleFormProps) {
                         value={form.startMinute}
                         onChange={e => handleFormChange(idx, e)}
                       >
-                        <MenuItem value="">Min</MenuItem>
+                        <MenuItem value="">{t('sched.min')}</MenuItem>
                         {minuteOptions.map(min => (
                           <MenuItem key={min} value={min}>{min}</MenuItem>
                         ))}
@@ -233,7 +235,7 @@ export function ScheduleForm({ rows, setRows }: ScheduleFormProps) {
                         value={form.endHour}
                         onChange={e => handleFormChange(idx, e)}
                       >
-                        <MenuItem value="">Hr</MenuItem>
+                        <MenuItem value="">{t('sched.hr')}</MenuItem>
                         {hourOptions.map(hr => (
                           <MenuItem key={hr} value={hr}>{hr}</MenuItem>
                         ))}
@@ -246,7 +248,7 @@ export function ScheduleForm({ rows, setRows }: ScheduleFormProps) {
                         value={form.endMinute}
                         onChange={e => handleFormChange(idx, e)}
                       >
-                        <MenuItem value="">Min</MenuItem>
+                        <MenuItem value="">{t('sched.min')}</MenuItem>
                         {minuteOptions.map(min => (
                           <MenuItem key={min} value={min}>{min}</MenuItem>
                         ))}
@@ -271,7 +273,7 @@ export function ScheduleForm({ rows, setRows }: ScheduleFormProps) {
                 </StyledTableCell>
                 <StyledTableCell sx={{ p:'0 3px 0 0' }}>
                   <TextField size="small" fullWidth sx={{ width:'160px'}}
-                    name="activity" placeholder="Activity title"
+                    name="activity" placeholder={t('sched.activityTitle')}
                     value={form.activity}
                     onChange={e => handleFormChange(idx, e)}
                     error={!!(touched[idx] && localErrors[idx]?.activity)}
@@ -280,7 +282,7 @@ export function ScheduleForm({ rows, setRows }: ScheduleFormProps) {
                 </StyledTableCell>
                 <StyledTableCell sx={{ width:'150px', pl:0}}>
                   <TextField size="small" fullWidth sx={{ width:'160px', padding:'0 1px 0 0'}}
-                    name="location" placeholder="Location"
+                    name="location" placeholder={t('sched.location')}
                     value={form.location}
                     onChange={e => handleFormChange(idx, e)}
                     error={!!(touched[idx] && localErrors[idx]?.location)}
@@ -291,7 +293,7 @@ export function ScheduleForm({ rows, setRows }: ScheduleFormProps) {
                   <Button variant="contained" color="primary" size="small" aria-label="save"
                     sx={{ borderRadius:'20px', textTransform:'none', fontWeight:'bold', bgcolor: BRAND.primary,  color: BRAND.white, ':hover': { color: BRAND.primary, bgcolor: BRAND.white}}}
                     onClick={() => handleConfirmFormRow(idx)}
-                  > Save </Button>
+                  > {t('sched.save')} </Button>
                   {/* <IconButton onClick={() => handleRemoveFormRow(idx)} aria-label="delete"> */}
                   {/* <IconButton onClick={() => handleRemoveRow(idx)} aria-label="delete">
                     <DeleteIcon/>
@@ -325,7 +327,7 @@ export function ScheduleForm({ rows, setRows }: ScheduleFormProps) {
             color:BRAND.navy, bgcolor:BRAND.green, borderRadius:'30px', fontWeight:'bold', textTransform:'none',
             ':hover': { bgcolor:BRAND.primary, color:'white' }
           }}
-        > Add activity </Button>
+        > {t('sched.addActivity')} </Button>
       </Box>
     </Box>
   );

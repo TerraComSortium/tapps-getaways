@@ -14,6 +14,7 @@ import {
   // useFormContext,
   Controller, Control
 } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
 import { GetawayFormData } from '../types/getaway';
 
 type DiscountFormProps = {
@@ -23,6 +24,7 @@ type DiscountFormProps = {
 };
 
 export default function DiscountForm({ control, index, remove }: DiscountFormProps) {
+  const { t } = useTranslation();
   return (
     <Box sx={{
       m:'20px 0px',
@@ -31,7 +33,7 @@ export default function DiscountForm({ control, index, remove }: DiscountFormPro
     }}
     >
       <Box style={{ display: 'flex', justifyContent:'space-between', alignItems:'center', gap: 16, marginBottom: 5 }}>
-        <Typography variant="h6" sx={{ color: BRAND.primary, fontWeight: 'bold' }}> Discount #{index + 1} </Typography>
+        <Typography variant="h6" sx={{ color: BRAND.primary, fontWeight: 'bold' }}> {t('discount.title', { n: index + 1 })} </Typography>
         <Button startIcon={<DeleteIcon />} variant="outlined" disableElevation size="medium" aria-label="delete"
           sx={{ height: 36,
             p:'5px 16px', m:'0 3px', borderRadius: "10px", textTransform: "none",
@@ -41,7 +43,7 @@ export default function DiscountForm({ control, index, remove }: DiscountFormPro
           // onClick={() => removeDiscount(index)}
           onClick={() => remove(index)}
           // disabled={activeForms.length === 1}
-        > Remove </Button>
+        > {t('discount.remove')} </Button>
       </Box>
 
       <Box style={{ display: 'flex', justifyContent: 'center', gap: 16  }}>
@@ -49,11 +51,11 @@ export default function DiscountForm({ control, index, remove }: DiscountFormPro
           name={`discounts.${index}.startDate`}
           control={control}
           defaultValue=""
-          rules={{ required: "Start date is required" }}
+          rules={{ required: t('discount.startRequired') }}
           render={({ field, fieldState: { error } }) => (
             <TextField type="date"
               {...field}
-              label="Start date" fullWidth margin="normal"
+              label={t('discount.startDate')} fullWidth margin="normal"
               // slotProps={{ inputLabel: { shrink: true } }}
               InputLabelProps={{ shrink: true }}
               error={!!error}
@@ -65,11 +67,11 @@ export default function DiscountForm({ control, index, remove }: DiscountFormPro
           name={`discounts.${index}.endDate`}
           control={control}
           defaultValue=""
-          rules={{ required: "End date is required" }}
+          rules={{ required: t('discount.endRequired') }}
           render={({ field, fieldState: { error } }) => (
             <TextField type="date"
               {...field}
-              label="End date" fullWidth margin="normal"
+              label={t('discount.endDate')} fullWidth margin="normal"
               // slotProps={{ inputLabel: { shrink: true } }}
               InputLabelProps={{ shrink: true }}
               error={!!error}
@@ -86,11 +88,11 @@ export default function DiscountForm({ control, index, remove }: DiscountFormPro
           name={`discounts.${index}.couponCode`}
           control={control}
           defaultValue=""
-          rules={{ required: "Coupon code is required" }}
+          rules={{ required: t('discount.couponRequired') }}
           render={({ field, fieldState: { error } }) => (
             <TextField
               {...field}
-              label="Coupon name or code" required
+              label={t('discount.couponCode')} required
               fullWidth margin="normal"
               id="outlined-required"
               error={!!error}
@@ -106,7 +108,7 @@ export default function DiscountForm({ control, index, remove }: DiscountFormPro
           render={({ field }) => (
           <TextField {...field}
             id="outlined-multiline-flexible"
-            label="Description"
+            label={t('discount.description')}
             multiline
             maxRows={3}
             // sx={{ m: 1 }}
@@ -121,17 +123,17 @@ export default function DiscountForm({ control, index, remove }: DiscountFormPro
           defaultValue={0}
           rules={{
             // valueAsNumber: true,
-            required: "Amount is required",
-            min: { value: 0.01, message: "Amount must be positive" }
+            required: t('discount.amountRequired'),
+            min: { value: 0.01, message: t('discount.amountPositive') }
           }}
           render={({ field, fieldState: { error } }) => (
             <FormControl fullWidth margin="normal" error={!!error}>
-              <InputLabel htmlFor="outlined-adornment-amount">Discount Amount</InputLabel>
+              <InputLabel htmlFor="outlined-adornment-amount">{t('discount.amount')}</InputLabel>
               <OutlinedInput
                 {...field}
                 id="outlined-adornment-amount"
                 endAdornment={<InputAdornment position="end">$</InputAdornment>}
-                label="Discount Amount"
+                label={t('discount.amount')}
                 type="number"
                 onChange={e => field.onChange(parseFloat(e.target.value) || 0)}
               />
@@ -147,7 +149,7 @@ export default function DiscountForm({ control, index, remove }: DiscountFormPro
           render={({ field }) => (
             <FormControlLabel
               sx={{ color: BRAND.black }}
-              label="Activate discount"
+              label={t('discount.activate')}
               control={
                 <Checkbox
                   {...field}

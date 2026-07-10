@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { ROUTES } from '../constants/routes';
 import { Box, Stack, Pagination, Typography, CircularProgress, Alert } from '@mui/material';
 import Grid from '@mui/material/Grid2';
@@ -11,6 +12,7 @@ import { useSubscribedGetaways } from '../hooks/useSubscribedGetaways';
 import { normalizeGetawayData, getSportLabel, getValidImages, formatGetawayDates, parseFirestoreDate } from '../utils/getawayHelpers';
 
 export default function MyOrders() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { role, isLoading: isAuthLoading } = useAuth();
   const [page, setPage] = useState(1);
@@ -24,7 +26,7 @@ export default function MyOrders() {
     (data as any)?.offers || (data as any)?.results || (Array.isArray(data) ? data : []);
   const getaways = Array.isArray(rawOffers) ? rawOffers.map(normalizeGetawayData) : [];
 
-  const authError = !isAuthLoading && !role ? 'You must be logged in to review your bookings' : null;
+  const authError = !isAuthLoading && !role ? t('myOrders.mustLogin') : null;
   const displayError = authError || queryError;
   const handlePageChange = (_: any, value: number) => setPage(value);
 
@@ -44,12 +46,12 @@ export default function MyOrders() {
         <AdminSideBar />
         <Grid size={{ xs: 12, sm: 10 }} className="section blueBg">
           <Box sx={{ mb: 3 }}>
-            <Typography variant="h6" sx={{ mb: 1, fontWeight: 'bold' }}>My bookings</Typography>
+            <Typography variant="h6" sx={{ mb: 1, fontWeight: 'bold' }}>{t('myOrders.title')}</Typography>
             {displayError && <Alert severity="info" sx={{ mb: 2 }}>{displayError}</Alert>}
             <Typography color="text.secondary">
               {getaways.length > 0
-                ? `You are subscribed to ${getaways.length} getaway${getaways.length > 1 ? 's' : ''}`
-                : 'You are not subscribed to any getaway yet'}
+                ? t('myOrders.subscribed', { count: getaways.length })
+                : t('myOrders.none')}
             </Typography>
           </Box>
 
@@ -57,7 +59,7 @@ export default function MyOrders() {
             {paginatedGetaways.map((getaway: any) => (
               <GetawayItem
                 key={getaway._id || getaway.id || ''}
-                name={getaway.title || 'Untitled getaway'}
+                name={getaway.title || t('common.untitledGetaway')}
                 dates={formatGetawayDates(getaway.startDate, getaway.endDate)}
                 lodgingOptions={getaway.lodgingOptions || []}
                 sport={getSportLabel(getaway.sport)}

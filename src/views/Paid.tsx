@@ -11,8 +11,10 @@ import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import LibraryBooksIcon from '@mui/icons-material/LibraryBooks';
 import LoopIcon from '@mui/icons-material/Loop';
 
+import { useTranslation } from 'react-i18next';
 import '../App.css';
 function Paid() {
+  const { t } = useTranslation();
   const location = useLocation();
   const navigate = useNavigate();
   const paymentResult = location.state?.paymentResult;
@@ -45,13 +47,13 @@ function Paid() {
           <Stack spacing={2} alignItems="center">
             <LoopIcon sx={{ fontSize: 70, color: BRAND.primary }} className="spin-animation" />
             <Typography variant="h5" sx={{ fontWeight: 'bold', color: BRAND.primary }}>
-              Authentication Required
+              {t('paid.authRequired')}
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              Your bank requires extra verification. In a complete integration, Stripe Elements would trigger a verification modal here using the clientSecret.
+              {t('paid.authRequiredDetail')}
             </Typography>
             <Typography variant="caption" sx={{ fontFamily: 'monospace', bgcolor: BRAND.bgPaper, p: 1 }}>
-              Status: {paymentStatus}
+              {t('paid.status')}: {paymentStatus}
             </Typography>
           </Stack>
         ) : success ? (
@@ -61,25 +63,25 @@ function Paid() {
               <CheckCircleOutlineIcon sx={{ fontSize: 70, color: BRAND.white }} />
               <TaskAltIcon sx={{ color:BRAND.white}}  />
               <Typography component="h1" variant="h5" sx={{ fontWeight: 'bold', color: BRAND.white }}>
-                Payment Successful! 🎉
+                {t('paid.successTitle')}
               </Typography>
               <Typography variant="body1" color="text.secondary">
-                Thank you for your purchase. Your spot in this Getaway is secure.
+                {t('paid.successSubtitle')}
               </Typography>
-              
+
               <Box sx={{ bgcolor: BRAND.bgPaper, p: 2, borderRadius: '8px', width: '100%', mt: 2, textAlign: 'left' }}>
                 <Typography variant="caption" display="block" color={BRAND.white}>
-                  <strong>Order ID:</strong> {orderId}
+                  <strong>{t('paid.orderId')}:</strong> {orderId}
                 </Typography>
                 <Typography variant="caption" display="block" color={BRAND.white}>
-                  <strong>Status:</strong> {paymentStatus || 'succeeded'}
+                  <strong>{t('paid.status')}:</strong> {paymentStatus || 'succeeded'}
                 </Typography>
                 <Typography
                   sx={{
                     pb:10,
                     color: BRAND.white, textDecoration: 'none'
                   }}>
-                  The payment receipt will be sent to your registered email address.
+                  {t('paid.receiptNote')}
                 </Typography>
               </Box>
               <Button
@@ -87,7 +89,7 @@ function Paid() {
                 startIcon={<LibraryBooksIcon />}
                 onClick={() => navigate(ROUTES.MY_ORDERS)}
                 sx={{ mt: 3, bgcolor: BRAND.primary, color: BRAND.white, textTransform: 'none', borderRadius: '8px', px: 4 }}
-              > View My Bookings
+              > {t('paid.viewBookings')}
               </Button>
             </Stack>
           </center>
@@ -96,10 +98,10 @@ function Paid() {
           <center>
           <Stack spacing={2} alignItems="center">
             <ErrorOutlineIcon sx={{ fontSize:70, color:BRAND.white }} />
-            <Typography component="h3" variant="body1" sx={{ fontWeight: 'semibold', color:BRAND.white }}> Payment Declined
+            <Typography component="h3" variant="body1" sx={{ fontWeight: 'semibold', color:BRAND.white }}> {t('paid.declinedTitle')}
             </Typography>
             <Typography variant="body1" color={BRAND.white}>
-              We couldn't process your payment. Please check your card details or use a different payment method.
+              {t('paid.declinedDetail')}
             </Typography>
 
             <Button
@@ -109,7 +111,7 @@ function Paid() {
                 ':hover': { bgcolor: BRAND.white, color: BRAND.primary},
                   borderColor: 'primary.main', border: 1
               }}
-            > Try Again
+            > {t('paid.tryAgain')}
             </Button><br/>
           </Stack>
           </center>
@@ -130,7 +132,7 @@ function Paid() {
                   ':hover': { bgcolor: BRAND.white, color: BRAND.primary},
                   borderColor: 'primary.main', border: 1
                 }}
-              > Search more getaways!
+              > {t('paid.searchMore')}
               </Button>
             </Stack>
           </Box>

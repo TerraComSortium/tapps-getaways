@@ -13,6 +13,7 @@ import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import DeleteIcon from '@mui/icons-material/Delete';
+import { useTranslation } from 'react-i18next';
 import laddersLogo from '../assets/RappsIcons/laddersLogo.svg';
 
 export interface LadderRow {
@@ -67,6 +68,7 @@ const StyledTableRow = styled(TableRow)(({ theme }) => ({
 }));
 
 export default function LaddersTable() {
+  const { t } = useTranslation();
   const [rows, setRows] = React.useState<LadderRow[]>(initialRows);
 
   //Conditional table rendering state
@@ -92,14 +94,14 @@ export default function LaddersTable() {
       </Divider>
       {showTable ? (
         <>
-          <p>You can add this available Ladders&trade; sessions in this Getaway&trade;</p>
+          <p>{t('ladders.addPrompt')}</p>
           <TableContainer component={Paper}>
             <Table sx={{ minWidth:700 }} aria-label="customized table">
               <TableHead>
                 <TableRow>
-                  <StyledTableCell align="left">Ladders Tournament</StyledTableCell>
-                  <StyledTableCell align="left">Price</StyledTableCell>
-                  <StyledTableCell align="center">Include</StyledTableCell>
+                  <StyledTableCell align="left">{t('ladders.header')}</StyledTableCell>
+                  <StyledTableCell align="left">{t('academy.price')}</StyledTableCell>
+                  <StyledTableCell align="center">{t('academy.include')}</StyledTableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -108,9 +110,9 @@ export default function LaddersTable() {
                     <StyledTableCell component="th" scope="row">
                       <Stack direction="column" spacing={0.5}>
                         <strong>{row.tournamentName} | {row.location}</strong>
-                        <span>Fechas: {row.dates}</span>
-                        <span>Tipo ranking: {row.rankingType}</span>
-                        <span>Modalidad: {row.modality}</span>
+                        <span>{t('sched.dates')}: {row.dates}</span>
+                        <span>{t('sched.rankingType')}: {row.rankingType}</span>
+                        <span>{t('sched.modality')}: {row.modality}</span>
                       </Stack>
                     </StyledTableCell>
                     <StyledTableCell align="left">{row.price}</StyledTableCell>
@@ -138,7 +140,7 @@ export default function LaddersTable() {
               borderRadius: '20px',
               px: 4
             }}
-          > Remove Selection
+          > {t('academy.removeSelection')}
           </Button>
         </>
       ) : (
@@ -147,16 +149,16 @@ export default function LaddersTable() {
             bgcolor: '#F8F9FA', border: '1px dashed #bdbdbd'
           }}>
           <CardContent>
-            <Typography variant="h6" component="div" gutterBottom sx={{ fontWeight: 'bold', color: BRAND.primary }}> Enhance your Getaway </Typography>
+            <Typography variant="h6" component="div" gutterBottom sx={{ fontWeight: 'bold', color: BRAND.primary }}> {t('academy.enhance')} </Typography>
             <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
-              Do you want to see available <strong>Racquets Ladders&trade;</strong> sessions for these dates?
+              {t('ladders.prompt')}
             </Typography>
           </CardContent>
           <CardActions sx={{ justifyContent: 'center' }}>
             <Button startIcon={<CheckCircleOutlineIcon />} variant="contained"  size="large"
               onClick={() => setShowTable(true)}
               sx={{ px: 4, borderRadius: '20px', bgcolor: BRAND.primary, textTransform: 'none' }}
-            > Show available sessions
+            > {t('academy.showSessions')}
             </Button>
           </CardActions>
         </Card>

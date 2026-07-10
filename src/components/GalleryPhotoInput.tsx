@@ -1,5 +1,7 @@
 import { Controller, Control, Path, RegisterOptions } from "react-hook-form";
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import i18n from '../i18n';
 import { BRAND } from '../theme/colors';
 
 import type { GetawayFormData } from '../types/getaway';
@@ -49,13 +51,13 @@ const validateFile = (file: File) => {
   const nameRegex = /^[@a-zA-Z0-9\s-_.]+$/;
 
   if (file.size > maxSize) {
-    return "File size must be less than 5MB";
+    return i18n.t('gallery.fileTooLarge');
   }
   if (!validExtensions.includes(file.type)) {
-    return "Invalid file type. Only JPG, PNG, and GIF are allowed";
+    return i18n.t('gallery.invalidType');
   }
   if (!nameRegex.test(file.name)) {
-    return "File name can only contain letters, numbers, spaces, @, - and _";
+    return i18n.t('gallery.invalidName');
   }
   return null;
 };
@@ -65,8 +67,9 @@ export const GalleryPhotoInput: React.FC<GalleryPhotoInputProps> = ({
   control,
   rules,
   multiple = false,
-  helperText = "Maximum size 5 MB, recommended resolution: 1280x720px"
+  helperText = i18n.t('gallery.helper')
 }) => {
+  const { t } = useTranslation();
   const [validationError, setValidationError] = useState<string | null>(null);
 
   return (
@@ -102,7 +105,7 @@ export const GalleryPhotoInput: React.FC<GalleryPhotoInputProps> = ({
 
         return (
           <Box sx={{ width: '100%' }}>
-            <TextField label="Photo Gallery"
+            <TextField label={t('gallery.photoGallery')}
               fullWidth margin="dense" sx={{ mb: 1 }}
               value={files.length > 0 ? files.map(f => f.name).join(', ') : ''}
               InputProps={{ readOnly: true }}
@@ -123,7 +126,7 @@ export const GalleryPhotoInput: React.FC<GalleryPhotoInputProps> = ({
                   ':hover': { bgcolor: BRAND.primary, color: BRAND.white }
                 }}
               >
-                Upload file
+                {t('gallery.uploadFile')}
                 <VisuallyHiddenInput
                   type="file"
                   accept="image/*"
@@ -140,7 +143,7 @@ export const GalleryPhotoInput: React.FC<GalleryPhotoInputProps> = ({
                     field.onChange(multiple ? [] : null);
                     setValidationError(null);
                   }}
-                > Reset </Button>
+                > {t('gallery.reset')} </Button>
               )}
             </Box>
 

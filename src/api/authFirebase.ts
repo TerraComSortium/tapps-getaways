@@ -1,6 +1,14 @@
-import { signInWithEmailAndPassword, signOut } from "firebase/auth";
+import { signInWithEmailAndPassword, signInWithCustomToken, signOut } from "firebase/auth";
 import { auth } from "../lib/firebase";
 import { LoginInput } from "../views/Login";
+
+// Canjea un Firebase Custom Token (enviado por una app externa) por una sesión
+// real. Tras esto, auth.currentUser queda seteado y todo el flujo normal
+// (interceptor de api, AuthContext, ProtectedRoute) funciona sin cambios.
+export const loginWithCustomToken = async (token: string) => {
+    const userCredential = await signInWithCustomToken(auth, token);
+    return userCredential.user;
+};
 
 export const login = async (authUser: LoginInput) => {
     try {

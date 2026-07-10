@@ -25,6 +25,8 @@ import { BRAND } from '../theme/colors';
 import { useAuth } from '../contexts/AuthContext';
 import { signOut } from 'firebase/auth';
 import { auth } from '../lib/firebase';
+import { useTranslation } from 'react-i18next';
+import LanguageSwitcher from './LanguageSwitcher';
 const pages = ['Login',
   // 'Sign up'
 ];
@@ -35,7 +37,11 @@ const settings = [
 function NavBar() {
   // const { mode, toggleColorMode } = useColorMode(); // toggle de tema deshabilitado temporalmente
   const { user, role } = useAuth();
+  const { t } = useTranslation();
   const navigate = useNavigate();
+  // Etiqueta traducida por página de navegación
+  const pageLabel = (page: string) =>
+    page === 'Login' ? t('nav.login') : page;
   // Con sesión iniciada no se muestra "Login" en la navegación.
   const visiblePages = user ? pages.filter((p) => p !== 'Login') : pages;
   const [anchorElNav, setAnchorElNav] = React.useState<null | HTMLElement>(
@@ -139,7 +145,7 @@ function NavBar() {
                     aria-current="page"
                     sx={{ textTransform: 'none' }}
                   >
-                    {page}
+                    {pageLabel(page)}
                   </Button>
                 </MenuItem>
               ))}
@@ -154,7 +160,7 @@ function NavBar() {
                 aria-current="page" size="large"
                 sx={{ my: 2, color: 'white', display: 'block', fontWeight: 'bold', textTransform: 'none' }}
               >
-                {page}
+                {pageLabel(page)}
               </Button>
             ))}
           </Box>
@@ -166,6 +172,8 @@ function NavBar() {
             </IconButton>
           </Tooltip>
           */}
+
+          <LanguageSwitcher />
 
           {user && (
             <Box
@@ -227,7 +235,9 @@ function NavBar() {
                   key={setting}
                   onClick={setting === 'Logout' ? handleLogout : handleCloseUserMenu}
                 >
-                  <Typography textAlign="center">{setting}</Typography>
+                  <Typography textAlign="center">
+                    {setting === 'Logout' ? t('nav.logout') : setting}
+                  </Typography>
                 </MenuItem>
               ))}
             </Menu>

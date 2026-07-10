@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Box, Stack, Pagination, Typography, CircularProgress, Alert } from '@mui/material';
 import Grid from '@mui/material/Grid2';
 import { GetawayItem } from '../components/GetawayItem';
@@ -25,6 +26,7 @@ import {
 import { Role } from '../constants/roles';
 
 export default function Mygetaways() {
+  const { t } = useTranslation();
   // App.tsx already calls useWatchLocation — no second watcher needed here
   const userLocation = useUserStore((state) => state.userLocation);
   const { role, isLoading: isAuthLoading } = useAuth();
@@ -68,7 +70,7 @@ export default function Mygetaways() {
         setGetaways(finalData);
       } catch (err: any) {
         console.warn("Error fetching initial getaways:", err.message);
-        setError("No getaways could be loaded at this time. Please try again later.");
+        setError(t('getaways.loadError'));
       } finally {
         setLoading(false);
       }
@@ -87,7 +89,7 @@ export default function Mygetaways() {
     const searchLat = filters.lat || userLocation?.lat;
     const searchLng = filters.lng || userLocation?.lng;
     if (!searchLat || !searchLng) {
-      setError("Please provide a valid location to search for getaways.");
+      setError(t('getaways.locationRequired'));
       return;
     }
     setLoading(true);
@@ -129,10 +131,10 @@ export default function Mygetaways() {
         setIsOfflineMode(true);
         setPage(1);
       } catch (parseError) {
-        setError("API failed and local data is corrupted.");
+        setError(t('getaways.localCorrupted'));
       }
     } else {
-      setError("Server connection failed. No local getaways available.");
+      setError(t('getaways.noLocalData'));
     }
   };
 
@@ -174,17 +176,17 @@ export default function Mygetaways() {
           <Box>
             <Box sx={{ mb: 3 }}>
               {isOfflineMode && (
-                <Alert severity="warning" sx={{ mb: 2 }}>Showing local preview data. Backend connection failed.</Alert>
+                <Alert severity="warning" sx={{ mb: 2 }}>{t('getaways.offlineMode')}</Alert>
               )}
               {!loading && error && getaways.length === 0 ? (
                 <Alert severity="info" sx={{ mt: 2 }}>
-                  No getaways available right now. Try again later or use the search to find experiences near you.
+                  {t('getaways.emptyState')}
                 </Alert>
               ) : !loading && (
                 <Typography variant="subtitle1" sx={{ mt: "20px" }}>
                   {getaways.length > 0
-                    ? `${isOfflineMode ? 'Local matches' : 'Getaways offers'}: ${getaways.length}`
-                    : 'No offers match your search'
+                    ? `${isOfflineMode ? t('getaways.localMatches') : t('getaways.offers')}: ${getaways.length}`
+                    : t('getaways.noMatches')
                   }
                 </Typography>
               )}
@@ -198,7 +200,7 @@ export default function Mygetaways() {
               getaways.length > 0 && paginatedGetaways.map((getaway, index) => (
                 <GetawayItem
                   key={getaway._id || `fallback-key-${index}`}
-                  name={getaway.title || "Untitled Offer"}
+                  name={getaway.title || t('common.untitledGetaway')}
                   dates={`${getaway.startDate} - ${getaway.endDate}`}
                   lodgingOptions={getaway.lodgingOptions || []}
                   sport={getSportLabel(getaway.sport)}

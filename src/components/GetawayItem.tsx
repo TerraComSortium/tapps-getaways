@@ -1,4 +1,5 @@
 import { memo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardMedia, Typography, Button, Box, CircularProgress, Chip } from '@mui/material';
 import SportsTennisIcon from '@mui/icons-material/SportsTennis';
 import RoomServiceIcon from '@mui/icons-material/RoomService';
@@ -40,6 +41,7 @@ export const GetawayItem = memo(
     name, dates, lodgingOptions, sport, galleryPhotos, bookedDate, isLoading = false, onViewDetails, onBookNow, onOrderDetails, onViewBookings, onEdit, onDelete, isDeleting = false
   }: GetawayItemProps ) =>
   {
+    const { t } = useTranslation();
     // const { role, isLoading } = useAuth();
     // console.log("Estado de carga:", isLoading, "Rol recibido:", role);
 
@@ -86,9 +88,9 @@ export const GetawayItem = memo(
               > {name} </Typography>
               {/* )} */}
               <Typography variant="subtitle2" sx={{ color: 'text.secondary', fontWeight: 'normal'}}>
-                By
+                {t('getawayItem.by')}
                 {/* {rcnet.name ||  */}
-                {' Getaway name unavailable'}
+                {` ${t('getawayItem.nameUnavailable')}`}
                 {/* } */}
               </Typography>
 
@@ -99,12 +101,12 @@ export const GetawayItem = memo(
               ></Chip>
 
               <Typography variant="subtitle2" sx={{ color: 'text.secondary', fontWeight: 'normal'}}>
-                Dates: {dates}
+                {t('getawayItem.dates')}: {dates}
               </Typography>
 
               {bookedDate && (
                 <Chip
-                  label={`Booked: ${bookedDate}`}
+                  label={`${t('getawayItem.booked')}: ${bookedDate}`}
                   size="small"
                   sx={{ width: 'fit-content', m: '3px 0', bgcolor: BRAND.green, color: BRAND.navy, fontWeight: 'bold' }}
                 />
@@ -113,7 +115,7 @@ export const GetawayItem = memo(
               <Box sx={{ display: 'flex', alignItems: 'flex-start', mb:1 }}>
                 <Box >
                   <Typography variant="subtitle2" sx={{ color: 'text.secondary', fontWeight: 'normal', alignItems: 'center' }}>
-                    Pricing Starts at:
+                    {t('getawayItem.pricingStartsAt')}
                   </Typography>
                   {/* enlist array */}
                   {lodgingOptions && lodgingOptions.length > 0 ? (
@@ -123,7 +125,7 @@ export const GetawayItem = memo(
                       </Typography>
                     ))
                   ) : (
-                    <Typography variant="body2" sx={{ color: 'text.secondary', fontStyle: 'italic' }}>Unavailable pricing</Typography>
+                    <Typography variant="body2" sx={{ color: 'text.secondary', fontStyle: 'italic' }}>{t('getawayItem.unavailablePricing')}</Typography>
                   )}
                 </Box>
               </Box>
@@ -140,7 +142,7 @@ export const GetawayItem = memo(
                     fontVariantCaps: 'normal', textTransform: 'none',
                   }}
                   onClick={onBookNow}
-                > Book now </Button>
+                > {t('getawayItem.bookNow')} </Button>
               )}
               {/* {role === 'player' && ( */}
               { onOrderDetails && (
@@ -153,7 +155,7 @@ export const GetawayItem = memo(
                     fontVariantCaps: 'normal', textTransform: 'none',
                   }}
                   onClick={onOrderDetails}
-                > Order Details </Button>
+                > {t('getawayItem.orderDetails')} </Button>
               )}
               { onViewBookings && (
                 <Button startIcon={<RoomServiceIcon />} onClick={ onViewBookings } disableElevation
@@ -163,7 +165,7 @@ export const GetawayItem = memo(
                     bgcolor: BRAND.primary, color: BRAND.white,
                     fontVariantCaps: 'normal', textTransform: 'none',
                   }}
-                > Bookings </Button>
+                > {t('getawayItem.bookings')} </Button>
               )}
               { onDelete && (
                 <Button startIcon={<DeleteIcon/>} disableElevation
@@ -182,7 +184,7 @@ export const GetawayItem = memo(
                     }
                   }}
                 >
-                  {isDeleting ? 'Wait...' : 'Delete'}
+                  {isDeleting ? t('getawayItem.wait') : t('getawayItem.delete')}
                 </Button>
               )}
             </Box>
@@ -212,7 +214,7 @@ export const GetawayItem = memo(
                   borderRadius: '30px',
                   fontWeight: 'bold', textTransform: 'none',
                 }}
-              > Edit getaway
+              > {t('getawayItem.editGetaway')}
               </Button>
             )}
           </Box>

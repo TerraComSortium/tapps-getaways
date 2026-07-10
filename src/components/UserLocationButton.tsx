@@ -2,8 +2,10 @@ import { ControlPosition, MapControl, useMap } from '@vis.gl/react-google-maps';
 import { useUserStore } from '../store/useUserStore';
 import MyLocationIcon from '@mui/icons-material/MyLocation';
 import { IconButton, Paper } from '@mui/material';
+import { useTranslation } from 'react-i18next';
 
 export const UserLocationButton = () => {
+  const { t } = useTranslation();
   const map = useMap();
   const userLocation = useUserStore((state) => state.userLocation);
 
@@ -12,7 +14,7 @@ export const UserLocationButton = () => {
       map.panTo(userLocation);
       map.setZoom(16);
     } else {
-      alert("Please allow locations access to find Getaways offers near you");
+      alert(t('map.allowLocation'));
     }
   };
 
@@ -25,7 +27,7 @@ export const UserLocationButton = () => {
         <IconButton
           onClick={handleCenter}
           style={{ backgroundColor: 'white', padding: '8px' }}
-          title="Center my location"
+          title={t('map.centerLocation')}
         >
           <MyLocationIcon style={{ color: '#666' }} />
         </IconButton>

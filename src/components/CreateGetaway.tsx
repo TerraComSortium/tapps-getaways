@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { useForm, Controller, useFieldArray, SubmitHandler } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
 import { ROUTES } from '../constants/routes';
 import { BRAND } from '../theme/colors';
 import { Box, TextField, Button, Divider, Typography, Card, Snackbar, Alert, MenuItem } from '@mui/material';
@@ -41,6 +42,7 @@ const sports = [
 ];
 
 export default function CreateGetaway() {
+  const { t } = useTranslation();
   const { snackbar, showSnackbar, closeSnackbar } = useSnackbar();
   const { isLoading, submitGetaway } = useCreateGetaway(showSnackbar);
 
@@ -83,11 +85,11 @@ export default function CreateGetaway() {
 
   const onSubmit: SubmitHandler<GetawayFormData> = async (data) => {
     if (!data.getawayAddress.lat || !data.getawayAddress.lng) {
-      showSnackbar("Please select a valid location from the suggestions.", "warning");
+      showSnackbar(t('create.selectValidLocation'), "warning");
       return;
     }
     if (scheduleRows.length === 0) {
-      setScheduleError("You must add at least one schedule row.");
+      setScheduleError(t('create.scheduleRequired'));
       document.getElementById("schedule-section")?.scrollIntoView({ behavior: "smooth" });
       return;
     }
@@ -118,7 +120,7 @@ export default function CreateGetaway() {
     <Grid container columnSpacing={{ sm: 2, md: 3 }}>
       <AdminSidebar/>
       <Grid size={{ xs: 12, sm: 9, md: 10 }} className='section blueBg' sx={{ minWidth: 0 }}>
-        <h2 className='title'>Create getaway</h2>
+        <h2 className='title'>{t('create.title')}</h2>
         <Box sx={{ padding: '7px 0px' }}>
           <form onSubmit={handleSubmit(onSubmit)}>
             <Controller name="title" defaultValue=""
@@ -128,10 +130,10 @@ export default function CreateGetaway() {
                 validate: (value?: string) =>
                   !value || ALPHANUMERIC_I18N_REGEX.test(value)
                     ? true
-                    : "Only letters and numbers are allowed.",
+                    : t('create.onlyAlphanumeric'),
               }}
               render={({ field }) => (
-                <TextField label="Getaway title" id="Getaway title" fullWidth margin="dense"
+                <TextField label={t('create.getawayTitle')} id="Getaway title" fullWidth margin="dense"
                   {...field}
                   error={!!errors.title}
                   helperText={errors.title ? errors.title.message : ''}
@@ -147,10 +149,10 @@ export default function CreateGetaway() {
                 validate: (value?: string) =>
                   !value || ALPHANUMERIC_I18N_REGEX.test(value)
                     ? true
-                    : "Only letters and numbers are allowed.",
+                    : t('create.onlyAlphanumeric'),
               }}
               render={({ field }) => (
-                <TextField id={field.name} label="Overview description" fullWidth margin="dense" multiline maxRows={3}
+                <TextField id={field.name} label={t('create.overview')} fullWidth margin="dense" multiline maxRows={3}
                   {...field}
                   error={!!errors.overview}
                   helperText={errors.overview?.message || ''}
@@ -164,7 +166,7 @@ export default function CreateGetaway() {
                   control={control}
                   // rules={{ required: "Start date is required" }}
                   render={({ field }) => (
-                    <TextField label="Start date" type="date" fullWidth margin="normal"
+                    <TextField label={t('create.startDate')} type="date" fullWidth margin="normal"
                       {...field}
                       slotProps={{ inputLabel: { shrink: true } }}
                       error={!!errors.startDate}
@@ -181,11 +183,11 @@ export default function CreateGetaway() {
                     validate: (value) => {
                       const start = control._formValues.startDate;
                       if (!value || !start) return true;
-                      return new Date(start) < new Date(value) || "End date must be after start date";
+                      return new Date(start) < new Date(value) || t('create.endAfterStart');
                     }
                   }}
                   render={({ field }) => (
-                    <TextField label="End date" fullWidth margin="normal"
+                    <TextField label={t('create.endDate')} fullWidth margin="normal"
                       {...field}
                       type="date"
                       slotProps={{ inputLabel: { shrink: true } }}
@@ -203,15 +205,15 @@ export default function CreateGetaway() {
                   render={({ field }) => (
                     <TextField
                       id={field.name}
-                      label="Sport" fullWidth margin="normal"
+                      label={t('create.sport')} fullWidth margin="normal"
                       select
                       {...field}
                       error={!!errors.sport}
-                      helperText={errors.sport ? errors.sport.message : 'Please select the sport'}
+                      helperText={errors.sport ? errors.sport.message : t('create.selectSport')}
                     >
                       {sports.map((option) => (
                         <MenuItem key={option.value} value={option.value}>
-                          {option.label}
+                          {t(`search.${option.value}`)}
                         </MenuItem>
                       ))}
                     </TextField>
@@ -235,16 +237,16 @@ export default function CreateGetaway() {
                 validate: (value?: string) =>
                   !value || ALPHANUMERIC_I18N_REGEX.test(value)
                     ? true
-                    : "Only letters and numbers are allowed.",
+                    : t('create.onlyAlphanumeric'),
               }}
               render={({ field }) => (
-                <TextField label="Photo Caption (Optional)" fullWidth margin="dense"
+                <TextField label={t('create.photoCaption')} fullWidth margin="dense"
                   {...field}
                   error={!!errors.caption}
                   helperText={
                     errors.caption
                       ? errors.caption.message
-                      : "Only letters and numbers allowed."
+                      : t('create.onlyAlphanumericHelper')
                   }
                 />
               )}
@@ -257,16 +259,16 @@ export default function CreateGetaway() {
                 validate: (value: string) =>
                   value === "" ||
                   YOUTUBE_VIMEO_REGEX.test(value) ||
-                  "Please enter a valid YouTube or Vimeo link",
+                  t('create.invalidVideoLink'),
               }}
               render={({ field }) => (
-                <TextField label="Youtube or Vimeo link (Optional)" fullWidth margin="dense"
+                <TextField label={t('create.videoLink')} fullWidth margin="dense"
                   {...field}
                   error={!!errors.galleryVideo}
                   helperText={
                     errors.galleryVideo
                       ? errors.galleryVideo.message
-                      : "Recommended resolution 1280x720px"
+                      : t('create.videoResolution')
                   }
                 />
               )}
@@ -278,18 +280,17 @@ export default function CreateGetaway() {
                 bgcolor: BRAND.primary, color: BRAND.white, fontWeight: 'medium', textTransform: 'none',
                 ':hover': { bgcolor: BRAND.primaryDark }
               }}>
-              <h3 className='titleLeft'>Want your Getaways to stand out?</h3>
-              <p>We offer professional photography and video services to enhance the beauty of your facilities and capture the essence of your club.
-              Make your Getaways irresistible!</p>
+              <h3 className='titleLeft'>{t('create.standOutTitle')}</h3>
+              <p>{t('create.standOutText')}</p>
               <Button startIcon={<LightbulbIcon />} href="https://racquetsappsuite.com/" target="_blank" disableElevation
                 sx={{
                   mb: 1, padding: '5px 15px', borderRadius: '8px', bgcolor: BRAND.white, color: BRAND.primary, fontWeight: 'medium', textTransform: 'none',
                   ':hover': { bgcolor: BRAND.primary, color: 'white'}
                 }}
-              > Learn more </Button>
+              > {t('create.learnMore')} </Button>
             </Card>
 
-            <Typography variant="h6" color={BRAND.primary} sx={{ m: '1 0', fontWeight:"bold"  }}> Getaway details </Typography>
+            <Typography variant="h6" color={BRAND.primary} sx={{ m: '1 0', fontWeight:"bold"  }}> {t('create.getawayDetails')} </Typography>
             <Divider aria-hidden="true"/>
 
             <Controller name="mainDescription" defaultValue="" control={control}
@@ -298,10 +299,10 @@ export default function CreateGetaway() {
                 validate: (value?: string) =>
                   !value || ALPHANUMERIC_I18N_REGEX.test(value)
                     ? true
-                    : "Only letters and numbers are allowed.",
+                    : t('create.onlyAlphanumeric'),
               }}
               render={({ field }) => (
-                <TextField label="Main description" fullWidth multiline maxRows={7} margin="normal"
+                <TextField label={t('create.mainDescription')} fullWidth multiline maxRows={7} margin="normal"
                   {...field}
                   error={!!errors.mainDescription}
                   helperText={errors.mainDescription ? errors.mainDescription.message : ''}
@@ -309,7 +310,7 @@ export default function CreateGetaway() {
               )}
             />
 
-            <Typography variant="h6" color={BRAND.primary} sx={{ m: '1 0', fontSize: '14px', fontWeight:"bold"  }}> Lodging options(Single or double occupancy)</Typography>
+            <Typography variant="h6" color={BRAND.primary} sx={{ m: '1 0', fontSize: '14px', fontWeight:"bold"  }}> {t('create.lodgingOptionsSection')}</Typography>
             <Divider aria-hidden="true"/>
             {lodgingFields.map((field, index) => (
               <Box key={field.id} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'start', flexWrap: 'wrap', gap: 1 }}>
@@ -317,16 +318,16 @@ export default function CreateGetaway() {
                   control={control}
                   defaultValue={field.name}
                   rules={{
-                    required: "Lodging option is required",
+                    required: t('create.lodgingRequired'),
                     validate: (value?: string) =>
                       !value || ALPHANUMERIC_I18N_REGEX.test(value)
                         ? true
-                        : "Only letters and numbers are allowed.",
+                        : t('create.onlyAlphanumeric'),
                   }}
                   render={({ field }) => (
                     <TextField
                       {...field}
-                      label={`Lodging Option ${index + 1}`}
+                      label={t('create.lodgingOptionN', { n: index + 1 })}
                       fullWidth margin="normal"
                       sx={{ maxWidth: { xs: '100%', sm: '570px' }, mr: { xs: 0, sm: '15px' } }}
                       error={!!errors.lodgingOptions?.[index]?.name}
@@ -341,22 +342,22 @@ export default function CreateGetaway() {
                   // defaultValue={field.price}
                   defaultValue={Number(field.price) || 0}
                   rules={{
-                    required: "Lodging price is required",
+                    required: t('create.lodgingPriceRequired'),
                     validate: {
                       isNumber: (value) => {
                         const numberValue = parseFloat(String(value));
-                        return !isNaN(numberValue) || 'Price must be a number';
+                        return !isNaN(numberValue) || t('create.priceNumber');
                       },
                       isPositive: (value) => {
                         const numberValue = parseFloat(String(value));
-                        return numberValue >= 0 || 'The price must be a positive number';
+                        return numberValue >= 0 || t('create.pricePositive');
                       }
                     }
                   }}
                   render={({ field }) => (
                     <TextField sx={{ width: { xs: '100%', sm: '220px' }, mr: { xs: 0, sm: '15px' } }}
                       {...field}
-                      label={`Lodging ${index + 1} Price`}
+                      label={t('create.lodgingPriceN', { n: index + 1 })}
                       type="number" margin="normal"
                       error={!!errors.lodgingOptions?.[index]?.price}
                       helperText={errors.lodgingOptions?.[index]?.price ? errors.lodgingOptions?.[index]?.price.message : ''}
@@ -371,7 +372,7 @@ export default function CreateGetaway() {
                   }}
                   onClick={() => removeLodging(index)}
                   // disabled={activeForms.length === 1}
-                >Remove</Button>
+                >{t('create.remove')}</Button>
               </Box>
             ))}
             <Button
@@ -382,9 +383,9 @@ export default function CreateGetaway() {
                 ':hover': { bgcolor: BRAND.primary, color: 'white' }
               }}
               disableElevation
-            > Add item </Button>
+            > {t('create.addItem')} </Button>
 
-            <Typography variant="h6" color={BRAND.primary} sx={{ m: '1 0', fontSize: '14px', fontWeight:"bold"  }}> Optional Add Ons [name, price] </Typography>
+            <Typography variant="h6" color={BRAND.primary} sx={{ m: '1 0', fontSize: '14px', fontWeight:"bold"  }}> {t('create.addOnsSection')} </Typography>
             <Divider aria-hidden="true" />
 
             {addOnFields.map((field, index) => (
@@ -398,12 +399,12 @@ export default function CreateGetaway() {
                     validate: (value?: string) =>
                       !value || ALPHANUMERIC_I18N_REGEX.test(value)
                         ? true
-                        : "Only letters and numbers are allowed.",
+                        : t('create.onlyAlphanumeric'),
                   }}
                   render={({ field }) => (
                     <TextField
                       {...field}
-                      label={`Optional Add On ${index + 1}`}
+                      label={t('create.addOnN', { n: index + 1 })}
                       sx={{ maxWidth: { xs: '100%', sm: '550px' }, mr: { xs: 0, sm: '15px' } }} fullWidth margin="normal"
                       error={!!errors.optionalAddOns?.[index]?.name}
                       helperText={errors.optionalAddOns?.[index]?.name ? errors.optionalAddOns?.[index]?.name.message : ''}
@@ -420,18 +421,18 @@ export default function CreateGetaway() {
                     validate: {
                       isNumber: (value) => {
                         const numberValue = parseFloat(String(value));
-                        return !isNaN(numberValue) || 'Price must be a number';
+                        return !isNaN(numberValue) || t('create.priceNumber');
                       },
                       isPositive: (value) => {
                         const numberValue = parseFloat(String(value));
-                        return numberValue >= 0 || 'The price must be a positive number';
+                        return numberValue >= 0 || t('create.pricePositive');
                       }
                     }
                   }}
                   render={({ field }) => (
                     <TextField
                       {...field}
-                      label={`Add On ${index + 1} Price`}
+                      label={t('create.addOnPriceN', { n: index + 1 })}
                       type="number" margin="normal" sx={{ maxWidth: { xs: '100%', sm: '220px' }, mr: { xs: 0, sm: '15px' } }}
                       error={!!errors.optionalAddOns?.[index]?.price}
                       helperText={errors.optionalAddOns?.[index]?.price ? errors.optionalAddOns?.[index]?.price.message : ''}
@@ -446,7 +447,7 @@ export default function CreateGetaway() {
                   }}
                   onClick={() => removeAddOn(index)}
                   // disabled={activeForms.length === 1}
-                > Remove </Button>
+                > {t('create.remove')} </Button>
               </Box>
             ))}
 
@@ -456,9 +457,9 @@ export default function CreateGetaway() {
                 mt: 0, mb: 2, bgcolor: BRAND.green, color: BRAND.navy, fontWeight: 'bold', borderRadius: '30px', textTransform: 'none',
                 ':hover': { bgcolor: BRAND.primary, color: 'white' }
               }}
-            > Add item </Button>
+            > {t('create.addItem')} </Button>
 
-            <Typography variant="h6" color={BRAND.primary} sx={{ m: '1 0', fontSize: '14px', fontWeight:"bold"  }}> Services & amenities included </Typography>
+            <Typography variant="h6" color={BRAND.primary} sx={{ m: '1 0', fontSize: '14px', fontWeight:"bold"  }}> {t('create.amenitiesSection')} </Typography>
             <Divider aria-hidden="true" sx={{ pt:0, mt: 0 }} />
             {amenityFields.map((field, index) => (
               <Box key={field.id} sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
@@ -471,7 +472,7 @@ export default function CreateGetaway() {
                       {...field}
                       fullWidth margin="normal"
                       sx={{ maxWidth: { xs: '100%', sm: '550px' }, mr: { xs: 0, sm: '9px' } }}
-                      label={`Amenity ${index + 1}`}
+                      label={t('create.amenityN', { n: index + 1 })}
                       error={!!errors.amenities?.[index]?.name}
                       helperText={errors.amenities?.[index]?.name ? errors.amenities?.[index]?.name.message : ''}
                     />
@@ -484,7 +485,7 @@ export default function CreateGetaway() {
                     ':hover': { color: BRAND.primary, bgcolor: BRAND.white  }
                   }}
                   onClick={() => removeAmenity(index)} aria-label="delete"
-                > Remove </Button>
+                > {t('create.remove')} </Button>
               </Box>
             ))}
             <Button startIcon={<AddIcon />} variant="contained" aria-label="Add amenity" disableElevation
@@ -493,7 +494,7 @@ export default function CreateGetaway() {
                 mb: 3, bgcolor: BRAND.green, color: BRAND.navy, borderRadius: '30px', fontWeight: 'bold', textTransform: 'none',
                 ':hover': { bgcolor: BRAND.primary, color: 'white' }
               }}
-            > Add item </Button>
+            > {t('create.addItem')} </Button>
 
             {scheduleError && (
               <div style={{ color: "red", fontWeight: "bold", marginBottom: 8 }}> {scheduleError} </div>
@@ -509,7 +510,7 @@ export default function CreateGetaway() {
                 ':hover': { bgcolor: BRAND.primaryDark }
               }}
             >
-              <Typography variant="h3" color={BRAND.white} sx={{ m: '1 0', fontSize: '16px', fontWeight:"medium"  }}> Discount management </Typography>
+              <Typography variant="h3" color={BRAND.white} sx={{ m: '1 0', fontSize: '16px', fontWeight:"medium"  }}> {t('create.discountManagement')} </Typography>
               {discountFields.map((field, index) => (
                 <DiscountForm
                   key={field.id}
@@ -533,7 +534,7 @@ export default function CreateGetaway() {
                   mt: 2, mb: 3, bgcolor: BRAND.white, color: BRAND.navy, borderRadius: '30px', fontWeight: 'bold', textTransform: 'none',
                   ':hover': { bgcolor: BRAND.primary, color: 'white' }
                 }}
-              > Add item </Button>
+              > {t('create.addItem')} </Button>
             </Box>
             <AcademySchedule/>
             <TournamentsSchedule/>
@@ -543,7 +544,7 @@ export default function CreateGetaway() {
               control={control}
               // rules={{ required: "Policies are required" }}
               render={({ field }) => (
-                <TextField label="Policies" fullWidth margin="normal" multiline maxRows={3}
+                <TextField label={t('create.policies')} fullWidth margin="normal" multiline maxRows={3}
                   {...field} id={field.name}
                   error={!!errors.policies}
                   helperText={errors.policies ? errors.policies.message : ''}
@@ -554,7 +555,7 @@ export default function CreateGetaway() {
             <Controller name="terms" defaultValue=""
               control={control}
               render={({ field }) => (
-                <TextField label="Terms" multiline maxRows={7} fullWidth margin="normal"
+                <TextField label={t('create.terms')} multiline maxRows={7} fullWidth margin="normal"
                   {...field} id={field.name}
                   error={!!errors.terms}
                   helperText={errors.terms ? errors.terms.message : ''}
@@ -569,7 +570,7 @@ export default function CreateGetaway() {
                   width:'135px', borderRadius: '8px', bgcolor: BRAND.white, color: BRAND.primary, fontWeight: 'medium', textTransform: 'none',
                   ':hover': { bgcolor: BRAND.primary, color: 'white' }
                 }}
-              > Retry </Button>
+              > {t('create.back')} </Button>
 
               <Button type="submit" startIcon={<SaveIcon />} variant="outlined"
                 disabled={isLoading}
@@ -579,7 +580,7 @@ export default function CreateGetaway() {
                   borderRadius: '8px', bgcolor: BRAND.primary, color: BRAND.white, fontWeight: 'medium', textTransform: 'none',
                   ':hover': { bgcolor: 'white', color: BRAND.primary }
                 }}
-              > {isLoading ? 'Saving...' : 'Save changes '}
+              > {isLoading ? t('create.saving') : t('create.saveChanges')}
               </Button>
             </Box>
           </form>

@@ -14,23 +14,26 @@ import { useForm, Controller } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { login } from '../api/authFirebase';
+import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 
 const defaultTheme = createTheme();
 
-//validation schema with yup
-const schema = yup.object().shape({
-  email: yup
-    .string()
-    .required('Email is required')
-    .matches(
-      /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/,
-      'Invalid email address'
-    ),
-  password: yup
-    .string()
-    .min(6, 'Password must be at least 6 characters')
-    .required('Password is required'),
-});
+//validation schema with yup (mensajes traducidos con t)
+const buildSchema = (t: TFunction) =>
+  yup.object().shape({
+    email: yup
+      .string()
+      .required(t('validation.emailRequired'))
+      .matches(
+        /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/,
+        t('validation.emailInvalid')
+      ),
+    password: yup
+      .string()
+      .min(6, t('validation.passwordMin'))
+      .required(t('validation.passwordRequired')),
+  });
 
 export interface LoginInput {
   email: string;
@@ -38,6 +41,8 @@ export interface LoginInput {
 }
 
 const Login: React.FC = () => {
+  const { t } = useTranslation();
+  const schema = React.useMemo(() => buildSchema(t), [t]);
   const { control, handleSubmit, formState: { errors } } = useForm<LoginInput>({
     resolver: yupResolver(schema),
   });
@@ -65,13 +70,13 @@ const Login: React.FC = () => {
             boxShadow: '0 8px 32px rgba(0,0,0,0.45)',
           }}
         >
-          <Typography component="h1" variant="h5" sx={{ color:BRAND.lime, fontWeight:'bold' }}> Log in </Typography>
+          <Typography component="h1" variant="h5" sx={{ color:BRAND.lime, fontWeight:'bold' }}> {t('login.title')} </Typography>
           <Box component="form" onSubmit={handleSubmit(onSubmit)} noValidate sx={{ m: 1, width: '100%' }}>
             <Controller name="email" defaultValue=""
               control={control}
               render={({ field }) => (
                 <TextField id="email" margin="normal" fullWidth
-                  label="Email | Use your Racquets!™ account"
+                  label={t('login.emailLabel')}
                   autoComplete="email"
                   {...field}
                   required
@@ -105,7 +110,7 @@ const Login: React.FC = () => {
             <Controller name="password" defaultValue=""
               control={control}
               render={({ field }) => (
-                <TextField id="password" label="Password" margin="normal" fullWidth
+                <TextField id="password" label={t('login.passwordLabel')} margin="normal" fullWidth
                   {...field}
                   required
                   name="password"
@@ -145,12 +150,12 @@ const Login: React.FC = () => {
                 textTransform: 'none',
                 ':hover': { bgcolor: BRAND.white, color: BRAND.primary }
                }}
-            > Log In </Button>
+            > {t('login.submit')} </Button>
             <Grid container sx={{ marginTop: 2, display: 'flex', flexDirection: 'column', alignItems: 'center'}} >
               <Grid>
                 <Typography
                   sx={{ color: BRAND.white, textDecoration: 'none' }}>
-                  Don't have a Racquets! AppSuite™ account?
+                  {t('login.noAccount')}
                 </Typography>
               </Grid>
               <Grid
@@ -167,7 +172,7 @@ const Login: React.FC = () => {
                       textTransform: 'none',
                       ':hover': { bgcolor: BRAND.white, color: BRAND.primary }
                      }}
-                  > Google store </Button>
+                  > {t('login.googleStore')} </Button>
                 </Grid>
                 <Grid>
                   <Button startIcon={<AppleIcon />} target="_blank" variant="contained"
@@ -178,7 +183,7 @@ const Login: React.FC = () => {
                       textTransform: 'none',
                       ':hover': { bgcolor: BRAND.white, color: BRAND.primary }
                     }}
-                  > Apple Store </Button>
+                  > {t('login.appleStore')} </Button>
                 </Grid>
               </Grid>
             </Grid>

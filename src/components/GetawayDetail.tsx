@@ -29,8 +29,10 @@ import { isGetawayExpired } from '../utils/getawayHelpers';
 import { ROUTES, bookingPath } from '../constants/routes';
 import { Role } from '../constants/roles';
 import GetawaySchedule from './GetawaySchedule';
+import { useTranslation } from 'react-i18next';
 
 function GetawayDetail() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   // const { role, isLoading: isAuthLoading } = useAuth();
@@ -116,8 +118,8 @@ function GetawayDetail() {
     if (navigator.share) {
       try {
         await navigator.share({
-          title: getaway?.title || 'Check out this Getaway!',
-          text: getaway?.overview || 'Look at this amazing padel getaway.',
+          title: getaway?.title || t('detail.shareTitle'),
+          text: getaway?.overview || t('detail.shareText'),
           url: currentUrl,
         });
         return;
@@ -139,15 +141,15 @@ function GetawayDetail() {
   if (!getaway) {
     return (
       <Container sx={{ textAlign: 'center', m: 4, pb:30 }}>
-        <Typography variant="h4">Getaway not found</Typography>
-        <Typography sx={{ mb: 2 }}>The offer data could not be loaded.</Typography>
+        <Typography variant="h4">{t('detail.notFound')}</Typography>
+        <Typography sx={{ mb: 2 }}>{t('detail.notFoundDetail')}</Typography>
         <Button size="medium" variant="contained" startIcon={<ArrowBackIcon />}
           onClick={() => navigate(ROUTES.GETAWAYS)}
           sx={{
             m: '1em 0', p: '8px 0.8em', width: '220px',
             borderRadius:'8px', color:BRAND.white, bgcolor: BRAND.primary, textTransform: 'none',
           }}
-        > Search more getaways
+        > {t('detail.searchMore')}
         </Button>
       </Container>
     );
@@ -175,7 +177,7 @@ function GetawayDetail() {
               m: '1em 0', p: '8px 0.8em', width: '220px',
               borderRadius:'8px', color:BRAND.black,  textTransform: 'none',
             }}
-          > Search more getaways! </Button>
+          > {t('detail.searchMoreBang')} </Button>
         </Stack>
 
         <Grid container spacing={4} sx={{ width: '100%', alignItems: 'flex-start' }}>
@@ -266,7 +268,7 @@ function GetawayDetail() {
                           onClick={() => openFullScreen(index + 1)}
                         >
                           {isVideo ? (
-                            <span style={{ color: BRAND.white, fontSize: '14px' }}>Video</span>
+                            <span style={{ color: BRAND.white, fontSize: '14px' }}>{t('detail.video')}</span>
                           ) : (
                             <img
                               src={image} alt={`getaway photo ${index + 2}`}
@@ -289,25 +291,25 @@ function GetawayDetail() {
                 <h5 className='title4'> {getaway.getawayAddress?.address} </h5>
               ):(
                 <Typography variant="subtitle2" sx={{fontStyle:'italic', color:'text.secondary'}}>
-                No address provided</Typography>
+                {t('detail.noAddress')}</Typography>
               )}
 
               {/* {rcnet.name ? ( */}
                 <h5 className='title4'>
-                  By RCnet
+                  {t('detail.byRcnet')}
                   {/* {rcnet.name} */}
                 </h5>
               {/* ):( */}
-                <Typography variant="subtitle2" sx={{fontStyle:'italic', color:'text.secondary'}}>Provider name unavailable</Typography>
+                <Typography variant="subtitle2" sx={{fontStyle:'italic', color:'text.secondary'}}>{t('detail.providerUnavailable')}</Typography>
               {/* )} */}
               <p className='paragraph'> {getaway.overview} </p>
               <div className='inline'>
-                <h4 className='title4'>Dates:</h4>
+                <h4 className='title4'>{t('detail.dates')}:</h4>
                 <span> {getaway.startDate} - {getaway.endDate}</span>
               </div>
 
               <FormControl>
-                <h4 className='title4'>Rates Start at:</h4>
+                <h4 className='title4'>{t('detail.ratesStartAt')}</h4>
                 <RadioGroup
                   aria-labelledby="demo-controlled-radio-buttons-group"
                   name="controlled-radio-buttons-group"
@@ -325,14 +327,14 @@ function GetawayDetail() {
                       />
                     ))
                   ) : (
-                    <Typography variant="subtitle2" sx={{ fontStyle: 'italic', color: 'text.secondary' }}>Unavailable lodging prices</Typography>
+                    <Typography variant="subtitle2" sx={{ fontStyle: 'italic', color: 'text.secondary' }}>{t('detail.unavailableLodging')}</Typography>
                   )}
                 </RadioGroup>
               </FormControl>
 
               {expired ? (
                 <Typography sx={{ mt: 1, mb: 3, fontStyle: 'italic', color: 'text.secondary' }}>
-                  This getaway has ended — subscription is no longer available.
+                  {t('detail.ended')}
                 </Typography>
               ) : (
                 <Stack direction="row" spacing={2} sx={{ mt: 1, mb: 1, }}
@@ -346,10 +348,10 @@ function GetawayDetail() {
                         bgcolor: BRAND.primary, color: BRAND.white, fontWeight: 'semibold', textTransform: 'none',
                         ':hover': { bgcolor: BRAND.white, color: BRAND.primary }
                       }}
-                    >Book now</Button>
+                    >{t('detail.bookNow')}</Button>
                   )}
                   <Button variant="contained"
-                    onClick={handleShare} startIcon={copied ? <CheckIcon /> : <ShareIcon />} 
+                    onClick={handleShare} startIcon={copied ? <CheckIcon /> : <ShareIcon />}
                     sx={{
                       width:'128px', borderRadius:'8px',
                       bgcolor: copied ? '#00E392' : BRAND.primary,
@@ -361,7 +363,7 @@ function GetawayDetail() {
                         color: copied ? BRAND.primary : BRAND.primary,
                       }
                     }}
-                  >{copied ? 'Copied!' : 'Share'}</Button>
+                  >{copied ? t('detail.copied') : t('detail.share')}</Button>
                 </Stack>
               )}
             </Stack>
@@ -390,7 +392,7 @@ function GetawayDetail() {
             </IconButton>
 
             <h3 className='titleLeft'>{getaway.title}</h3>
-            <h5 className='titleLeft'>{getaway.getawayAddress?.address || 'No address provided'}</h5>
+            <h5 className='titleLeft'>{getaway.getawayAddress?.address || t('detail.noAddress')}</h5>
             <center>
               {galleryImages[currentIndex] === "video" ? (
                 <iframe width="1280" height="519" src={getaway.galleryVideo} title={getaway.title} frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerPolicy="strict-origin-when-cross-origin" allowFullScreen style={{ width: '55vw', maxHeight: '35vw', objectFit: 'contain' }} />
@@ -422,7 +424,7 @@ function GetawayDetail() {
                       ':hover': { bgcolor: BRAND.white, color: BRAND.primary},
                       borderColor: 'primary.main', border: 1
                     }}
-                  >Book now</Button>
+                  >{t('detail.bookNow')}</Button>
                 )
               )}
             </Stack>
@@ -431,34 +433,34 @@ function GetawayDetail() {
       </Container>
       <Container sx={{ display:"flex", flexDirection: 'column', mt: 3, mb: 3 }} >
         <Stack>
-          <h4 className='title4'>Description</h4>
+          <h4 className='title4'>{t('detail.description')}</h4>
           <Divider aria-hidden="true" sx={{bgcolor:BRAND.primary}} />
           {getaway.mainDescription ? (
             <p className='paragraph'> {getaway.mainDescription} </p>
           ):(
             <Typography variant="subtitle2" sx={{ mt: 1, mb: 3, fontStyle: 'italic', color: 'text.secondary' }}>
-              No description provided
+              {t('detail.noDescription')}
             </Typography>
           )}
-          <h4 className='title4'>Weekend Schedule</h4>
+          <h4 className='title4'>{t('detail.weekendSchedule')}</h4>
           <Divider aria-hidden="true" sx={{bgcolor:BRAND.primary}} />
           <GetawaySchedule schedule={getaway.schedule || []}/>
 
           <Stack spacing={1} sx={{ mt: 2, flexWrap: 'wrap', justifyContent: 'flex-start' }} >
-            <h5 className='title4'>This getaway includes</h5>
+            <h5 className='title4'>{t('detail.includes')}</h5>
             {getaway.amenities && getaway.amenities.length > 0 ? (
               <ul>
                 {getaway.amenities.map((item, index) => (
-                  <li key={index}>{item.name || 'No amenities included.'}</li>
+                  <li key={index}>{item.name || t('detail.noAmenities')}</li>
                 ))}
               </ul>
             ) : (
-              <Typography sx={{fontStyle:'italic', color:'text.secondary'}}> No amenities included yet </Typography>
+              <Typography sx={{fontStyle:'italic', color:'text.secondary'}}> {t('detail.noAmenitiesYet')} </Typography>
             )}
           </Stack>
           <Stack
             sx={{ mt: 2, flexWrap: 'wrap', justifyContent: 'flex-start' }}>
-            <h5 className='title4'> Optional Add Ons </h5>
+            <h5 className='title4'> {t('detail.optionalAddOns')} </h5>
             {getaway.optionalAddOns && getaway.optionalAddOns.length > 0 ? (
               getaway.optionalAddOns.map((option, index) => (
                 <ListItem key={index}>
@@ -469,23 +471,23 @@ function GetawayDetail() {
                 </ListItem>
               ))
             ):(
-              <Typography sx={{fontStyle:'italic', color:'text.secondary'}}>Unavailable Add Ons</Typography>
+              <Typography sx={{fontStyle:'italic', color:'text.secondary'}}>{t('detail.unavailableAddOns')}</Typography>
             )}
           </Stack>
           <Stack spacing={1} sx={{ mt:0, justifyContent:'flex-start', flexWrap:'wrap' }} >
-            <h5 className='title4'>Payments & Policies</h5>
+            <h5 className='title4'>{t('detail.paymentsPolicies')}</h5>
             {getaway.policies ? (
               <p className='paragraph'> {getaway.policies} </p>
             ):(
-              <Typography sx={{fontStyle:'italic', color:'text.secondary'}}>No included</Typography>
+              <Typography sx={{fontStyle:'italic', color:'text.secondary'}}>{t('detail.notIncluded')}</Typography>
             )}
           </Stack>
           <Stack spacing={1} sx={{ mt: 2, justifyContent: 'flex-start', flexWrap: 'wrap' }} >
-            <h5 className='title4'>Términos y Condiciones</h5>
+            <h5 className='title4'>{t('detail.termsConditions')}</h5>
             {getaway.terms ? (
               <p className='paragraph'> {getaway.terms} </p>
             ):(
-              <Typography sx={{fontStyle:'italic', color:'text.secondary'}}>No included</Typography>
+              <Typography sx={{fontStyle:'italic', color:'text.secondary'}}>{t('detail.notIncluded')}</Typography>
             )}
           </Stack>
           <Stack direction="row" spacing={3}
@@ -495,7 +497,7 @@ function GetawayDetail() {
               alignItems: 'center', alignContent: 'center', gap:{ xs:'12px'}
             }}
           >
-            <h5 className='title5'>For more information:</h5>
+            <h5 className='title5'>{t('detail.moreInfo')}</h5>
             <Button target="_blank" component="a"
               startIcon={<MailIcon />} size="small" variant="contained"
               href="https://racquetsappsuite.com/contact/general-support/"
@@ -505,7 +507,7 @@ function GetawayDetail() {
                 bgcolor: BRAND.primary, color: BRAND.white, fontWeight: 'bold', textTransform: 'none',
                 ':hover': { bgcolor: BRAND.white, color: BRAND.primary}
               }}
-            > Send mail </Button>
+            > {t('detail.sendMail')} </Button>
             <Button startIcon={<WhatsAppIcon />} component="a"
               href="https://wa.me/codeNumber"
               size="small" target="_blank" variant="contained"
@@ -515,7 +517,7 @@ function GetawayDetail() {
                 bgcolor: BRAND.primary, color: BRAND.white, fontWeight: 'bold', textTransform: 'none',
                 ':hover': { bgcolor: BRAND.white, color: BRAND.primary }
               }}
-            > WhatsApp </Button>
+            > {t('detail.whatsapp')} </Button>
             <Button startIcon={<HelpCenterIcon />}
               size="small" variant="contained" target="_blank"
               href="https://racquetsappsuite.com/"
@@ -525,7 +527,7 @@ function GetawayDetail() {
                 bgcolor: BRAND.primary, color: BRAND.white, fontWeight: 'bold', textTransform: 'none',
                 ':hover': { bgcolor: BRAND.white, color: BRAND.primary }
               }}
-            > FAQs </Button>
+            > {t('detail.faqs')} </Button>
           </Stack>
         </Stack>
       </Container>

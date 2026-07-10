@@ -13,6 +13,7 @@ import { AddressAutocomplete } from './AddressAutocomplete';
 import type { LocationEntry } from '../types/getaway';
 import { useUserStore } from '../store/useUserStore';
 import { sanitizeInput } from '../utils/validations';
+import { useTranslation } from 'react-i18next';
 
 interface SearchBarProps {
   onSearch?: (filters: {
@@ -26,6 +27,7 @@ interface SearchBarProps {
 }
 
 export default function SearchBar({ onSearch }: SearchBarProps) {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const userAddress = useUserStore((state) => state.userAddress);
   const userLocation = useUserStore((state) => state.userLocation);
@@ -78,7 +80,7 @@ export default function SearchBar({ onSearch }: SearchBarProps) {
     if (arrival && arrival < today) {
       setFeedback({
         open: true,
-        message: 'Arrival date is expired',
+        message: t('search.arrivalExpired'),
         severity: 'warning'
       });
       return;
@@ -87,7 +89,7 @@ export default function SearchBar({ onSearch }: SearchBarProps) {
     if (arrival && departure && departure < arrival) {
       setFeedback({
         open: true,
-        message: 'Check dates: Departure cannot be before Arrival.',
+        message: t('search.departureBeforeArrival'),
         severity: 'warning'
       });
       return;
@@ -131,7 +133,7 @@ export default function SearchBar({ onSearch }: SearchBarProps) {
       console.error("Connection failed:", error);
       setFeedback({
         open: true,
-        message: 'Something went wrong. Please try again later.',
+        message: t('search.somethingWrong'),
         severity: 'error'
       });
     } finally {
@@ -152,7 +154,7 @@ export default function SearchBar({ onSearch }: SearchBarProps) {
         boxSizing: 'border-box',
       }}
     >
-      <Typography variant="h6" component="h6" sx={{ margin:0, padding:0, fontSize: { xs: '0.9rem', md: '1rem' }, fontWeight: 'medium' }} > Search your next Racquets!™ getaway | Live the full experience
+      <Typography variant="h6" component="h6" sx={{ margin:0, padding:0, fontSize: { xs: '0.9rem', md: '1rem' }, fontWeight: 'medium' }} > {t('search.title')}
       </Typography>
 
       <Grid container spacing={2} alignItems="flex-end" size={12} >
@@ -167,13 +169,13 @@ export default function SearchBar({ onSearch }: SearchBarProps) {
               borderRadius: '8px',
               borderColor: BRAND.white,
             }}
-            label="Nearest city"
+            label={t('search.nearestCity')}
             labelColor={BRAND.limeAlt}
           />
         </Grid>
 
         <Grid size={{ xs:12, md:4 }}>
-          <Typography variant="body2" sx={{ color:BRAND.limeAlt, mb: 0.5 }}> Date </Typography>
+          <Typography variant="body2" sx={{ color:BRAND.limeAlt, mb: 0.5 }}> {t('search.date')} </Typography>
           <Box sx={{ display: 'flex',
             gap: { xs: 1, sm: 2 },
             bgcolor: BRAND.white,
@@ -182,7 +184,7 @@ export default function SearchBar({ onSearch }: SearchBarProps) {
             width: '100%',
             alignItems: 'center',
           }}>
-            <TextField type="date" label="Arrival" value={arrival} variant="standard" fullWidth
+            <TextField type="date" label={t('search.arrival')} value={arrival} variant="standard" fullWidth
               InputLabelProps={{ shrink: true }}
               onChange={(e) => setArrival(e.target.value)}
               inputProps={{ min: today }}
@@ -204,7 +206,7 @@ export default function SearchBar({ onSearch }: SearchBarProps) {
               }}
             />
             <TextField
-              type="date" label="Departure" value={departure} variant="standard" fullWidth
+              type="date" label={t('search.departure')} value={departure} variant="standard" fullWidth
               InputLabelProps={{ shrink: true }}
               onChange={(e) => setDeparture(e.target.value)}
               inputProps={{ min: arrival || today }}
@@ -228,7 +230,7 @@ export default function SearchBar({ onSearch }: SearchBarProps) {
 
         <Grid size={{ xs:12, md:4 }} sx={{ display: 'flex', gap: 1 }}>
           <Box sx={{ flexGrow: 1 }}>
-            <Typography variant="body2" sx={{ color:BRAND.limeAlt, mb: 0.5 }}> Sport </Typography>
+            <Typography variant="body2" sx={{ color:BRAND.limeAlt, mb: 0.5 }}> {t('search.sport')} </Typography>
             <FormControl fullWidth sx={{
               '& .MuiOutlinedInput-root': { borderRadius: '8px', color: BRAND.black, bgcolor: BRAND.white, '& fieldset': { borderColor: 'transparent' }, '&:hover fieldset': { borderColor: 'transparent' }, '&.Mui-focused fieldset': { borderColor: 'transparent' }, },
             }}>
@@ -238,11 +240,11 @@ export default function SearchBar({ onSearch }: SearchBarProps) {
                 inputProps={{ 'aria-label': 'Sport selection' }}
                 sx={{ height: { xs: '38px', sm: '48px' }, minWidth: { xs: '80px', sm: '120px' },}}
               >
-                <MenuItem value="" disabled>Choose option</MenuItem>
-                <MenuItem value="tennis">Tennis</MenuItem>
-                <MenuItem value="padel">Padel</MenuItem>
-                <MenuItem value="pickleball">Pickleball</MenuItem>
-                <MenuItem value="other">Other</MenuItem>
+                <MenuItem value="" disabled>{t('search.chooseOption')}</MenuItem>
+                <MenuItem value="tennis">{t('search.tennis')}</MenuItem>
+                <MenuItem value="padel">{t('search.padel')}</MenuItem>
+                <MenuItem value="pickleball">{t('search.pickleball')}</MenuItem>
+                <MenuItem value="other">{t('search.other')}</MenuItem>
               </Select>
             </FormControl>
           </Box>

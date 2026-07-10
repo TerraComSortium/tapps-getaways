@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { ROUTES } from '../constants/routes';
 import { Box, Stack, Pagination, Typography, CircularProgress, Alert } from '@mui/material';
 import Grid from '@mui/material/Grid2';
@@ -21,6 +22,7 @@ export default function Mygetaways() {
   // const userLocation = useUserStore((state) => state.userLocation);
   // console.log('userLocation:', userLocation);
 
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { role, isLoading: isAuthLoading } = useAuth();
   //localStates
@@ -31,7 +33,7 @@ export default function Mygetaways() {
   const isUserValid = !isAuthLoading && !!role;
   const { data: getaways = [], isLoading: isDataLoading, error: queryError } = useOwnerGetaways(isUserValid);
   const { removeGetaway, isDeleting } = useDeleteGetaway();
-  const authError = !isAuthLoading && !role ? "Youn must be logged to review your getaways" : null;
+  const authError = !isAuthLoading && !role ? t('mygetaways.mustLogin') : null;
   const displayError = authError || (queryError instanceof Error ? queryError.message : null);
   const handlePageChange = (_: any, value: number) => setPage(value);
   // const [isOfflineMode, setIsOfflineMode] = useState<boolean>(false);
@@ -42,11 +44,11 @@ export default function Mygetaways() {
   );
 
   const handleDeleteClick = (getawayId: string, getawayTitle: string) => {
-    const isConfirmed = window.confirm(`Are you sure you want to delete getaway: "${getawayTitle}"?. This action cannot be undone.`);
+    const isConfirmed = window.confirm(t('mygetaways.confirmDelete', { title: getawayTitle }));
     if (!isConfirmed) return;
     removeGetaway(getawayId, {
       onSuccess: () => {
-        setSuccessDeleteMsg("Getaway deleted successfully!");
+        setSuccessDeleteMsg(t('mygetaways.deleteSuccess'));
         setTimeout(() => setSuccessDeleteMsg(null), 3000);
 
         if(paginatedGetaways.length === 1 && page > 1) {
@@ -54,7 +56,7 @@ export default function Mygetaways() {
         }
       },
       onError: () => {
-        alert("An error occurred while deleting the offer on the server. Please try again later.");
+        alert(t('mygetaways.deleteError'));
       }
     });
   };
@@ -78,7 +80,7 @@ export default function Mygetaways() {
         <Grid size={{ xs: 12, sm: 9, md:10 }} className="section blueBg">
           <Box>
             <Box sx={{ mb: 3 }}>
-              <Typography variant="h6" sx={{ mb: 1, fontWeight: 'bold' }}>My getaways</Typography>
+              <Typography variant="h6" sx={{ mb: 1, fontWeight: 'bold' }}>{t('mygetaways.title')}</Typography>
               {/* <h4>My getaways</h4> */}
               {displayError && (
                 <Alert severity="info" sx={{ mb: 2 }}> {displayError} </Alert>
@@ -90,8 +92,8 @@ export default function Mygetaways() {
               )}
               <Typography color="text.secondary">
                 {getaways.length > 0
-                  ? `You have ${getaways.length} getaways registered`
-                  : 'No offers registered yet'
+                  ? t('mygetaways.count', { count: getaways.length })
+                  : t('mygetaways.none')
                 }
                 {/* {filteredGetaways.length > 0
                   ? `Nearest getaways offers at: ${filteredGetaways.length}`
@@ -110,7 +112,7 @@ export default function Mygetaways() {
               }),
               <GetawayItem
                 key={getaway._id || ""}
-                name={getaway.title || "Untitled Offer"}
+                name={getaway.title || t('common.untitledGetaway')}
                 // dates={`${getaway.startDate} - ${getaway.endDate}`}
                 dates={formatGetawayDates(getaway.startDate, getaway.endDate)}
                 lodgingOptions={getaway.lodgingOptions || []}

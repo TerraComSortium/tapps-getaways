@@ -8,6 +8,7 @@ import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import { Typography, Stack } from '@mui/material';
+import { useTranslation } from 'react-i18next';
 // import { BRAND } from '../theme/colors';
 import '../App.css';
 
@@ -47,6 +48,7 @@ const columns: readonly Column[] = [
 ];
 
 export default function GetawaySchedule({ schedule }: GetawayScheduleProps) {
+  const { t } = useTranslation();
   const hasSchedule = schedule && schedule.length > 0;
   return (
     <Paper sx={{ width: '100%', overflow: 'hidden', boxShadow: 'none' }}>
@@ -63,7 +65,7 @@ export default function GetawaySchedule({ schedule }: GetawayScheduleProps) {
                   className='title4'
                   color="text.primary"
                   sx={{ fontWeight: 'bold'}}
-                  >{column.label}</Typography>
+                  >{t(`getawaySchedule.${column.id}`)}</Typography>
                 </TableCell>
               ))}
             </TableRow>
@@ -110,7 +112,7 @@ export default function GetawaySchedule({ schedule }: GetawayScheduleProps) {
               <TableRow>
                 <TableCell colSpan={3} align="center">
                   <Typography sx={{ fontStyle: 'italic', color: 'text.secondary', py: 2 }}>
-                    The schedule is not currently available
+                    {t('getawaySchedule.notAvailable')}
                   </Typography>
                 </TableCell>
               </TableRow>

@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useForm, Controller } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
 
 import { Box, TextField, Button, Typography, Divider, RadioGroup,
   FormGroup, FormControl,
@@ -34,6 +35,7 @@ interface FormData {
 }
 
 export default function BookGetaway() {
+  const { t } = useTranslation();
   //get id param and fetch getaway
   const { id } = useParams<{ id: string }>();
   const { data: getaway, loading, error } = useGetawayById(id || '');
@@ -158,7 +160,7 @@ export default function BookGetaway() {
   //loading & error
   if (loading) return <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}><CircularProgress /></Box>;
   if (error) return <Alert severity="error">{error}</Alert>;
-  if (!getaway) return <Alert severity="info">Getaway unavailable for booking, try later.</Alert>;
+  if (!getaway) return <Alert severity="info">{t('book.unavailable')}</Alert>;
   console.log("Valores actuales del form:", watchLodging);
   console.log("Opciones disponibles:", getaway.lodgingOptions);
   return (
@@ -166,35 +168,35 @@ export default function BookGetaway() {
       <Grid container rowSpacing={1} columnSpacing={{ xs: 1, sm: 2, md: 3 }}>
         <AdminSideBar />
         <Grid size={{ xs: 12, sm: 9, md: 10 }} className='section blueBg'>
-          <Typography variant="h5" className='title'>Getaway reservation</Typography>
-          <Typography variant="h6" className='title'>{getaway.title || 'Getaway reservation'}</Typography>
+          <Typography variant="h5" className='title'>{t('book.title')}</Typography>
+          <Typography variant="h6" className='title'>{getaway.title || t('book.title')}</Typography>
           {/* <Typography variant="h6" className='title'><span>{getaway.startDate} to {getaway.endDate}</span></Typography> */}
 
           <Box sx={{ width: 1000, maxWidth: '100%', padding: { xs: 1, sm: '7px' }, boxSizing: 'border-box' }}>
             <form onSubmit={handleSubmit(onSubmit)}>
-              <Typography variant="h6" className='purpleLabel' sx={{ mt: 2, mb: 1, fontSize: '14px', fontWeight: 'bold' }}>Payment & contact info</Typography>
-              <TextField label="Player Name" margin="dense" fullWidth disabled defaultValue={user?.displayName || ''} />
+              <Typography variant="h6" className='purpleLabel' sx={{ mt: 2, mb: 1, fontSize: '14px', fontWeight: 'bold' }}>{t('book.paymentContactInfo')}</Typography>
+              <TextField label={t('book.playerName')} margin="dense" fullWidth disabled defaultValue={user?.displayName || ''} />
 
-              <TextField label="Email" fullWidth margin="dense" disabled
+              <TextField label={t('book.email')} fullWidth margin="dense" disabled
                 defaultValue={user?.email || ''}
               />
-              <TextField label="Cellphone"
+              <TextField label={t('book.cellphone')}
                 fullWidth margin="dense"
                 defaultValue=""
                 // defaultValue={user?.cellphone || ''}
                 disabled
               />
-              <TextField label="Address"
+              <TextField label={t('book.address')}
                 fullWidth margin="dense"
                 defaultValue=""
                 disabled
               />
-              <Typography variant="h6" className='purpleLabel' sx={{ mt: 2, mb: 0.5, fontSize: '14px', fontWeight: 'bold' }}>Lodging Options*</Typography>
+              <Typography variant="h6" className='purpleLabel' sx={{ mt: 2, mb: 0.5, fontSize: '14px', fontWeight: 'bold' }}>{t('book.lodgingOptions')}</Typography>
               <Divider aria-hidden="true" sx={{ bgcolor: BRAND.green }} />
               <Controller name="lodgingOption"
                 control={control}
                 defaultValue=""
-                rules={{ required: 'Please select a Lodging option' }}
+                rules={{ required: t('book.selectLodging') }}
                 render={({ field }) => (
                   <RadioGroup {...field} aria-labelledby="demo-radio-buttons-group-label" name="radio-buttons-group"
                   value={field.value || ''}
@@ -205,9 +207,11 @@ export default function BookGetaway() {
                         key={option.name}
                         value={option.name}
                         control={<Radio />}
-                        label={`$${option.price}+tax/person
-                         ${option.occupancy || ''}
-                        for ${option.name}`}
+                        label={t('book.lodgingLabel', {
+                          price: option.price,
+                          occupancy: option.occupancy || '',
+                          name: option.name,
+                        })}
                       />
                     ))}
                   </RadioGroup>
@@ -215,7 +219,7 @@ export default function BookGetaway() {
               />
               {errors.lodgingOption && <Typography variant="caption" color="error">{errors.lodgingOption.message}</Typography>}
 
-              <Typography variant="h6" className='purpleLabel' sx={{ mt: 2, mb: 0.5, fontSize: '14px', fontWeight: 'bold' }}>Add Ons (Optional)</Typography>
+              <Typography variant="h6" className='purpleLabel' sx={{ mt: 2, mb: 0.5, fontSize: '14px', fontWeight: 'bold' }}>{t('book.addOns')}</Typography>
               <Divider aria-hidden="true" sx={{ bgcolor: BRAND.green }} />
               <Controller name="selectedAddOns" control={control} render={({ field }) => (
                 <FormControl component="fieldset" variant="standard"
@@ -244,35 +248,35 @@ export default function BookGetaway() {
                 </FormControl>
               )}
             />
-              <Typography variant="h6" className='purpleLabel' sx={{ mt: 2, mb: 0.5, fontSize: '14px', fontWeight: 'bold' }}>Payment Details</Typography>
+              <Typography variant="h6" className='purpleLabel' sx={{ mt: 2, mb: 0.5, fontSize: '14px', fontWeight: 'bold' }}>{t('book.paymentDetails')}</Typography>
               <Divider aria-hidden="true" sx={{ bgcolor: BRAND.green }} />
-              <Typography variant="body2" sx={{ mt: 1 }}>Subtotal: ${(totals.subtotal || 0).toFixed(2)} USD</Typography>
-              <Typography variant="body2">Taxes: ${(totals.taxes || 0).toFixed(2)} USD</Typography>
-              <Typography variant="body2" sx={{ fontWeight: 'bold' }}>Total: ${ (totals.total || 0).toFixed(2)} USD</Typography>
-              <Typography variant="body2">*The total charged on the next page will be the price quoted above.</Typography>
+              <Typography variant="body2" sx={{ mt: 1 }}>{t('book.subtotal')}: ${(totals.subtotal || 0).toFixed(2)} USD</Typography>
+              <Typography variant="body2">{t('book.taxes')}: ${(totals.taxes || 0).toFixed(2)} USD</Typography>
+              <Typography variant="body2" sx={{ fontWeight: 'bold' }}>{t('book.total')}: ${ (totals.total || 0).toFixed(2)} USD</Typography>
+              <Typography variant="body2">{t('book.totalNote')}</Typography>
 
-              <Typography variant="h6" className='purpleLabel' sx={{ mt: 2, mb: 0.5, fontSize: '16px', fontWeight: 'bold' }}>Policies*</Typography>
-              <Typography variant="body2" sx={{ mt: 1 }}>{getaway.policies || 'No cancellation policies provided.'}</Typography>
-              <Controller name="agreePolicies" control={control} rules={{ required: 'You must agree to the policy' }}
-              render={({ field }) => <FormControlLabel control={<Checkbox {...field} checked={field.value} />} label="I understand the cancellation policy" />}
+              <Typography variant="h6" className='purpleLabel' sx={{ mt: 2, mb: 0.5, fontSize: '16px', fontWeight: 'bold' }}>{t('book.policies')}</Typography>
+              <Typography variant="body2" sx={{ mt: 1 }}>{getaway.policies || t('book.noPolicies')}</Typography>
+              <Controller name="agreePolicies" control={control} rules={{ required: t('book.mustAgreePolicy') }}
+              render={({ field }) => <FormControlLabel control={<Checkbox {...field} checked={field.value} />} label={t('book.agreePolicy')} />}
               />
 
               {errors.agreePolicies && (
                 <Typography variant="caption" color="error" sx={{ display: 'block' }}>{errors.agreePolicies.message}</Typography>
               )}
 
-              <Typography variant="h6" className='purpleLabel' sx={{ mt: 2, mb: 0.5, fontSize: '16px', fontWeight: 'bold' }}>Terms*</Typography>
+              <Typography variant="h6" className='purpleLabel' sx={{ mt: 2, mb: 0.5, fontSize: '16px', fontWeight: 'bold' }}>{t('book.terms')}</Typography>
               <Box sx={{ backgroundColor: 'white', borderRadius: '8px', padding: '1px 15px', mt: 1, mr: 2 }}>
-                <Typography variant="body2" sx={{ py: 1 }}>{getaway.terms || 'No terms provided'}</Typography>
+                <Typography variant="body2" sx={{ py: 1 }}>{getaway.terms || t('book.noTerms')}</Typography>
               </Box>
               <Controller name="agreeTerms"
                 control={control}
                 defaultValue={false}
-                rules={{ required: 'You must agree to the terms' }}
+                rules={{ required: t('book.mustAgreeTerms') }}
                 render={({ field }) => (
                   <FormControlLabel
                     control={<Checkbox {...field} checked={field.value} />}
-                    label="I understand and agree to the terms"
+                    label={t('book.agreeTerms')}
                   />
                 )}
               />
@@ -287,7 +291,7 @@ export default function BookGetaway() {
                 //bgcolor: BRAND.white, color: BRAND.primary,
                 fontWeight: 'medium', textTransform: 'none',
                 ':hover': { bgcolor: BRAND.primary, color: 'white' } }}
-              >Retry</Button>
+              >{t('book.back')}</Button>
 
               <Button
                 type="submit" startIcon={isSubmitting ? <CircularProgress size={20} /> : <ShoppingCartIcon />}
@@ -297,7 +301,7 @@ export default function BookGetaway() {
                   fontWeight: 'medium', textTransform: 'none',
                   ':hover': { bgcolor: 'white', color: BRAND.primary }
                 }}
-              > {isSubmitting ? 'Processing...' : 'Book getaway'}
+              > {isSubmitting ? t('book.processing') : t('book.submit')}
               </Button>
             </Box>
             </form>

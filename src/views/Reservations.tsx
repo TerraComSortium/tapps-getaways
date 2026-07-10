@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Box, Button, Dialog, DialogTitle, DialogContent, IconButton, Typography, Divider
 } from '@mui/material';
@@ -73,6 +74,7 @@ interface SelectedData {
 }
 
 function Reservations() {
+  const { t } = useTranslation();
   const id = localStorage.getItem('id') ?? '';
   const { data: getaways } = useGetawaySubscribers(id);
   console.log(getaways);
@@ -106,18 +108,18 @@ function Reservations() {
         <AdminSideBar />
         <Grid size={{ xs: 12, sm: 9, md: 10 }} className="section blueBg" sx={{ minWidth: 0 }}>
           <Box>
-            <Typography variant="h6">Getaway's players list</Typography>
+            <Typography variant="h6">{t('reservations.playersList')}</Typography>
           </Box>
           <TableContainer component={Paper} sx={{ overflowX: 'auto', width: '100%' }}>
             <Table sx={{ minWidth: 650 }} aria-label="customized table">
               <TableHead>
                 <TableRow>
-                  <StyledTableCell>Player's name</StyledTableCell>
-                  <StyledTableCell align="left">City</StyledTableCell>
-                  <StyledTableCell align="left">Payment state</StyledTableCell>
-                  <StyledTableCell align="right">Price&nbsp;($)</StyledTableCell>
-                  <StyledTableCell align="left">Whatsapp contact</StyledTableCell>
-                  <StyledTableCell align="center">Sale detail</StyledTableCell>
+                  <StyledTableCell>{t('reservations.playerName')}</StyledTableCell>
+                  <StyledTableCell align="left">{t('reservations.city')}</StyledTableCell>
+                  <StyledTableCell align="left">{t('reservations.paymentState')}</StyledTableCell>
+                  <StyledTableCell align="right">{t('reservations.price')}&nbsp;($)</StyledTableCell>
+                  <StyledTableCell align="left">{t('reservations.whatsapp')}</StyledTableCell>
+                  <StyledTableCell align="center">{t('reservations.saleDetail')}</StyledTableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -143,7 +145,7 @@ function Reservations() {
                           bgcolor: BRAND.primary, color: BRAND.white, fontWeight: 'medium', textTransform: 'none',
                         }}
                       >
-                        Sale details
+                        {t('reservations.saleDetails')}
                       </Button>
                     </StyledTableCell>
                   </StyledTableRow>
@@ -158,7 +160,7 @@ function Reservations() {
       {/* Receipt Modal */}
       <Dialog open={open} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
         <DialogTitle>
-          <Typography variant="subtitle1" sx={{ textAlign: 'center' }}>Sale Details</Typography>
+          <Typography variant="subtitle1" sx={{ textAlign: 'center' }}>{t('reservations.saleDetails')}</Typography>
           <IconButton
             aria-label="close"
             onClick={handleCloseDialog}
@@ -175,31 +177,31 @@ function Reservations() {
         <DialogContent>
           {selectedRow && (
             <>
-              <Typography variant="body1">Player's name: {selectedRow.playerName}</Typography>
-              <Typography variant="body1">City: {selectedRow.city}</Typography>
-              <Typography variant="body1">Payment state: {selectedRow.paymentState}</Typography>
-              <Typography variant="body1">Price: ${selectedRow.price}</Typography>
+              <Typography variant="body1">{t('reservations.playerName')}: {selectedRow.playerName}</Typography>
+              <Typography variant="body1">{t('reservations.city')}: {selectedRow.city}</Typography>
+              <Typography variant="body1">{t('reservations.paymentState')}: {selectedRow.paymentState}</Typography>
+              <Typography variant="body1">{t('reservations.priceLabel')}: ${selectedRow.price}</Typography>
 
               {selectedData ? (
                 <>
                   <Divider sx={{ my: 2 }} />
-                  <Typography variant="subtitle1">Booking details</Typography>
-                  <Typography variant="body1">Lodging option: {selectedData.lodgingOption}</Typography>
+                  <Typography variant="subtitle1">{t('reservations.bookingDetails')}</Typography>
+                  <Typography variant="body1">{t('reservations.lodgingOption')}: {selectedData.lodgingOption}</Typography>
                   <Typography variant="body1">
-                    Add Ons:
-                    {selectedData.amenities.specialDinner && ' Special Dinner,'}
-                    {selectedData.amenities.meetGreet && ' Meet & Greet,'}
-                    {selectedData.amenities.tennisClass && ' Tennis Class'}
+                    {t('reservations.addOns')}:
+                    {selectedData.amenities.specialDinner && ` ${t('reservations.specialDinner')},`}
+                    {selectedData.amenities.meetGreet && ` ${t('reservations.meetGreet')},`}
+                    {selectedData.amenities.tennisClass && ` ${t('reservations.tennisClass')}`}
                   </Typography>
                   <Divider sx={{ my: 2 }} />
-                  <Typography variant="subtitle1">Payment details</Typography>
-                  <Typography variant="body1">Taxes: ${selectedData.taxes.toFixed(2)}</Typography>
-                  <Typography variant="body1">Total: ${selectedData.total.toFixed(2)}</Typography>
+                  <Typography variant="subtitle1">{t('reservations.paymentDetails')}</Typography>
+                  <Typography variant="body1">{t('reservations.taxes')}: ${selectedData.taxes.toFixed(2)}</Typography>
+                  <Typography variant="body1">{t('reservations.total')}: ${selectedData.total.toFixed(2)}</Typography>
                 </>
               ) : (
                 <>
                   <Divider sx={{ my: 2 }} />
-                  <Typography variant="body2" color="text.secondary">No booking details available.</Typography>
+                  <Typography variant="body2" color="text.secondary">{t('reservations.noBookingDetails')}</Typography>
                 </>
               )}
             </>

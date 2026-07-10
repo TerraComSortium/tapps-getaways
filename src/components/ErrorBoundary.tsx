@@ -1,4 +1,5 @@
 import React, { ErrorInfo, ReactNode } from "react";
+import i18n from "../i18n";
 interface Props {
   children: ReactNode;
 }
@@ -26,7 +27,7 @@ export class ErrorBoundary extends React.Component<Props, State> {
     if (this.state.hasError) {
       return (
         <div>
-          <h2>Oops! Something went wrong</h2>
+          <h2>{i18n.t('errorBoundary.title')}</h2>
           {/* tipe 'error': 'Error | null' */}
           <pre>{this.state.error?.toString()}</pre>
           <details style={{ whiteSpace: "pre-wrap" }}>

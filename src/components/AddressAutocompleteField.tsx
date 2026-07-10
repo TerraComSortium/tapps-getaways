@@ -2,6 +2,7 @@ import { Control, Path, useController, FieldValues } from "react-hook-form";
 import { AddressAutocomplete } from '../components/AddressAutocomplete';
 import { BRAND } from '../theme/colors';
 import type { LocationEntry } from '../types/getaway';
+import i18n from '../i18n';
 
 const validateInput = (value: LocationEntry | undefined | null): boolean | string => {
   if (!value || !value.address) {
@@ -9,7 +10,7 @@ const validateInput = (value: LocationEntry | undefined | null): boolean | strin
   }
 
   if (/<|>/.test(value.address)) {
-    return "Invalid characters are not allowed.";
+    return i18n.t('address.invalidChars');
   }
   return true;
 };
@@ -23,7 +24,7 @@ type AddressAutocompleteFieldProps<T extends FieldValues> = {
 export function AddressAutocompleteField<T extends FieldValues>({
   name,
   control,
-  label = "Getaway address",
+  label = i18n.t('address.getawayAddress'),
 }: AddressAutocompleteFieldProps<T>) {
   const { field, fieldState: { error } } = useController({
     name,

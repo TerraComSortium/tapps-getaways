@@ -1,5 +1,6 @@
 import axios from "axios";
 import { auth } from '../lib/firebase';
+import i18n from '../i18n';
 
 export const api = axios.create({
   // baseURL: import.meta.env.VITE_API_BASE_URL ?? "/api",
@@ -7,6 +8,8 @@ export const api = axios.create({
 });
 api.interceptors.request.use(
   async (config:any) => {
+    // Idioma activo → el backend responde sus errores en el mismo idioma.
+    config.headers['Accept-Language'] = i18n.language || 'en';
     // const token = localStorage.getItem("token");
     const user = auth.currentUser;
     if(user){

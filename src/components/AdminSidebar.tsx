@@ -5,12 +5,14 @@ import ShoppingBagIcon from '@mui/icons-material/ShoppingBag';
 import NoteAltIcon from '@mui/icons-material/NoteAlt';
 import AddIcon from '@mui/icons-material/Add';
 
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
 import { ROUTES } from '../constants/routes';
 import { Role } from '../constants/roles';
 import { BRAND } from '../theme/colors';
 
 export default function AdminSideBar() {
+  const { t } = useTranslation();
   const { role, isLoading } = useAuth();
   if(isLoading){
     return(
@@ -54,7 +56,7 @@ export default function AdminSideBar() {
               }}
             >
               <IconButton aria-label="getaways-offers" sx={{ color: BRAND.lime }}><SportsTennisIcon /></IconButton>
-              Getaways &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+              {t('nav.getaways')} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
             </Button>
           {/* )} */}
           {role === Role.PLAYER && (
@@ -74,7 +76,7 @@ export default function AdminSideBar() {
               }}
             >
               <IconButton aria-label="my-orders" sx={{ color:BRAND.lime, pl:'0' }}><ShoppingBagIcon /></IconButton>
-              My getaways
+              {t('sidebar.myGetaways')}
             </Button>
           )}
           {role === Role.ADMIN && (
@@ -93,7 +95,7 @@ export default function AdminSideBar() {
               }}
             >
               <IconButton aria-label="my-getaways-offers" sx={{ color: BRAND.lime, pl: '0' }}><NoteAltIcon /></IconButton>
-              My getaways
+              {t('sidebar.myGetaways')}
             </Button>
           )}
           {role === Role.ADMIN && (
@@ -112,7 +114,7 @@ export default function AdminSideBar() {
               }}
             >
               <IconButton aria-label="create-getaway" sx={{ color: BRAND.lime, pl: '0' }}><AddIcon /></IconButton>
-              New getaway
+              {t('sidebar.newGetaway')}
             </Button>
           )}
         </Box>

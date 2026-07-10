@@ -5,6 +5,7 @@ import GpsFixedIcon from '@mui/icons-material/GpsFixed';
 import { styled } from "@mui/material/styles";
 import type { LocationEntry } from '../types/getaway';
 import { useMapsLibrary } from '@vis.gl/react-google-maps';
+import { useTranslation } from 'react-i18next';
 
 const StyledAutocomplete = styled('input', {
   shouldForwardProp: (prop) =>
@@ -88,6 +89,7 @@ export function AddressAutocomplete({
   labelColor,
   inputTextColor = BRAND.black,
 }: AddressAutocompleteProps) {
+  const { t } = useTranslation();
   const [isLoadingGeo, setIsLoadingGeo] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const onChangeRef = useRef(onChange);
@@ -137,7 +139,7 @@ export function AddressAutocomplete({
 
   const handleMyPositionClick = () => {
     if (!navigator.geolocation) {
-      alert("Geolocation is not supported by your browser");
+      alert(t('address.geoUnsupported'));
       return;
     }
     setIsLoadingGeo(true);
@@ -159,19 +161,19 @@ export function AddressAutocomplete({
           if (inputRef.current) inputRef.current.value = address;
         } catch (err) {
           console.error("Geocoding error:", err);
-          alert("Error fetching address details.");
+          alert(t('address.geoFetchError'));
         } finally {
           setIsLoadingGeo(false);
         }
       },
       (err) => {
         setIsLoadingGeo(false);
-        alert("Could not get location: " + err.message);
+        alert(t('address.geoUnavailable') + " " + err.message);
       }
     );
   };
 
-  if (!placesLib) return <Typography>Loading Maps...</Typography>;
+  if (!placesLib) return <Typography>{t('address.loadingMaps')}</Typography>;
 
   return (
     <Box sx={{ width: '100%', display: 'flex', alignItems: 'flex-start', gap: 1, flexWrap: 'wrap', ...containerSx }}>
@@ -184,7 +186,7 @@ export function AddressAutocomplete({
         <StyledAutocomplete
           ref={inputRef}
           type="text"
-          placeholder="City or RCnet"
+          placeholder={t('address.cityPlaceholder')}
           defaultValue={value?.address || ""}
           $isError={error}
           $height={height}
@@ -210,7 +212,7 @@ export function AddressAutocomplete({
           $height={'35px'}
           sx={{ ml: 0, mb: 2 }}
         >
-          {isLoadingGeo ? "Locating..." : "My position"}
+          {isLoadingGeo ? t('address.locating') : t('address.myPosition')}
         </LocationButton>
       )}
     </Box>

@@ -1,6 +1,7 @@
 import { Box, Container, Link, Button, Typography, TypographyProps } from '@mui/material';
 import Grid from '@mui/material/Grid2';
 import { styled } from '@mui/material/styles';
+import { useTranslation } from 'react-i18next';
 import { BRAND } from '../theme/colors';
 import ArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 
@@ -11,6 +12,7 @@ import lkdn from '../assets/linkedin.svg'
 import '../App.css'
 
 function Copyright(props: TypographyProps) {
+  const { t } = useTranslation();
   return (
     <Typography
       // variant="body2"
@@ -19,7 +21,7 @@ function Copyright(props: TypographyProps) {
       <Link color="inherit" sx={{textDecoration: 'none'}} href="https://racquetsappsuite.com/">
         Racquets! AppSuite&trade;
       </Link>{' '}
-      {'All rights reserved © '}
+      {t('footer.rights')} ©{' '}
       {new Date().getFullYear()}
     </Typography>
   );
@@ -33,11 +35,12 @@ const FooterWrapper = styled(Box)(
 );
 
 function Footer() {
+  const { t } = useTranslation();
   return (
     <FooterWrapper sx={{ backgroundColor: BRAND.primary, paddingTop:'25px'}}>
       <Container maxWidth="lg">
         <Box>
-          <Typography className='ItemCenter'>Follow us on our social networks to keep up with all our updates!</Typography>
+          <Typography className='ItemCenter'>{t('footer.followUs')}</Typography>
         </Box>
         <Grid
           container direction="row" justifyContent="center" alignItems="center" spacing={10}

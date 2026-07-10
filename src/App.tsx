@@ -131,7 +131,12 @@ function App() {
                       <Route path={ROUTES.MY_ORDERS} element={<ProtectedRoute><MyOrders /></ProtectedRoute>} />
                       <Route path={ROUTE_PATTERNS.PAYMENT} element={ <ProtectedRoute><Payment /></ProtectedRoute> } />
                       <Route path={ROUTES.PAID} element={<Paid />} />
-                      <Route path={ROUTES.RESERVATIONS} element={<ProtectedRoute requiredRole={Role.ADMIN}><Reservations /></ProtectedRoute>} />
+                      {/* <Route path={ROUTES.RESERVATIONS} element={<ProtectedRoute requiredRole={Role.ADMIN}><Reservations /></ProtectedRoute>} /> */}
+                      <Route path={ROUTE_PATTERNS.RESERVATIONS} element={
+                        <ProtectedRoute requiredRole={Role.ADMIN}>
+                        <Reservations />
+                      </ProtectedRoute>} />
+                      
                       <Route path={ROUTES.CREATE_GETAWAY} element={<ProtectedRoute><CreateGetaway/></ProtectedRoute>} />
                       <Route path={ROUTES.DATA_VIEW} element={<DataViewWrapper />} />
                       <Route path={ROUTES.TEST_API} element={<TestApi/>} />

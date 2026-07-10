@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { getGetawaySubscribers } from '../services/getaways/getaways';
 
 export const useGetawaySubscribers = (id: string) => {
-  const [data, setData] = useState<unknown>(null);
+  const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 

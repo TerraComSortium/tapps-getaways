@@ -198,3 +198,9 @@ body, html, #root {
   margin-block: 1lh;
   max-width: 85ch;
 }
+
+.mainContainer{
+  min-height: 100dvh;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+}

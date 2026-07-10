@@ -120,6 +120,7 @@ function App() {
               <AppConfigProvider>
                 <APIProvider apiKey={API_KEY} version="quarterly" libraries={GOOGLE_MAPS_LIBRARIES}>
                   <Router>
+                    <div className="mainContainer">
                     <Navbar/>
                     <Routes>
                       <Route path={ROUTES.LANDING} element={<Landing />} />
@@ -142,6 +143,7 @@ function App() {
                       <Route path={ROUTES.TEST_API} element={<TestApi/>} />
                     </Routes>
                     <Footer/>
+                    </div>
                   </Router>
                 </APIProvider>
               </AppConfigProvider>

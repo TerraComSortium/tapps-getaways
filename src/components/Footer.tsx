@@ -39,18 +39,16 @@ function Footer() {
   return (
     <FooterWrapper sx={{ backgroundColor: BRAND.primary, paddingTop:'25px'}}>
       <Container maxWidth="lg">
-        <Box>
-          <Typography className='ItemCenter'>{t('footer.followUs')}</Typography>
-        </Box>
+        <center>
+          <Typography className='ItemCenter' sx={{ maxWidth:{ xs:'380px', md:'850px'}}}>{t('footer.followUs')}</Typography>
+        </center>
         <Grid
           container direction="row" justifyContent="center" alignItems="center" spacing={10}
           sx={{ flexGrow: 1, height: '30px' }}
         >
           <Grid component="div">
             <Link href="https://www.instagram.com/racquetsappsuitetm/" target="_blank">
-              <img src={ig} style={{
-                height:'40px',
-                marginTop:'15px'}} className="logo ItemCenter" alt="Instagram link" />
+              <img src={ig} style={{ height:'40px', marginTop:'15px'}} className="logo ItemCenter" alt="Instagram link" />
             </Link>
           </Grid>
           <Grid component="div">
@@ -77,7 +75,7 @@ function Footer() {
             </Link>
           </Typography>
           <Copyright sx={{ mt: 5, mb: 4,  color: BRAND.white}}/>
-          <Button
+          {/* <Button
             startIcon={<ArrowUpIcon />}
             sx={{
               height:'40px', margin: 2, p:'1em',
@@ -88,7 +86,7 @@ function Footer() {
             disableElevation
           >
             🇪🇸 SP
-          </Button>
+          </Button> */}
         </Box>
       </Container>
     </FooterWrapper>

@@ -144,7 +144,7 @@ function GetawayDetail() {
         <Typography variant="h4">{t('detail.notFound')}</Typography>
         <Typography sx={{ mb: 2 }}>{t('detail.notFoundDetail')}</Typography>
         <Button size="medium" variant="contained" startIcon={<ArrowBackIcon />}
-          onClick={() => navigate(ROUTES.GETAWAYS)}
+          onClick={() => navigate(-1)}
           sx={{
             m: '1em 0', p: '8px 0.8em', width: '220px',
             borderRadius:'8px', color:BRAND.white, bgcolor: BRAND.primary, textTransform: 'none',
@@ -171,8 +171,9 @@ function GetawayDetail() {
     <>
       <Container sx={{ display:"flex", flexDirection:'column' }}>
         <Stack>
-          <Button href={ROUTES.GETAWAYS}
+          <Button 
             startIcon={<ArrowBackIcon />} variant="text" size="medium"
+            onClick={() => navigate(-1)}
             sx={{
               m: '1em 0', p: '8px 0.8em', width: '220px',
               borderRadius:'8px', color:BRAND.black,  textTransform: 'none',

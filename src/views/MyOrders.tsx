@@ -9,11 +9,13 @@ import { GetawayItem } from '../components/GetawayItem';
 
 import { useAuth } from '../contexts/AuthContext';
 import { useSubscribedGetaways } from '../hooks/useSubscribedGetaways';
+import { useGetawayNavigation } from '../hooks/useGetawayNavigation';
 import { normalizeGetawayData, getSportLabel, getValidImages, formatGetawayDates, parseFirestoreDate } from '../utils/getawayHelpers';
 
 export default function MyOrders() {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { handleViewDetails } = useGetawayNavigation();
   const { role, isLoading: isAuthLoading } = useAuth();
   const [page, setPage] = useState(1);
   const ITEMS_PER_PAGE = 10;
@@ -65,7 +67,7 @@ export default function MyOrders() {
                 sport={getSportLabel(getaway.sport)}
                 galleryPhotos={getValidImages(getaway.galleryPhotos)}
                 bookedDate={parseFirestoreDate(getaway.subscribedAt)}
-                onViewDetails={() => navigate(ROUTES.GETAWAY_DETAIL, { state: { getawayData: getaway } })}
+                onViewDetails={() => handleViewDetails(getaway)}
                 onOrderDetails={() => navigate(ROUTES.GETAWAY_DETAIL, { state: { getawayData: getaway } })}
               />
             ))}

@@ -231,20 +231,20 @@ export const GetawayItem = memo(
               width: '100%', height: '100%',
               justifyContent: 'center', alignItems: 'center'
             }}>
-            { onEdit && (
-              <Button startIcon={<EditIcon />} onClick={onEdit} disableElevation size="medium"
-                sx={{
-                  width:145,
-                  color: BRAND.navy, bgcolor: BRAND.green,
-                  borderRadius: '30px',
-                  fontWeight: 'bold', textTransform: 'none',
-                }}
-              > {t('getawayItem.editGetaway')}
-              </Button>
-            )}
+              { onEdit && (
+                <Button startIcon={<EditIcon />} onClick={onEdit} disableElevation size="medium"
+                  sx={{
+                    width:145,
+                    color: BRAND.navy, bgcolor: BRAND.green,
+                    borderRadius: '30px',
+                    fontWeight: 'bold', textTransform: 'none',
+                  }}
+                > {t('getawayItem.editGetaway')}
+                </Button>
+              )}
+            </Box>
           </Box>
-        </Box>
-      </Card>
+        </Card>
       </>
     )
   }

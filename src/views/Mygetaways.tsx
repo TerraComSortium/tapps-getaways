@@ -9,8 +9,9 @@ import { GetawayItem } from '../components/GetawayItem';
 
 import { useAuth } from '../contexts/AuthContext';
 import { Role } from '../constants/roles';
-import { useDeleteGetaway } from '../hooks/useDeleteGetaway';
 import { useOwnerGetaways } from '../hooks/useOwnerGetaways';
+import { useGetawayNavigation } from '../hooks/useGetawayNavigation';
+import { useDeleteGetaway } from '../hooks/useDeleteGetaway';
 import { getSportLabel, getValidImages, formatGetawayDates } from '../utils/getawayHelpers';
 
 // import { useWatchLocation } from '../hooks/useWatchLocation';
@@ -26,6 +27,7 @@ export default function Mygetaways() {
   const { t } = useTranslation();
   const { role, isLoading } = useAuth();
   const navigate = useNavigate();
+  const { handleViewDetails } = useGetawayNavigation();
   //localStates
   const [page, setPage] = useState(1);
   const [successDeleteMsg, setSuccessDeleteMsg] = useState<string | null>(null);
@@ -91,8 +93,8 @@ export default function Mygetaways() {
         <Grid size={{ xs: 12, sm: 9, md:10 }} className="section blueBg">
           <Box>
             <Box sx={{ mb: 3 }}>
-              <Typography variant="h6" sx={{ mb: 1, fontWeight: 'bold' }}>{t('mygetaways.title')}</Typography>
-              {/* <h4>My getaways</h4> */}
+              {/* <Typography variant="h6" sx={{ mb: 1, fontWeight: 'bold' }}>{t('mygetaways.title')}</Typography> */}
+              <h3>{t('mygetaways.title')}</h3>
               {displayError && (
                 <Alert severity="info" sx={{ mb: 2 }}> {displayError} </Alert>
               )}
@@ -122,15 +124,14 @@ export default function Mygetaways() {
                 resultHelper: formatGetawayDates(getaway.startDate, getaway.endDate)
               }),
               <GetawayItem
-                key={getaway._id || ""}
+                key={getaway._id || `fallback-key-${getaway._id}`}
                 name={getaway.title || t('common.untitledGetaway')}
                 // dates={`${getaway.startDate} - ${getaway.endDate}`}
                 dates={formatGetawayDates(getaway.startDate, getaway.endDate)}
                 lodgingOptions={getaway.lodgingOptions || []}
                 sport={getSportLabel(getaway.sport)}
                 galleryPhotos={getValidImages(getaway.galleryPhotos)}
-                onViewDetails={() => navigate(ROUTES.GETAWAY_DETAIL, { state: { getawayData: getaway } })}
-                // onViewDetails={() => handleViewDetails(getaway)}
+                onViewDetails={() => handleViewDetails(getaway)}
                 isDeleting={isDeleting}
                 onDelete={() => handleDeleteClick(getaway._id, getaway.title)}
                 // onEdit={role === 'admin' ? () => handleEdit(getaway.id) : undefined}

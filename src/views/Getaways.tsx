@@ -12,6 +12,8 @@ import type { Getaway } from '../types/getaway';
 import { useUserStore } from '../store/useUserStore';
 import { getAllGetaways } from '../services/getaways/getaways';
 import { searchGetaways } from '../services/search/search';
+import { useGetawayNavigation } from '../hooks/useGetawayNavigation';
+
 import {
   normalizeGetawayData,
   performFallbackLocalSearch,
@@ -25,12 +27,13 @@ import {
   bookingPath } from '../constants/routes';
 import { Role } from '../constants/roles';
 
-export default function Mygetaways() {
+export default function Getaways() {
   const { t } = useTranslation();
   // App.tsx already calls useWatchLocation — no second watcher needed here
   const userLocation = useUserStore((state) => state.userLocation);
   const { role, isLoading: isAuthLoading } = useAuth();
   const navigate = useNavigate();
+  const { handleViewDetails } = useGetawayNavigation();
   const [getaways, setGetaways] = useState<Getaway[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -138,9 +141,6 @@ export default function Mygetaways() {
     }
   };
 
-  const handleViewDetails = (getaway: Getaway) => {
-    navigate(getawayDetailPath(getaway._id), { state: { getawayData: getaway } });
-  };
   const handleBooking = (getaway: Getaway) => {
     navigate(bookingPath(getaway._id), { state: { getawayData: getaway } });
   };

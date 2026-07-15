@@ -8,7 +8,7 @@ import TaskAltIcon from '@mui/icons-material/TaskAlt';
 
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
-import LibraryBooksIcon from '@mui/icons-material/LibraryBooks';
+import ShoppingBagIcon from '@mui/icons-material/ShoppingBag';
 import LoopIcon from '@mui/icons-material/Loop';
 
 import { useTranslation } from 'react-i18next';
@@ -29,19 +29,17 @@ function Paid() {
   return (
     <>
     <div className="background-blueCourt"></div>
-      <Container
-        sx={{
-          pt:4, pb:4,
-          width: { xs: '100%', sm: '70%' },
-          display:"flex", flexDirection: 'column',
-        }}
-      >
-        <Box sx={{
-          // mt:8,
-          pt:10,
-          alignItems: 'center', justifyContent: 'center',
-          bgcolor:BRAND.purpleBg
-        }}>
+    <Container
+      sx={{
+        pt:4, pb:4, width: { xs: '100%', sm: '75%', md:'70%' },
+        display:"flex", flexDirection: 'column',
+      }}
+    >
+      <Box sx={{
+        // mt:2,
+        pt:7,
+        alignItems: 'center', justifyContent: 'center', bgcolor:BRAND.purpleBg
+      }}>
         {/* 1 if needed bank auth*/}
         {requiresAction ? (
           <Stack spacing={2} alignItems="center">
@@ -59,36 +57,26 @@ function Paid() {
         ) : success ? (
           /* 2 Direct successfull payment */
           <center>
-            <Stack spacing={2} alignItems="center">
-              <CheckCircleOutlineIcon sx={{ fontSize: 70, color: BRAND.white }} />
-              <TaskAltIcon sx={{ color:BRAND.white}}  />
-              <Typography component="h1" variant="h5" sx={{ fontWeight: 'bold', color: BRAND.white }}>
+            <Stack spacing={1} alignItems="center">
+              <TaskAltIcon sx={{ fontSize: 35, color:BRAND.white}}  />
+              <Typography component="h1" variant="h6" sx={{ fontWeight: 'bold', color: BRAND.white }}>
                 {t('paid.successTitle')}
               </Typography>
-              <Typography variant="body1" color="text.secondary">
+              <Typography variant="body1" sx={{ color: BRAND.white }}>
                 {t('paid.successSubtitle')}
               </Typography>
 
-              <Box sx={{ bgcolor: BRAND.bgPaper, p: 2, borderRadius: '8px', width: '100%', mt: 2, textAlign: 'left' }}>
-                <Typography variant="caption" display="block" color={BRAND.white}>
-                  <strong>{t('paid.orderId')}:</strong> {orderId}
-                </Typography>
-                <Typography variant="caption" display="block" color={BRAND.white}>
-                  <strong>{t('paid.status')}:</strong> {paymentStatus || 'succeeded'}
-                </Typography>
-                <Typography
-                  sx={{
-                    pb:10,
-                    color: BRAND.white, textDecoration: 'none'
-                  }}>
-                  {t('paid.receiptNote')}
-                </Typography>
+              <Box sx={{ bgcolor: BRAND.bgPaper, p: 1, borderRadius: '8px', mt: 2, textAlign: 'left', width: '65%'}}>
+                <Typography variant="subtitle2" display="block"><strong>{t('paid.orderId')}:</strong>{ orderId}</Typography>
+                <Typography variant="subtitle2" display="block"><strong>{t('paid.status')}:</strong> {paymentStatus || 'succeeded'}</Typography>
+                <Typography variant='subtitle2' sx={{ pb:3, textDecoration: 'none' }}
+                > {t('paid.receiptNote')} </Typography>
               </Box>
-              <Button
-                variant="contained"
-                startIcon={<LibraryBooksIcon />}
+              <Button startIcon={<ShoppingBagIcon />} variant="contained"
                 onClick={() => navigate(ROUTES.MY_ORDERS)}
-                sx={{ mt: 3, bgcolor: BRAND.primary, color: BRAND.white, textTransform: 'none', borderRadius: '8px', px: 4 }}
+                sx={{ mt:10, mb:5, bgcolor: BRAND.primary, borderColor: 'primary.main', border: 1,  textTransform: 'none', borderRadius: '8px', px: 4, 
+                  ':hover': { bgcolor: BRAND.white, color: BRAND.primary},  
+                }}
               > {t('paid.viewBookings')}
               </Button>
             </Stack>
@@ -109,14 +97,14 @@ function Paid() {
               onClick={() => navigate(-1)}
               sx={{ mt:3, mb:3, minWidth: { xs: '190px', sm: '190px' }, bgcolor: BRAND.primary, color: BRAND.white, textTransform: 'none', borderRadius: '8px', px: 4,
                 ':hover': { bgcolor: BRAND.white, color: BRAND.primary},
-                  borderColor: 'primary.main', border: 1
+                borderColor: 'primary.main', border: 1
               }}
             > {t('paid.tryAgain')}
             </Button><br/>
           </Stack>
           </center>
         )}
-          <Divider aria-hidden="true" sx={{ borderColor: 'white', borderStyle: 'dashed' }} />
+          <Divider aria-hidden="true" sx={{ borderColor: 'white', borderStyle: 'dashed', mt:2 }} />
           <Box>
             <Stack sx={{
               m:2,

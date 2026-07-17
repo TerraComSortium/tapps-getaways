@@ -23,7 +23,7 @@ import {
 } from '../utils/getawayHelpers';
 import {
   // ROUTES,
-  getawayDetailPath,
+  // getawayDetailPath,
   bookingPath } from '../constants/routes';
 import { Role } from '../constants/roles';
 
@@ -63,13 +63,11 @@ export default function Getaways() {
           });
           finalData = Array.isArray(rawData) ? rawData.map(normalizeGetawayData) : [];
         }
-
-        // Fall back to all getaways if search returned nothing or there was no location
+        // Fallback to all getaways if search returned nothing or there was no location
         // (the search endpoint filters by date ≥ today, so test data with past dates returns [])
         if (finalData.length === 0) {
           finalData = await getAllGetaways();
         }
-
         setGetaways(finalData);
       } catch (err: any) {
         console.warn("Error fetching initial getaways:", err.message);
@@ -78,9 +76,8 @@ export default function Getaways() {
         setLoading(false);
       }
     };
-
     fetchInitialData();
-  }, [userLocation]);
+  }, [userLocation, t]);
   const handleSearchFromBar = (filters: {
     q?: string;
     lat?: number | null;

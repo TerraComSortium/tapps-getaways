@@ -26,7 +26,9 @@ import { useAuth } from '../contexts/AuthContext';
 import type { Getaway } from '../types/getaway';
 import { useGetawayById } from '../hooks/useGetawayById';
 import { isGetawayExpired } from '../utils/getawayHelpers';
-import { ROUTES, bookingPath } from '../constants/routes';
+import {
+  // ROUTES,
+  bookingPath } from '../constants/routes';
 import { Role } from '../constants/roles';
 import GetawaySchedule from './GetawaySchedule';
 import { useTranslation } from 'react-i18next';
@@ -79,6 +81,7 @@ function GetawayDetail() {
       if (getaway.lodgingOptions && getaway.lodgingOptions.length > 0) {
         setSelectedLodging(getaway.lodgingOptions[0].name);
       }
+      // console.log('july', JSON.stringify(getaway, null, 2));
     }
   }, [getaway]);
 
@@ -398,7 +401,7 @@ function GetawayDetail() {
               {galleryImages[currentIndex] === "video" ? (
                 <iframe width="1280" height="519" src={getaway.galleryVideo} title={getaway.title} frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerPolicy="strict-origin-when-cross-origin" allowFullScreen style={{ width: '55vw', maxHeight: '35vw', objectFit: 'contain' }} />
               ) : (
-                <img src={galleryImages[currentIndex]} alt="Full screen" style={{ width:'55vw', maxHeight: '35vw', objectFit:'contain' }} />
+                <img src={galleryImages[currentIndex]} alt={getaway.galleryPhotoCaptions?.[currentIndex] || "Full screen"} style={{ width:'55vw', maxHeight: '35vw', objectFit:'contain' }} />
               )}
             </center>
             <Stack
@@ -412,7 +415,18 @@ function GetawayDetail() {
               }}
             >
               <Stack sx={{ fontSize: 15, width: '55vw' }}>
-                <p className='paragraph'> {getaway.mainDescription || getaway.overview } </p>
+                <p className='paragraph'>
+                  {(() => {
+                    if (galleryImages[currentIndex] === "video") {
+                      return getaway.mainDescription || "";
+                    }
+                    const photoIndex = galleryImages[0] === "video" ? currentIndex - 1 : currentIndex;
+                    const currentCaption = getaway.galleryPhotoCaptions?.[photoIndex];
+                    return currentCaption && currentCaption.trim() !== ""
+                      ? currentCaption
+                      : getaway.mainDescription || "";
+                  })()}
+                </p>
               </Stack>
               {!expired && (
                 role === Role.PLAYER && (

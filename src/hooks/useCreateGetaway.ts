@@ -4,7 +4,6 @@ import { ROUTES } from '../constants/routes';
 import { useFormData } from '../contexts/FormDataContext';
 import { handleGetawaySubmit, handleCouponSubmit } from '../services/getaways/getawayCreate';
 import type { GetawayFormData, GetawayPayload, CouponPayload, ScheduleRow } from '../types/getaway';
-
 import { mapScheduleRowsToApiFormat } from '../utils/dataMappers';
 
 interface UseCreateGetawayReturn {
@@ -12,7 +11,9 @@ interface UseCreateGetawayReturn {
   submitGetaway: (
     data: GetawayFormData,
     scheduleRows: ScheduleRow[],
-    cleanedAddOns: { name: string; price: number }[]
+    cleanedAddOns: { name: string; price: number }[],
+    validPhotos: File[],
+    validCaptions: string[]
   ) => Promise<void>;
 }
 
@@ -31,13 +32,18 @@ export function useCreateGetaway(
 
   const submitGetaway = async (
     data: GetawayFormData,
-    scheduleRows: ScheduleRow[], cleanedAddOns: { name: string; price: number }[]
+    scheduleRows: ScheduleRow[], cleanedAddOns: { name: string; price: number }[],
+    validPhotos: File[],
+    validCaptions: string[]
   ): Promise<void> => {
     setIsLoading(true);
 
     try {
       const apiSchedule = mapScheduleRowsToApiFormat(scheduleRows);
-      const { discounts, getawayAddress, optionalAddOns: _unused, ...rest } = data;
+      const { discounts, getawayAddress, ...rest } = data;
+
+      delete (rest as Partial<GetawayFormData>).optionalAddOns;
+      delete (rest as Partial<GetawayFormData>).galleryPhotos;
 
       const payload: GetawayPayload = {
         ...rest,
@@ -48,6 +54,8 @@ export function useCreateGetaway(
         },
         optionalAddOns: cleanedAddOns,
         schedule: apiSchedule,
+        galleryPhotos: validPhotos,
+        galleryPhotoCaptions: validCaptions,
       };
 
       const result = await handleGetawaySubmit(payload);

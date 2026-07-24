@@ -12,12 +12,13 @@ const ENDPOINTS = {
 function buildFormData(payload: GetawayPayload): FormData {
   const formData = new FormData();
   payload.galleryPhotos?.forEach((file) => {
-    formData.append('galleryPhoto', file); // must match multer upload.array('galleryPhoto') in backend
+    if (file) {
+      formData.append('galleryPhoto', file);
+    }
   });
 
-  //exclude JSON binaries
-  // const { galleryPhotos:_ , ...jsonPayload } = payload;
-
+  //to do exclude JSON binaries
+  //const { galleryPhotos:_ , ...jsonPayload } = payload;
   const jsonPayload = { ...payload };
   delete (jsonPayload as Partial<GetawayPayload>).galleryPhotos;
   formData.append('data', JSON.stringify(jsonPayload));

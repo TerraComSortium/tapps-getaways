@@ -45,20 +45,28 @@ export interface GetawayBase {
   terms: string;
 }
 
+export interface GalleryPhotoEntry {
+  file: File | null;
+  caption?: string;
+}
 export interface GetawayFormData extends GetawayBase {
-  galleryPhotos: File[] | null;
+  galleryPhotos: GalleryPhotoEntry[];
 }
 export interface Getaway extends GetawayBase{
   _id: string;
   galleryPhotos: string[];
+  galleryPhotoCaptions?: string[];
 }
 
-export interface GetawayPayload extends Omit<GetawayFormData, 'getawayAddress'> {
+export type GetawayPayload = Omit<GetawayFormData, 'galleryPhotos' | 'optionalAddOns' | 'discounts' | 'getawayAddress'> & {
   address: string;
   location: {
     lat: number;
     lng: number;
-  }
+  };
+  optionalAddOns: { name: string; price: number }[];
+  galleryPhotos: File[];
+  galleryPhotoCaptions?: string[];
 }
 
 export interface Discount {

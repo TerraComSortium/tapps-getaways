@@ -15,7 +15,7 @@ import AdminSidebar from './AdminSidebar';
 import { AddressAutocompleteField } from '../components/AddressAutocompleteField';
 import { GalleryPhotoItem } from '../components/GalleryPhotoItem';
 import { ScheduleForm } from '../components/ScheduleForm';
-import  DiscountForm  from '../components/DiscountForm';
+// import  DiscountForm  from '../components/DiscountForm';
 import AcademySchedule from '../components/AcademySchedule';
 import LaddersSchedule from '../components/LaddersSchedule';
 import TournamentsSchedule from '../components/TournamentsSchedule';
@@ -38,6 +38,7 @@ const sports = [
   { value: 'pickleball', label: 'Pickleball' },
   { value: 'other', label: 'Other' }
 ];
+
 export default function CreateGetaway() {
   const { t } = useTranslation();
   const { snackbar, showSnackbar, closeSnackbar } = useSnackbar();
@@ -82,10 +83,10 @@ export default function CreateGetaway() {
     name: 'optionalAddOns'
   });
 
-  const { fields: discountFields, append: appendDiscount, remove: removeDiscount } = useFieldArray({
-    control,
-    name: 'discounts'
-  });
+  // const { fields: discountFields, append: appendDiscount, remove: removeDiscount } = useFieldArray({
+  //   control,
+  //   name: 'discounts'
+  // });
 
   const onSubmit: SubmitHandler<GetawayFormData> = async (data) => {
     if (!data.getawayAddress.lat || !data.getawayAddress.lng) {
@@ -525,7 +526,7 @@ export default function CreateGetaway() {
                 <ScheduleForm rows={scheduleRows} setRows={setScheduleRows} />
               </Box>
 
-              <Box
+              {/* <Box
                 sx={{
                   borderRadius: '0 24px', m: '25px 0', p: '30px 25px',
                   bgcolor: BRAND.primary, color:'white', fontWeight: 'medium', textTransform: 'none',
@@ -533,6 +534,7 @@ export default function CreateGetaway() {
                 }}
               >
                 <Typography variant="h3" color={BRAND.white} sx={{ m: '1 0', fontSize: '16px', fontWeight:"medium"  }}> {t('create.discountManagement')} </Typography>
+                
                 {discountFields.map((field, index) => (
                   <DiscountForm
                     key={field.id}
@@ -557,7 +559,7 @@ export default function CreateGetaway() {
                     ':hover': { bgcolor: BRAND.primary, color: 'white' }
                   }}
                 > {t('create.addItem')} </Button>
-              </Box>
+              </Box> */}
               <AcademySchedule/>
               <TournamentsSchedule/>
               <LaddersSchedule/>

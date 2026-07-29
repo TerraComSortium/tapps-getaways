@@ -4,7 +4,7 @@ import SportsTennisIcon from '@mui/icons-material/SportsTennis';
 import ShoppingBagIcon from '@mui/icons-material/ShoppingBag';
 import NoteAltIcon from '@mui/icons-material/NoteAlt';
 import AddIcon from '@mui/icons-material/Add';
-
+import LocalOfferIcon from '@mui/icons-material/LocalOffer';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
 import { ROUTES } from '../constants/routes';
@@ -115,6 +115,25 @@ export default function AdminSideBar() {
             >
               <IconButton aria-label="create-getaway" sx={{ color: BRAND.lime, pl: '0' }}><AddIcon /></IconButton>
               {t('sidebar.newGetaway')}
+            </Button>
+          )}
+          {role === Role.ADMIN && (
+            <Button
+              // component="a"
+              href={ROUTES.COUPONS}
+              disableElevation variant="contained" aria-label="create-getaways"
+              sx={{
+                flex: { xs: 1, sm: 'unset' },
+                minWidth:'155px',
+                width: { xs: 'auto', sm: '155px' },
+                mb: { xs: 0, sm: 1 },
+                padding: '5px 0px',
+                overflow: 'hidden',
+                bgcolor: BRAND.primary, color: BRAND.white, borderRadius: '8px', fontWeight: 'medium', textTransform: 'none', whiteSpace: 'nowrap'
+              }}
+            >
+              <IconButton aria-label="create-getaway" sx={{ color: BRAND.lime, pl: '0' }}><LocalOfferIcon/></IconButton>
+              {t('sidebar.coupons')}
             </Button>
           )}
         </Box>

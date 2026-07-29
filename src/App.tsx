@@ -10,6 +10,7 @@ import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import GetawayDetail from './components/GetawayDetail';
 import CreateGetaway from './components/CreateGetaway';
+
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import ProtectedRoute from './components/ProtectedRoute';
 
@@ -23,6 +24,7 @@ import Payment from './views/Payment';
 import Paid from './views/Paid';
 import DataView from './views/DataView';
 import MyOrders from './views/MyOrders';
+import Coupons from './views/Coupons';
 
 import { AppConfigProvider } from "./contexts/AppConfigContext";
 import { FormDataProvider, useFormData } from './contexts/FormDataContext';
@@ -137,8 +139,10 @@ function App() {
                         <ProtectedRoute requiredRole={Role.ADMIN}>
                         <Reservations />
                       </ProtectedRoute>} />
-                      
+
                       <Route path={ROUTES.CREATE_GETAWAY} element={<ProtectedRoute><CreateGetaway/></ProtectedRoute>} />
+                      <Route path={ROUTES.COUPONS} element={<ProtectedRoute><Coupons/></ProtectedRoute>} />
+
                       <Route path={ROUTES.DATA_VIEW} element={<DataViewWrapper />} />
                       <Route path={ROUTES.TEST_API} element={<TestApi/>} />
                     </Routes>

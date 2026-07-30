@@ -13,6 +13,7 @@ export const ROUTES = {
   CREATE_GETAWAY: '/creategetaway',
   DATA_VIEW: '/data-view',
   TEST_API: '/test-api',
+  COUPONS: '/coupons',
 } as const;
 
 // Patrones para las definiciones <Route path> con parámetros.

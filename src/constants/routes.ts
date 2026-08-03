@@ -35,4 +35,4 @@ export const couponEditPath = (id: string) => `${ROUTES.COUPONS}/${id}/edit`;
 
 // id-> getawayId
 export const couponNewPath = (getawayId?: string) =>
-  getawayId ? `${ROUTES.COUPON_NEW}?getawayId=${getawayId}` : `${ROUTES.COUPON_NEW};    
+  getawayId ? `${ROUTES.COUPON_NEW}?getawayId=${getawayId}` : ROUTES.COUPON_NEW;    

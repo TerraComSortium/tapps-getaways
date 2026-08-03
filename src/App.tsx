@@ -25,6 +25,7 @@ import Paid from './views/Paid';
 import DataView from './views/DataView';
 import MyOrders from './views/MyOrders';
 import Coupons from './views/Coupons';
+import CouponForm from './views/CouponForm';
 
 import { AppConfigProvider } from "./contexts/AppConfigContext";
 import { FormDataProvider, useFormData } from './contexts/FormDataContext';
@@ -142,6 +143,7 @@ function App() {
 
                       <Route path={ROUTES.CREATE_GETAWAY} element={<ProtectedRoute><CreateGetaway/></ProtectedRoute>} />
                       <Route path={ROUTES.COUPONS} element={<ProtectedRoute><Coupons/></ProtectedRoute>} />
+                      <Route path={ROUTES.COUPON_NEW} element={<ProtectedRoute><CouponForm/></ProtectedRoute>} />
 
                       <Route path={ROUTES.DATA_VIEW} element={<DataViewWrapper />} />
                       <Route path={ROUTES.TEST_API} element={<TestApi/>} />

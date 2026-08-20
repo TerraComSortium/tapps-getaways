@@ -22,7 +22,7 @@ export default function MyOrders() {
 
   // Getaways a los que el jugador está suscrito (GET /getaways/subscribed)
   const { data, loading: isDataLoading, error: queryError } = useSubscribedGetaways();
-
+  console.log('getSuscribed player', data)
   // El backend responde { count, offers }; normalizamos a Getaway[].
   const rawOffers =
     (data as any)?.offers || (data as any)?.results || (Array.isArray(data) ? data : []);
@@ -58,9 +58,9 @@ export default function MyOrders() {
           </Box>
 
           <Stack spacing={2}>
-            {paginatedGetaways.map((getaway: any) => (
+            {paginatedGetaways.map((getaway: any, index) => (
               <GetawayItem
-                key={getaway._id || getaway.id || ''}
+                key={index || getaway._id || getaway.id || ''}
                 name={getaway.title || t('common.untitledGetaway')}
                 dates={formatGetawayDates(getaway.startDate, getaway.endDate)}
                 lodgingOptions={getaway.lodgingOptions || []}

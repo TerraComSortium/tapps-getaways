@@ -19,3 +19,8 @@ export const deleteCoupon = async (id: string) => {
   const response = await api.delete(`/coupons/${id}`);
   return response.data;
 };
+
+export const getCoupon = async (id: string) => {
+  const response = await api.get(`/coupons/${id}`);
+  return response.data;
+};

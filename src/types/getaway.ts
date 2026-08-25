@@ -70,12 +70,18 @@ export type GetawayPayload = Omit<GetawayFormData, 'galleryPhotos' | 'optionalAd
 }
 
 export interface Discount {
-  couponCode: string;
-  startDate: string;
-  endDate: string;
+  id: string;
+  title: string;
   description?: string;
-  amount: number;
-  isActive: boolean;
+  discount: number;
+  ownerId: string;
+  userLimit: number;
+  usersUsed: string[];
+  validFrom: { _seconds: number; _nanoseconds: number } | null;
+  validUntil: { _seconds: number; _nanoseconds: number } | null;
+  createdAt: { _seconds: number; _nanoseconds: number };
+  updatedAt: { _seconds: number; _nanoseconds: number };
+  // isActive: boolean;
 }
 
 export interface CouponPayload extends Discount {

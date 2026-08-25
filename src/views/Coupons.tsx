@@ -1,11 +1,15 @@
 import { useNavigate } from 'react-router-dom';
-import { Box, Typography, Button, CircularProgress } from '@mui/material';
+import { Box, Typography,
+  // Button, 
+  CircularProgress } from '@mui/material';
 import Grid from '@mui/material/Grid2';
-import AddIcon from '@mui/icons-material/Add';
+// import AddIcon from '@mui/icons-material/Add';
 import { BRAND } from '../theme/colors';
 import { useTranslation } from 'react-i18next';
 import { useCoupons, useCouponActions } from '../hooks/useCouponActions';
-import { couponEditPath, couponNewPath } from '../constants/routes';
+import { couponEditPath, 
+  // couponNewPath 
+} from '../constants/routes';
 import AdminSideBar from '../components/AdminSidebar';
 import { CouponItem } from '../components/CouponItem';
 import { firestoreToDate } from '../utils/dates';
@@ -36,38 +40,40 @@ export default function Coupons() {
               <Typography variant="body2" color="text.secondary">{t('discount.fetchingCoupons')}</Typography>
             </Box>
           ):(
-          <Box sx={{ padding: '7px 0' }}>
-            <Typography variant="h5">Coupons management</Typography>
-            <Typography sx={{ mt: 1, color: 'text.secondary' }}>
-              {coupons.length} coupon{coupons.length !== 1 ? 's' : ''} active
-            </Typography>
+            <Box sx={{ padding: '7px 0' }}>
+              <Typography variant="h5">Coupons management</Typography>
+              <Typography sx={{ mt: 1, color: 'text.secondary' }}>
+                {coupons.length} coupon{coupons.length !== 1 ? 's' : ''} active
+              </Typography>
 
-            {/* <Button startIcon={<AddIcon />} variant="contained" disableElevation
-              onClick={() => navigate(couponNewPath())}
-            >Add coupon
-            </Button> */}
+              {/* <Button startIcon={<AddIcon />} variant="contained" disableElevation
+                onClick={() => navigate(couponNewPath())}
+              >Add coupon
+              </Button> */}
 
-            <Box sx={{ mt: 2 }}>
-              {coupons.map((coupon) => (
-                <CouponItem
-                  key={coupon.id}
-                  title={coupon.title}
-                  description={coupon.description}
-                  code={coupon.couponCode}
-                  dates={`${firestoreToDate(coupon.validFrom)} - ${firestoreToDate(coupon.validUntil)}`}
-                  discountAmount={coupon.amount || undefined}
-                  discountPercent={coupon.percent || undefined}
-                  isActive={coupon.isActive}
-                  createdAt={`${firestoreToDate(coupon.createdAt)}`}
-                  updatedAt={`${firestoreToDate(coupon.updatedAt)}`}
-                  onEdit={() => navigate(couponEditPath(coupon.id))}
-                  onDelete={() => deleteCoupon(coupon.id)}
-                  isDeleting={isDeleting}
-                />
-              ))}
+              <Box sx={{ mt: 2 }}>
+                {coupons.map((coupon) => (
+                  <CouponItem
+                    key={coupon.id}
+                    title={coupon.title}
+                    description={coupon.description ?? ''}
+                    // code={coupon.couponCode}
+                    dates={`${firestoreToDate(coupon.validFrom)} - ${firestoreToDate(coupon.validUntil)}`}
+                    discount={coupon.discount}
+                    // discountPercent={coupon.percent || undefined}
+                    // isActive={coupon.isActive}
+                    usersUsed={coupon.usersUsed ?? []}
+                    userLimit={coupon.userLimit}
+                    createdAt={firestoreToDate(coupon.createdAt)}
+                    updatedAt={firestoreToDate(coupon.updatedAt)}
+                    onEdit={() => navigate(couponEditPath(coupon.id))}
+                    onDelete={() => deleteCoupon(coupon.id)}
+                    isDeleting={isDeleting}
+                  />
+                ))}
+              </Box>
             </Box>
-          </Box>
-        )}
+          )}
         </Grid>
       </Grid>
     </Box>

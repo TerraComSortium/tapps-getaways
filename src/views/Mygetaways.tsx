@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { ROUTES, reservationsPath } from '../constants/routes';
+import {
+  // ROUTES,
+  reservationsPath, couponNewPath } from '../constants/routes';
 import { Box, Stack, Pagination, Typography, CircularProgress, Alert } from '@mui/material';
 import Grid from '@mui/material/Grid2';
 import AdminSideBar from '../components/AdminSidebar';
@@ -12,7 +14,7 @@ import { Role } from '../constants/roles';
 import { useOwnerGetaways } from '../hooks/useOwnerGetaways';
 import { useGetawayNavigation } from '../hooks/useGetawayNavigation';
 import { useDeleteGetaway } from '../hooks/useDeleteGetaway';
-import { getSportLabel, getValidImages, formatGetawayDates } from '../utils/getawayHelpers';
+import { getSportLabel, getValidImages, formatGetawayDates, isGetawayExpired } from '../utils/getawayHelpers';
 
 // import { useWatchLocation } from '../hooks/useWatchLocation';
 // import { useUserStore } from '../store/useUserStore';
@@ -54,6 +56,13 @@ export default function Mygetaways() {
     navigate (reservationsPath(id))
   }
 
+  const handleViewCouponNew = (
+    getawayId: string,
+    // getawayTitle: string,
+  ) => {
+    if(!getawayId)return;
+    navigate(couponNewPath(getawayId))
+  }
   const handleDeleteClick = (getawayId: string, getawayTitle: string) => {
     const isConfirmed = window.confirm(t('mygetaways.confirmDelete', { title: getawayTitle }));
     if (!isConfirmed) return;
@@ -132,6 +141,12 @@ export default function Mygetaways() {
                 sport={getSportLabel(getaway.sport)}
                 galleryPhotos={getValidImages(getaway.galleryPhotos)}
                 onViewDetails={() => handleViewDetails(getaway)}
+                onAddCoupon={role === Role.ADMIN && !isGetawayExpired(getaway)
+                  ? () => handleViewCouponNew(getaway._id
+                    // , getaway.title
+                  )
+                  : undefined
+                }
                 isDeleting={isDeleting}
                 onDelete={() => handleDeleteClick(getaway._id, getaway.title)}
                 // onEdit={role === 'admin' ? () => handleEdit(getaway.id) : undefined}

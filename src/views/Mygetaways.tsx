@@ -150,7 +150,7 @@ export default function Mygetaways() {
                 isDeleting={isDeleting}
                 onDelete={() => handleDeleteClick(getaway._id, getaway.title)}
                 // onEdit={role === 'admin' ? () => handleEdit(getaway.id) : undefined}
-                // onViewBookings ={role === 'admin' ? () => 
+                // onViewBookings ={role === 'admin' ? () =>
                 onViewBookings ={role === Role.ADMIN ? () =>
                   handleViewReservations(getaway._id) : undefined}
                 // badgeCount={getaway.subscribersCount || 0} //toDo

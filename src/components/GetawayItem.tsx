@@ -7,6 +7,8 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import ReceiptIcon from '@mui/icons-material/Receipt';
+import AddIcon from '@mui/icons-material/Add';
+
 // import Badge, { badgeClasses } from '@mui/material/Badge';
 // import { styled } from '@mui/material/styles';
 
@@ -45,15 +47,18 @@ interface GetawayItemProps {
   onViewBookings?: () => void;
   // badgeCount?: number;
   onEdit?: () => void;
+  onAddCoupon?: () => void;
   onDelete?: () => void;
   isDeleting?: boolean;
 }
 
 export const GetawayItem = memo(
   ({
-    name, dates, lodgingOptions, sport, galleryPhotos, bookedDate, isLoading = false, onViewDetails, onBookNow, onOrderDetails, onViewBookings, 
-    // badgeCount = 0, 
-    onEdit, onDelete, isDeleting = false
+    name, dates, lodgingOptions, sport, galleryPhotos, bookedDate, isLoading = false, onViewDetails, onBookNow, onOrderDetails, onViewBookings,
+    // badgeCount = 0,
+    onAddCoupon, onEdit,
+    onDelete,
+    isDeleting
   }: GetawayItemProps ) =>
   {
     const { t } = useTranslation();
@@ -171,28 +176,40 @@ export const GetawayItem = memo(
               )}
               { onViewBookings && (
                 <Button aria-label="view offer's bookings"
-                  // onClick={ onViewBookings } 
+                  // onClick={ onViewBookings }
                   onClick={(e) => {
                     e.stopPropagation();
-                    onViewBookings?.(); 
+                    onViewBookings?.();
                   }}
                   disableElevation
                   startIcon={
-                    // <CartBadge 
-                      // badgeContent={1} 
-                      // // badgeContent={badgeCount} 
+                    // <CartBadge
+                      // badgeContent={1}
+                      // // badgeContent={badgeCount}
                       // overlap="circular">
                       <RoomServiceIcon />
                     // </CartBadge>
                   }
                   sx={{
-                    width: 120, 
+                    width: 120,
                     m: '0 0.5rem',
                     borderRadius: '24px',
                     bgcolor: BRAND.primary, color: BRAND.white,
                     fontVariantCaps: 'normal', textTransform: 'none',
                   }}
                 > {t('getawayItem.bookings')} </Button>
+              )}
+              { onAddCoupon && (
+                <Button startIcon={<AddIcon />} variant="contained" aria-label="Add discount"  disableElevation
+                  onClick={onAddCoupon}
+                  sx={{
+                    // mt: 2, mb: 3,
+                    bgcolor:BRAND.primary, color:  BRAND.white, borderRadius: '30px', fontWeight: 'bold', textTransform: 'none',
+                    ':hover': { bgcolor:BRAND.white, color:BRAND.primary }
+                  }}
+                >
+                {t('coupon.addCoupon') || "Add coupon" }
+                </Button>
               )}
               { onDelete && (
                 <Button startIcon={<DeleteIcon/>} disableElevation

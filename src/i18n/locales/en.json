@@ -14,6 +14,10 @@
   "common.noData": "No data available. Please fill the form first.",
   "common.untitledGetaway": "Untitled getaway",
 
+  "discount.create":"Create coupon", 
+  "discount.edit":"Edit coupon",
+  "discount.fetchingCoupons":"Fetching coupons...",
+
   "nav.getaways": "Getaways",
   "nav.myGetaways": "My Getaways",
   "nav.myOrders": "My Orders",
@@ -24,6 +28,8 @@
 
   "sidebar.myGetaways": "My getaways",
   "sidebar.newGetaway": "New getaway",
+  "sidebar.coupons": "Coupons",
+
 
   "footer.rights": "All rights reserved",
   "footer.followUs": "Follow us on our social networks to keep up with all our updates!",
@@ -278,6 +284,7 @@
   "create.onlyAlphanumeric": "Only letters and numbers are allowed.",
   "create.onlyAlphanumericHelper": "Only letters and numbers allowed.",
   "create.addItem": "Add item",
+  "create.addPhoto": "Add photo",
   "create.remove": "Remove",
   "create.priceNumber": "Price must be a number",
   "create.pricePositive": "The price must be a positive number",
@@ -315,6 +322,17 @@
   "create.back": "Back",
   "create.saving": "Saving...",
   "create.saveChanges": "Save changes",
+
+  "coupon.addCoupon": "Add coupon",
+  "couponItem.wait": "Deleting...",
+  "couponItem.delete": "Delete",
+  "coupons.confirmDelete":"Are you sure you want to permanently delete this coupon? ",
+  "coupons.deleteSuccess":"Coupon deleted successfully!",
+  "coupons.deleteError":"An error occurred while deleting the coupon on the server. Please try again later.",
+  "coupons.title":"Coupons management",
+  "coupons.create":"Create coupon",
+  "coupons.edit":"Edit coupon",
+  "coupons.fetchingCoupons":"Fetching coupons...",
 
   "discount.title": "Discount #{{n}}",
   "discount.remove": "Remove",

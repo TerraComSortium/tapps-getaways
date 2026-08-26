@@ -3,7 +3,6 @@ import {
   getCoupon, getCoupons,
   createCoupon,
   updateCoupon,
-  deleteCoupon,
 } from '../services/coupons/coupons';
 import type { CouponPayload, Discount } from '../types/getaway';
 
@@ -15,7 +14,6 @@ interface UseCouponActionsState {
 interface UseCouponActionsReturn extends UseCouponActionsState {
   create: (data: CouponPayload) => Promise<Discount | null>;
   update: (id: string, data: Partial<CouponPayload>) => Promise<Discount | null>;
-  delete: (id: string) => Promise<boolean>;
   clearError: () => void;
 }
 
@@ -69,7 +67,7 @@ export function useCoupons() {
 }
 
 /**
- * Hook: manage coupons(post, edit, delete), with loading and error state.
+ * Hook: manage coupons(post, edit), with loading and error state.
  */
 export function useCouponActions(): UseCouponActionsReturn {
   const [state, setState] = useState<UseCouponActionsState>({
@@ -115,17 +113,10 @@ export function useCouponActions(): UseCouponActionsReturn {
     [withLoading]
   );
 
-  const deleteAction = useCallback(
-    (id: string) =>
-      withLoading(() => deleteCoupon(id).then(() => true), false),
-    [withLoading]
-  );
-
   return {
     ...state,
     create,
     update,
-    delete: deleteAction,
     clearError,
   };
 }

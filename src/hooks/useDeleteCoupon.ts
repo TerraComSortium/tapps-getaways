@@ -6,7 +6,10 @@ export const useDeleteCoupon = () => {
 
   const mutation = useMutation({
     mutationFn: (id: string) => deleteCoupon(id),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['coupons'] }),
+    // onSuccess: () => queryClient.invalidateQueries({ queryKey: ['coupons'] }),
+    onSuccess: () => {
+      return queryClient.invalidateQueries({ queryKey: ['coupons'] })
+    },
     onError: (error) => console.error('Delete failed:', error),
   });
 

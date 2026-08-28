@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+// import { QueryClient } from '@tanstack/react-query';
 import { Box, Typography, Alert, Stack, Pagination,
   // Button,
   CircularProgress } from '@mui/material';
@@ -46,6 +47,7 @@ export default function Coupons() {
         if(paginatedCoupons.length === 1 && page > 1) {
           setPage(page - 1);
         }
+        // return queryClient.invalidateQueries({ queryKey: ['coupons'] });
       },
       onError: () => {
         alert(t('coupons.deleteError'));

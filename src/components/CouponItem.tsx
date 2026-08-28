@@ -4,7 +4,7 @@ import LocalOfferIcon from '@mui/icons-material/LocalOffer';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import { BRAND } from '../theme/colors';
-import { useTranslation } from 'react-i18next';
+// import { useTranslation } from 'react-i18next';
 
 interface CouponItemProps {
   id: string;
@@ -20,7 +20,6 @@ interface CouponItemProps {
   createdAt: string;
   updatedAt: string;
   onEdit?: () => void;
-  // onDelete?: () => void;
   onDelete?: (couponId: string, couponTitle: string) => void;
   isDeleting?: boolean;
 }
@@ -37,7 +36,7 @@ export const CouponItem = memo(({
   onEdit,
   onDelete, isDeleting,
 }: CouponItemProps ) => {
-  const { t } = useTranslation();
+  // const { t } = useTranslation();
   return (
     <Card elevation={0} sx={{
       display: 'flex', mb: 2, borderRadius: '10px',
@@ -127,7 +126,8 @@ export const CouponItem = memo(({
               '&:hover': { bgcolor: BRAND.primaryDark },
               textTransform: 'none', opacity: isDeleting ? 0.7 : 1 }}
             >
-              {isDeleting ? t('couponItem.wait') : t('couponItem.delete')}
+              {/* {isDeleting ? t('couponItem.wait') : t('couponItem.delete')} */}
+              {isDeleting ? 'Wait...' : 'Delete'}
             </Button>
           )}
         </Box>

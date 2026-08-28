@@ -31,7 +31,7 @@ export const getActiveGetaways = async () => {
     : [];
 };
 
-export const getSubscribedGetaways = async () => {
+export const getSubscribedGetaways = async () => { // to-do utiliza este para la vista 
   const response = await api.get("/getaways/subscribed/");
   return response.data;
 };

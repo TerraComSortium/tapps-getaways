@@ -144,6 +144,7 @@ function App() {
                       <Route path={ROUTES.CREATE_GETAWAY} element={<ProtectedRoute><CreateGetaway/></ProtectedRoute>} />
                       <Route path={ROUTES.COUPONS} element={<ProtectedRoute><Coupons/></ProtectedRoute>} />
                       <Route path={ROUTES.COUPON_NEW} element={<ProtectedRoute><CouponForm/></ProtectedRoute>} />
+                      <Route path={ROUTE_PATTERNS.COUPON_EDIT} element={<CouponForm />} />
 
                       <Route path={ROUTES.DATA_VIEW} element={<DataViewWrapper />} />
                       <Route path={ROUTES.TEST_API} element={<TestApi/>} />

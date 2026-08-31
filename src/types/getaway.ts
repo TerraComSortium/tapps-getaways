@@ -83,7 +83,15 @@ export interface Discount {
   updatedAt: { _seconds: number; _nanoseconds: number };
   // isActive: boolean;
 }
-
-export interface CouponPayload extends Discount {
-  getawayId: string;
+// to POST -> API
+export interface CouponPayload {
+  validFrom: string;    // ISO date
+  validUntil: string;   // ISO date
+  userLimit?: number;
+  title: string;
+  description?: string;
+  discount: number;
+  discountType: DiscountType;
+  getawayId?: string;
 }
+export type DiscountType = 'amount' | 'percentage';

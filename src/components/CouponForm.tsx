@@ -1,63 +1,60 @@
-import { useState, useCallback } from 'react';
-import { BRAND } from '../theme/colors';
+import { useEffect, useState, useCallback } from 'react';
+import { useForm, Controller, SubmitHandler } from 'react-hook-form';
 import {
   Box, Button, Typography, TextField, Divider,
   FormControl, InputLabel, OutlinedInput, InputAdornment,Snackbar, Alert
 } from '@mui/material';
+import Grid from '@mui/material/Grid2';
+import LocalOfferIcon from '@mui/icons-material/LocalOffer';
 import SaveIcon from '@mui/icons-material/Save';
-// import DeleteIcon from '@mui/icons-material/Delete';
-import {
-  useForm, Controller,
-  // useFieldArray, SubmitHandler
-  // useFormContext,
-  // Control
-} from 'react-hook-form';
-import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import { ROUTES } from '../constants/routes';
-import { useTranslation } from 'react-i18next';
-// import { GetawayFormData } from '../types/getaway';
-import { useCouponActions,
-  // create, update
- } from '../hooks/useCouponActions';
+import { BRAND } from '../theme/colors';
 
-type DiscountType = 'amount' | 'percentage';
+import { ROUTES } from '../constants/routes';
+import type { CouponPayload, DiscountType } from '../types/getaway';
+import { useCouponActions } from '../hooks/useCouponActions';
+import { useEditCoupon } from '../hooks/useEditCoupon';
+import { useTranslation } from 'react-i18next';
+
+const ALPHANUMERIC_I18N_REGEX : RegExp = /^[\p{L}0-9\s,._'";:()!/|&—’-]*$/u;
+
 interface CouponFormValues {
-  getawayId?: string;
   startDate: string;
   endDate: string;
+  userLimit: number | undefined;
   couponCode: string;
   description?: string;
-  amount?: number;
-  percent?: number;
+  amount?: number | null;
+  percent?: number | null;
+  //DiscountType is either 'amount' or 'percentage' from the form selection
+  discountType: DiscountType;
+  getawayId: string;
 }
 
 type CouponFormProps = {
-  // index: number;
-  // remove: (index: number) => void;
-  // control: Control<GetawayFormData>;
-
   mode: 'create' | 'edit';
   initialValues: Partial<CouponFormValues>;
   couponId?: string;
+  onSuccess?: (redirectPath?: string) => void;
+  onError?: (error: string) => void;
 };
-// {
-//   mode, initialValues, couponId,
-//   control, index, remove
-// }: CouponFormProps
-export default function CouponForm() {
-  const navigate = useNavigate();
-  const { id: couponId } = useParams();
-  const [ searchParams ] = useSearchParams();
+
+export default function CouponForm(
+  { mode, initialValues, couponId, onSuccess, onError }: CouponFormProps
+){
+  // const { id: couponId } = useParams();
   const isEditing = !!couponId;
 
   const { t } = useTranslation();
-  const { create, update, isLoading, error } = useCouponActions();
-  const getawayId = searchParams.get('getawayId') ?? undefined;
+  const {
+    create,
+    isLoading: isCreating, error: createError, clearError
+   } = useCouponActions();
+  const { editCoupon, isEditing: isEditing_api, error: editError } = useEditCoupon();
+  const getawayIdFromProps = initialValues.getawayId;
+  const isLoading = isCreating || isEditing_api;
+  const error = createError || editError;
 
-  const [discountType, setDiscountType] = useState<DiscountType>('amount');
-  // const [discountType, setDiscountType] = useState<DiscountType>(
-  //   initialValues.porcentajeDescuento ? 'percentage' : 'amount'
-  // );
+  // const getawayId = searchParams.get('getawayId') ?? undefined;
   const [snackbar, setSnackbar] = useState<{
     open: boolean;
     message: string;
@@ -68,124 +65,189 @@ export default function CouponForm() {
     setSnackbar({ open: true, message, severity });
   }, []);
 
-  const { control, handleSubmit } = useForm<CouponFormValues>({
+  const { control, handleSubmit,
+    watch, setValue, clearErrors //for discountType
+   } = useForm<CouponFormValues>({
     defaultValues:{
-      getawayId,
-      title: '',
-      startDate: '',
-      endDate: '',
-      couponCode: '',
-      description: '',
-      amount: undefined,
-      percent: undefined,
+      getawayId: getawayIdFromProps || '',
+      startDate: initialValues.startDate || '',
+      endDate: initialValues.endDate || '',
+      userLimit: initialValues.userLimit ?? undefined,
+      couponCode: initialValues.couponCode || '',
+      description: initialValues.description || '',
+      amount: initialValues.amount ?? undefined,
+      percent: initialValues.percent ?? undefined,
+      discountType: initialValues.percent ? 'percentage' : 'amount',
     },
   });
-  // const handleSubmit = async(values: CouponFormValues) => {
-  const onSubmit = async(values: CouponFormValues) => {
+
+  useEffect(() => {
+    if (initialValues.getawayId) {
+      setValue('getawayId', initialValues.getawayId);
+    }
+  }, [initialValues.getawayId, setValue]);
+  // watch listener: discount type from RHF
+  const currentDiscountType = watch('discountType');
+  const handleFocusType = (type: DiscountType) => {
+    setValue('discountType', type);
+    // reset unused field
+    if (type === 'amount') {
+      setValue('percent', undefined);
+      clearErrors('percent');
+    } else {
+      setValue('amount', undefined);
+      clearErrors('amount');
+    }
+  };
+
+  const onSubmit: SubmitHandler<CouponFormValues> = async (values) => {
+    console.log('payload:', 'values:', values);
     const payload: CouponPayload = {
-      ...values,
+    //...values,
       title: values.couponCode,
       description: values.description,
-      discount: discountType === 'amount'
-      ? values.amount
-      : values.percent,
-      // amount: discountType === 'amount' ? values.amount : undefined,
-      // percent: discountType === 'percentage' ? values.percent : undefined,
+      discount: values.discountType === 'amount'
+        ? values.amount || 0
+        : values.percent || 0,
       validFrom: values.startDate,
       validUntil: values.endDate,
-      userLimit: 0,
+      userLimit: values.userLimit ?? 0,
+      getawayId: values.getawayId ?? '',
+      discountType: values.discountType,
+      //  usersUsed: [],
     };
-    console.log('payload:', payload, 'values:', values);
-    if (isEditing) {
-      const result = await update(couponId, payload);
-      if (result) {
-        showSnackbar('Coupon updated successfully', 'success');
-      }
+    console.log('Payload to POST:', payload);
+    if (mode === 'edit') {
+      editCoupon(couponId!, payload, {
+        onSuccess: () => {
+          showSnackbar(t('coupon.edited'), 'success');
+          onSuccess?.();
+        },
+        onError: () => {
+          showSnackbar(t('common.update.failed'), 'error');
+          onError?.('Update failed');
+        },
+      });
     } else {
       const result = await create(payload);
       if (result) {
-        showSnackbar('Coupon created successfully', 'success');
-        //delay for toast before redirect
-        setTimeout(() => navigate(ROUTES.COUPONS), 1500);
+        showSnackbar(t('coupon.created'), 'success');
+        onSuccess?.(ROUTES.COUPONS);
+      } else if (error) {
+        const errorMsg = error instanceof Error ? error.message : String(error);
+        showSnackbar(errorMsg, 'error');
       }
     }
-
-    //hook error
-    if (error) showSnackbar(error, 'error');
-  }
-  // const { snackbar, showSnackbar, closeSnackbar } = useSnackbar();
-  // const { isLoading, submitGetaway } = useCreateCoupon(showSnackbar);
+  };
   return (
     <Box component="form" onSubmit={handleSubmit(onSubmit)}
-      sx={{
-        m:'20px 0px',
-        p:'20px 20px',
-        borderRadius: '8px', bgcolor: BRAND.white,
-      }}
+      sx={{ my:'20px', p:'20px 30px', borderRadius: '8px', bgcolor: BRAND.white }}
     >
-      <Typography variant="h6" sx={{ color: BRAND.primary, fontWeight: 'bold', mb: 2 }}>
-        { isEditing ? t('discount.edit') : t('discount.create')}
+      <Typography variant="h6" sx={{ color: BRAND.primary, fontWeight: 'bold', my: 1 }}>
+        { isEditing ? t('coupons.edit') : t('coupons.create')}
       </Typography>
-      {/* <Box style={{ display: 'flex', justifyContent:'space-between', alignItems:'center', gap: 16, marginBottom: 5 }}> */}
-        {/* <Button startIcon={<DeleteIcon />} variant="outlined" disableElevation size="medium" aria-label="delete"
-          sx={{ height: 36,
-            p:'5px 16px', m:'0 3px', borderRadius: "10px", textTransform: "none",
-            bgcolor: BRAND.primary, borderColor: 'white', color: 'white', fontWeight: 'bold',
-            ':hover': { color: BRAND.primary, bgcolor: BRAND.white  }
+      <Grid container spacing={{xs:1, md:2}}>
+        <Grid size={{xs:12, sm:6, md:4}}>
+          <Controller
+            name="startDate" control={control} defaultValue=""
+            rules={{ required: t('coupon.startRequired') }}
+            render={({ field, fieldState: { error } }) => (
+              <TextField type="date" fullWidth margin="normal"
+                {...field}
+                label={t('coupon.startDate')}
+                InputLabelProps={{ shrink: true }}
+                error={!!error}
+                helperText={error ? error.message : ''}
+              />
+            )}
+          />
+        </Grid>
+        <Grid size={{xs:12, sm:6, md:4}}>
+          <Controller
+            name="endDate" control={control} defaultValue=""
+            rules={{ required: t('coupon.dateRequired') }}
+            render={({ field, fieldState: { error } }) => (
+              <TextField type="date"
+                {...field}
+                label={t('coupon.endDate')}
+                fullWidth margin="normal"
+                InputLabelProps={{ shrink: true }}
+                error={!!error}
+                helperText={error ? error.message : ''}
+              />
+            )}
+          />
+        </Grid>
+        <Grid size={{xs:12, sm:6, md:4}}>
+          <Controller
+            name="userLimit" control={control}
+            rules={{
+              required: t('coupon.couponRequired'),
+              validate: ( v: number | undefined ) => {
+                if (v === undefined || v === null) return t('coupon.required');
+                return (Number.isInteger(v) && v > 0) || t('coupon.positive')
+              }
+            }}
+            render={({ field, fieldState: { error } }) => (
+              <FormControl fullWidth margin="normal" error={!!error} >
+                <InputLabel htmlFor="input-userLimit">{t('coupon.limit')}</InputLabel>
+                <OutlinedInput
+                  {...field} value={field.value ?? ''}
+                  id="input-userLimit"
+                  label={t('coupon.limit')} type="number"
+                  endAdornment={<InputAdornment position="end"> <LocalOfferIcon sx={{ p:'0 1px', color:'text.primary'}} /></InputAdornment>}
+                  sx={{
+                    //hide native arrows(spinners)from input Chrome, Safari, Edge, Opera
+                    '& input::-webkit-outer-spin-button, & input::-webkit-inner-spin-button': {
+                      WebkitAppearance: 'none',
+                      margin: 0
+                    },
+                    //Firefox
+                    '& input[type=number]': {
+                      MozAppearance: 'textfield'
+                    }
+                  }}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    if (val === '') {
+                      field.onChange(undefined); //reset input
+                      return;
+                    }
+                    const parsed = parseInt(val, 10);
+                    field.onChange(isNaN(parsed) || parsed < 0 ? undefined : Math.floor(parsed));
+                  }}
+                  onKeyDown={(e) => {
+                    if (['.', ',', '-', 'e', 'E'].includes(e.key)) {
+                      e.preventDefault(); // Block
+                    }
+                  }}
+                />
+                {error &&
+                  <Typography variant="caption" color="error.main" sx={{ ml: 2 }}>{error.message}</Typography>
+                }
+              </FormControl>
+            )}
+          />
+        </Grid>
+      </Grid>
+      <Box style={{ display:'flex', flexDirection:'column', justifyContent:'flex-start'}}>
+        <Controller
+          name="getawayId" control={control}
+          render={({ field }) => <input type="hidden" {...field} />}
+        />
+        <Controller
+          name="couponCode" control={control} defaultValue=""
+          rules={{
+            required: t('coupon.couponRequired'),
+            validate: (value?: string) =>
+              !value || ALPHANUMERIC_I18N_REGEX.test(value)
+                ? true
+                : t('create.onlyAlphanumeric'),
           }}
-          // onClick={() => removeDiscount(index)}
-          onClick={() => remove(index)}
-          // disabled={activeForms.length === 1}
-        > {t('discount.remove')} </Button> */}
-      {/* </Box> */}
-
-      {/* <Box style={{ display: 'flex', justifyContent: 'center', gap: 16  }}> */}
-      <Box sx={{ display: 'flex', gap: 2 }}>
-        <Controller
-          // name={`discounts.${index}.startDate`}
-          name="startDate" control={control}
-          defaultValue=""
-          rules={{ required: t('discount.startRequired') }}
-          render={({ field, fieldState: { error } }) => (
-            <TextField type="date"
-              {...field}
-              label={t('discount.startDate')} fullWidth margin="normal"
-              InputLabelProps={{ shrink: true }}
-              error={!!error}
-              helperText={error ? error.message : ''}
-            />
-          )}
-        />
-        <Controller
-          name="endDate"
-          control={control}
-          defaultValue=""
-          rules={{ required: t('discount.endRequired') }}
-          render={({ field, fieldState: { error } }) => (
-            <TextField type="date"
-              {...field}
-              label={t('discount.endDate')} fullWidth margin="normal"
-              // slotProps={{ inputLabel: { shrink: true } }}
-              InputLabelProps={{ shrink: true }}
-              error={!!error}
-              helperText={error ? error.message : ''}
-            />
-          )}
-        />
-      </Box>
-
-      <Box style={{
-        display: 'flex', flexDirection: 'column',
-        justifyContent:'flex-start' ,  gap: 12  }}>
-        <Controller
-          name="couponCode"
-          control={control}
-          defaultValue=""
-          rules={{ required: t('discount.couponRequired') }}
           render={({ field, fieldState: { error } }) => (
             <TextField
               {...field}
-              label={t('discount.couponCode')} required
+              label={t('coupon.couponName')} required
               fullWidth margin="normal"
               id="outlined-required"
               error={!!error}
@@ -195,32 +257,30 @@ export default function CouponForm() {
         />
 
         <Controller
-          // name={`discounts.${index}.description`}
           name="description"
-          control={control}
-          defaultValue=""
+          control={control} defaultValue=""
+          rules={{
+            validate: (value?: string) =>
+              !value || ALPHANUMERIC_I18N_REGEX.test(value)
+                ? true
+                : t('create.onlyAlphanumeric'),
+          }}
           render={({ field }) => (
             <TextField {...field}
               id="outlined-multiline-flexible"
-              label={t('discount.description')}
-              multiline
-              maxRows={3}
-              // sx={{ m: 1 }}
-              margin="normal" fullWidth
+              label={t('coupon.description')}
+              multiline margin="normal" fullWidth maxRows={3}
             />
           )}
         />
-        <Typography variant="h6" color={BRAND.primary} sx={{
-          //  mt:2,
-            mb:0,
-            fontSize: '14px', fontWeight:"bold"  }}>
-          {/* {t('discount.selectFormat')} */}
-          Select discount format
+
+        <Typography variant="h6" color={BRAND.primary} sx={{ fontSize: '14px', fontWeight:"bold", mt:2  }}>
+          {t('coupon.selectFormat')}
         </Typography>
-        <Divider aria-hidden="true"/>
+        <Divider aria-hidden="true" sx={{margin:0, padding:0}} />
         <Box
           sx={{
-            display: 'flex',
+            display: 'flex', padding:"0", margin:"0",
             flexDirection: { xs: 'column', sm: 'row' },
             alignItems: { xs: 'center', sm: 'center' },
             justifyContent:{ xs: 'center', sm:'start'},
@@ -230,16 +290,13 @@ export default function CouponForm() {
           }}
         >
           <Controller
-            // name={`discounts.${index}.amount`}
             name="amount"
             control={control}
-            defaultValue={0}
             rules={{
-              validate: (v) =>
-                discountType !== 'amount' || (!!v && v > 0) || t('discount.amountPositive'),
-              // valueAsNumber: true,
-              // required: t('discount.amountRequired'),
-              // min: { value: 0.01, message: t('discount.amountPositive') }
+              validate: ( v: number | null | undefined ) => {
+                if (currentDiscountType !== 'amount') return true;
+                return (typeof v === 'number' && Number.isInteger(v) && v > 0) || t('coupon.amountPositive');
+              }
             }}
             render={({ field, fieldState: { error } }) => (
               <FormControl
@@ -248,106 +305,119 @@ export default function CouponForm() {
                   minWidth:{ sm:'180'}, flex: { sm: '1 1 180px' }
                 }}
                 margin="normal" error={!!error}
-                disabled={discountType === 'percentage'}
+                disabled={currentDiscountType === 'percentage'}
               >
-                <InputLabel htmlFor="input-amount">{t('discount.amount')}</InputLabel>
+                <InputLabel htmlFor="input-amount">{t('coupon.amount')}</InputLabel>
                 <OutlinedInput
                   {...field}
-                  id="input-amount"
+                  value={field.value ?? ''}
+                  type="number" id="input-amount"
                   endAdornment={<InputAdornment position="end">$</InputAdornment>}
-                  label={t('discount.amount')}
-                  type="number"
-                  onFocus={() => setDiscountType('amount')}
-                  onChange={(e) => field.onChange(parseFloat(e.target.value) || undefined)}
+                  label={t('coupon.amount')}
+                  sx={{
+                    //hide native arrows(spinners)from input Chrome, Safari, Edge, Opera
+                    '& input::-webkit-outer-spin-button, & input::-webkit-inner-spin-button': { WebkitAppearance: 'none', margin: 0 },
+                    '& input[type=number]': { MozAppearance: 'textfield'} //Firefox
+                  }}
+                  onFocus={() => handleFocusType('amount')}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    if (val === '') {
+                      field.onChange(''); //reset input
+                      return;
+                    }
+                    const parsed = parseInt(val, 10);
+                    field.onChange(isNaN(parsed) || parsed < 0 ? '' : Math.floor(parsed));
+                  }}
+                  onKeyDown={(e) => {
+                    if (['.', ',', '-', 'e', 'E'].includes(e.key)) {
+                      e.preventDefault(); // Block
+                    }
+                  }}
                 />
-                {error && <Typography variant="caption" color="error.main" sx={{ ml: 2 }}>{error.message}</Typography>}
+                {error &&
+                  <Typography variant="caption" color="error.main" sx={{ ml: 2 }}>{error.message}</Typography>
+                }
               </FormControl>
             )}
           />
-          <Typography color={BRAND.primary} sx={{ fontSize: '14px', fontWeight:"bold", userSelect: 'none'  }}>
-            {/* {t('discount.or')} */}
-            Or
-          </Typography>
+          <Typography color={BRAND.primary} sx={{ fontSize: '14px', fontWeight:"bold", userSelect: 'none'  }}> {t('coupon.or')} </Typography>
           <Controller
-            // name={`discounts.${index}.percent`}
-            name="percent"
-            control={control}
-            defaultValue={0}
+            name="percent" control={control}
             rules={{
-              validate: (v) =>
-                discountType !== 'percentage' || (!!v && v > 0) || t('discount.amountPositive'),
+              validate: (v) => {
+                if (currentDiscountType !== 'percentage') return true;
+                if (v === undefined || v === null) return t('coupon.amountRequired');
+                return (
+                  (typeof v === 'number' && Number.isInteger(v) && v > 0 && v <= 100) ||
+                  t('coupon.amountPositive')
+                );
+              }
             }}
             render={({ field, fieldState: { error } }) => (
               <FormControl
+                margin="normal" error={!!error}
+                disabled={currentDiscountType === 'amount'}
                 sx={{
                   width:{ xs: '100%', sm: 'auto'},
                   minWidth:{ sm:'180px'},
                   flex: { sm: '1 1 180px' }
                 }}
-                margin="normal" error={!!error}>
-                <InputLabel htmlFor="input-percent">
-                  {/* {t('discount.percentage')} */}
-                  Discount in percentage
-                </InputLabel>
+              >
+                <InputLabel htmlFor="input-percent"> {t('coupon.percentage')} </InputLabel>
                 <OutlinedInput
-                  {...field}
-                  id="input-percent"
+                  {...field} value={field.value ?? ''}
+                  id="input-percent" type="number"
+                  label={t('coupon.percentage')}
+                  sx={{
+                    //hide native arrows(spinners)from input Chrome, Safari, Edge, Opera
+                    '& input::-webkit-outer-spin-button, & input::-webkit-inner-spin-button': {  WebkitAppearance: 'none', margin: 0 },
+                    '& input[type=number]': { MozAppearance: 'textfield'} //Firefox
+                  }}
                   endAdornment={<InputAdornment position="end">%</InputAdornment>}
-                  label={t('discount.percentage')}
-                  type="number"
-                  onFocus={() => setDiscountType('percentage')}
-                  onChange={(e) => field.onChange(parseFloat(e.target.value) || undefined)}
+                  onFocus={() => handleFocusType('percentage')}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    if (val === '') {
+                      field.onChange(undefined);
+                      return;
+                    }
+                    const parsed = parseInt(val, 10);
+                    field.onChange(isNaN(parsed) || parsed < 0 ? undefined : Math.floor(parsed));
+                  }}
+                  onKeyDown={(e) => {
+                    if (['.', ',', '-', 'e', 'E'].includes(e.key)) {
+                      e.preventDefault();
+                    }
+                  }}
                 />
-                {error && <Typography variant="caption" color="error.main" sx={{ ml: 2 }}>{error.message}</Typography>}
+                {error &&
+                  <Typography variant="caption" color="error.main" sx={{ ml: 2 }}>{error.message}</Typography>
+                }
               </FormControl>
             )}
           />
         </Box>
-        {/* <Controller
-          name={`discounts.${index}.isActive`}
-          control={control}
-          defaultValue={false} // Default
-          render={({ field }) => (
-            <FormControlLabel
-              sx={{ color: BRAND.black }}
-              label={t('discount.activate')}
-              control={
-                <Checkbox
-                  {...field}
-                  checked={field.value}
-                  onChange={field.onChange}
-                />
-              }
-            />
-          )}
-        /> */}
-        {error && (
-          <Typography color="error.main" variant="caption">{error}</Typography>
-        )}
         <Button type="submit" startIcon={<SaveIcon />} variant="outlined"
           disabled={isLoading}
           // className={`className ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
           sx={{
-            mt: 2,
-            width:'160px',
-            borderRadius: '8px', bgcolor: BRAND.primary, color: BRAND.white, fontWeight: 'medium', textTransform: 'none',
+            my: 2, width:'160px', borderRadius: '8px',
+            bgcolor: BRAND.primary, color: BRAND.white, fontWeight: 'medium', textTransform: 'none',
             ':hover': { bgcolor: 'white', color: BRAND.primary }
           }}
-          >
-          {isLoading ? 'Saving...' : isEditing ? 'Save' : 'Create coupon'}
-          {/* {isEditing ? t('discount.save') : t('discount.create')} */}
-          {/* {isLoading ? t('create.saving') : t('create.saveChanges')} */}
+          > {isLoading ? t('common.saving') : isEditing ? t('common.save') : t('coupons.create')}
         </Button>
         <Snackbar
-        open={snackbar.open}
-        autoHideDuration={3000}
-        onClose={() => { setSnackbar((prev) => ({ ...prev, open: false })); clearError(); }}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-      >
-        <Alert severity={snackbar.severity} variant="filled" sx={{ width: '100%' }}>
-          {snackbar.message}
-        </Alert>
-      </Snackbar>
+          open={snackbar.open}
+          autoHideDuration={3000}
+          onClose={() => { setSnackbar((prev) => ({ ...prev, open: false })); clearError(); }}
+          anchorOrigin={{ vertical:'bottom', horizontal:'center' }}
+        >
+          <Alert severity={snackbar.severity} variant="filled" sx={{ width:'100%' }}>
+            {snackbar.message}
+          </Alert>
+        </Snackbar>
       </Box>
     </Box>
   );

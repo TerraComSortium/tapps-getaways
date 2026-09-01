@@ -105,14 +105,12 @@ export default function Coupons() {
                   {paginatedCoupons.map((coupon) => (
                   // {coupons.map((coupon) => (
                     <CouponItem
+                      key={coupon.id}
                       id={coupon.id}
                       title={coupon.title}
                       description={coupon.description ?? ''}
-                      // code={coupon.couponCode}
                       dates={`${firestoreToDate(coupon.validFrom)} - ${firestoreToDate(coupon.validUntil)}`}
                       discount={coupon.discount}
-                      // discountPercent={coupon.percent || undefined}
-                      // isActive={coupon.isActive}
                       usersUsed={coupon.usersUsed ?? []}
                       userLimit={coupon.userLimit}
                       createdAt={firestoreToDate(coupon.createdAt)}

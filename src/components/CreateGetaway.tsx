@@ -1,5 +1,7 @@
 import * as React from 'react';
-import { useForm, Controller, useFieldArray, SubmitHandler } from 'react-hook-form';
+import { useForm, Controller, useFieldArray, SubmitHandler,
+  useWatch
+} from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { ROUTES } from '../constants/routes';
 import { BRAND } from '../theme/colors';
@@ -15,10 +17,12 @@ import AdminSidebar from './AdminSidebar';
 import { AddressAutocompleteField } from '../components/AddressAutocompleteField';
 import { GalleryPhotoItem } from '../components/GalleryPhotoItem';
 import { ScheduleForm } from '../components/ScheduleForm';
-// import  DiscountForm  from '../components/DiscountForm';
 import AcademySchedule from '../components/AcademySchedule';
 import LaddersSchedule from '../components/LaddersSchedule';
 import TournamentsSchedule from '../components/TournamentsSchedule';
+// import { Tournaments } from './Tournaments';
+// import { getAcademy } from '../services/academyService';
+import { useGetAcademy } from '../hooks/useGetAcademy';
 
 import {
   GetawayFormData,
@@ -60,6 +64,17 @@ export default function CreateGetaway() {
       discounts: []
     }
   });
+
+  // 1. Hook de consulta a la academia
+  const { academyData, loading: loadingAcademy, fetchAcademy } = useGetAcademy();
+  const [selectedAcademyIds, setSelectedAcademyIds] = React.useState<string[]>([]);
+
+  // 2. Escuchar los inputs clave del formulario
+  const watchedStartDate = useWatch({ control, name: 'startDate' });
+  const watchedEndDate = useWatch({ control, name: 'endDate' });
+  const watchedSport = useWatch({ control, name: 'sport' });
+
+  const [selectedTournamentIds, setSelectedTournamentIds] = React.useState<string[]>([]);
 
   const { fields: photoFields, append: appendPhoto, remove: removePhoto } = useFieldArray({
     control,
@@ -121,7 +136,7 @@ export default function CreateGetaway() {
       }));
 
     setScheduleError(null);
-    await submitGetaway(data, scheduleRows, cleanedAddOns, validPhotos, validCaptions);
+    await submitGetaway(data, scheduleRows, cleanedAddOns, validPhotos, validCaptions, selectedTournamentIds);
   };
 
   React.useEffect(() => {
@@ -129,7 +144,16 @@ export default function CreateGetaway() {
       setScheduleError(null);
     }
   }, [scheduleRows, scheduleError]);
-
+  // Disparar la consulta al cambiar las fechas o el deporte
+  React.useEffect(() => {
+    if (watchedStartDate && watchedEndDate && watchedSport) {
+      fetchAcademy({
+        startDate: watchedStartDate,
+        endDate: watchedEndDate,
+        sport: watchedSport,
+      });
+    }
+  }, [watchedStartDate, watchedEndDate, watchedSport, fetchAcademy]);
   return (
     <>
     <Box sx={{ width: '100%', overflow: 'hidden' }}>
@@ -526,42 +550,29 @@ export default function CreateGetaway() {
                 <ScheduleForm rows={scheduleRows} setRows={setScheduleRows} />
               </Box>
 
-              {/* <Box
-                sx={{
-                  borderRadius: '0 24px', m: '25px 0', p: '30px 25px',
-                  bgcolor: BRAND.primary, color:'white', fontWeight: 'medium', textTransform: 'none',
-                  ':hover': { bgcolor: BRAND.primaryDark }
+              <AcademySchedule
+                schedules={academyData}
+                loading={loadingAcademy}
+                selectedIds={selectedAcademyIds}
+                setSelectedIds={setSelectedAcademyIds}
+                fetchAcademy={fetchAcademy}
+                searchParams={{
+                  startDate: watchedStartDate,
+                  endDate: watchedEndDate,
+                  sport: watchedSport
                 }}
-              >
-                <Typography variant="h3" color={BRAND.white} sx={{ m: '1 0', fontSize: '16px', fontWeight:"medium"  }}> {t('create.discountManagement')} </Typography>
-                
-                {discountFields.map((field, index) => (
-                  <DiscountForm
-                    key={field.id}
-                    control={control}
-                    index={index}
-                    remove={removeDiscount}
-                    // errors={errors}
-                  />
-                ))}
+              />
+              {/* <TournamentsSchedule/> */}
+              <TournamentsSchedule
+                mode="select"
+                selectedIds={selectedTournamentIds}
+                setSelectedIds={setSelectedTournamentIds}
+              />
+              
+              {/* <section style={{ marginTop: '20px' }}>
+                <Tournaments />
+              </section> */}
 
-                <Button startIcon={<AddIcon />} variant="contained" aria-label="Add discount" disableElevation
-                  onClick={() => appendDiscount({
-                    couponCode: "",
-                    startDate: "",
-                    endDate: "",
-                    description: "",
-                    amount: 0,
-                    isActive: true
-                  })}
-                  sx={{
-                    mt: 2, mb: 3, bgcolor: BRAND.white, color: BRAND.navy, borderRadius: '30px', fontWeight: 'bold', textTransform: 'none',
-                    ':hover': { bgcolor: BRAND.primary, color: 'white' }
-                  }}
-                > {t('create.addItem')} </Button>
-              </Box> */}
-              <AcademySchedule/>
-              <TournamentsSchedule/>
               <LaddersSchedule/>
 
               <Controller name="policies" defaultValue=""

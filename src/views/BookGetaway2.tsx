@@ -19,6 +19,10 @@ import { createPurchase, Reservation } from '../services/purchase/purchase';
 import { paymentPath } from '../constants/routes';
 import { BRAND } from '../theme/colors';
 
+import AcademySchedule from '../components/AcademySchedule';
+import LaddersSchedule from '../components/LaddersSchedule';
+import TournamentsSchedule from '../components/TournamentsSchedule';
+
 const TAX_RATE = 0.0654;
 interface FormData {
   // payment user info....?
@@ -248,6 +252,12 @@ export default function BookGetaway() {
                 </FormControl>
               )}
             />
+              <AcademySchedule/>
+              <TournamentsSchedule
+                mode="readonly"
+                selectedIds={getaway.tournamentIds || []}
+              />
+              <LaddersSchedule/>
               <Typography variant="h6" className='purpleLabel' sx={{ mt: 2, mb: 0.5, fontSize: '14px', fontWeight: 'bold' }}>{t('book.paymentDetails')}</Typography>
               <Divider aria-hidden="true" sx={{ bgcolor: BRAND.green }} />
               <Typography variant="body2" sx={{ mt: 1 }}>{t('book.subtotal')}: ${(totals.subtotal || 0).toFixed(2)} USD</Typography>

@@ -41,6 +41,7 @@ export interface GetawayBase {
   amenities: { name: string }[];
   schedule: ApiScheduleEntry[];
   discounts?: Discount[];
+  tournamentIds?: string[];
   policies: string;
   terms: string;
 }
@@ -67,6 +68,7 @@ export type GetawayPayload = Omit<GetawayFormData, 'galleryPhotos' | 'optionalAd
   optionalAddOns: { name: string; price: number }[];
   galleryPhotos: File[];
   galleryPhotoCaptions?: string[];
+  tournamentIds?: string[];
 }
 
 export interface Discount {

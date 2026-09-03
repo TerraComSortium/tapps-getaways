@@ -13,7 +13,8 @@ interface UseCreateGetawayReturn {
     scheduleRows: ScheduleRow[],
     cleanedAddOns: { name: string; price: number }[],
     validPhotos: File[],
-    validCaptions: string[]
+    validCaptions: string[],
+    selectedTournamentIds: string[]
   ) => Promise<void>;
 }
 
@@ -34,7 +35,8 @@ export function useCreateGetaway(
     data: GetawayFormData,
     scheduleRows: ScheduleRow[], cleanedAddOns: { name: string; price: number }[],
     validPhotos: File[],
-    validCaptions: string[]
+    validCaptions: string[],
+    selectedTournamentIds: string[]
   ): Promise<void> => {
     setIsLoading(true);
 
@@ -56,6 +58,7 @@ export function useCreateGetaway(
         schedule: apiSchedule,
         galleryPhotos: validPhotos,
         galleryPhotoCaptions: validCaptions,
+        tournamentIds: selectedTournamentIds,
       };
 
       const result = await handleGetawaySubmit(payload);

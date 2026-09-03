@@ -20,7 +20,7 @@ export const deleteCoupon = async (id: string) => {
   return response.data;
 };
 
-export const getCoupon = async (id: string) => {
+export const getCouponById = async (id: string) => {
   const response = await api.get(`/coupons/${id}`);
-  return response.data;
+  return response.data.coupons;
 };

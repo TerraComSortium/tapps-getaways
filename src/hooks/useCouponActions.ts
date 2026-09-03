@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
-  getCoupon, getCoupons,
+  getCouponById, getCoupons,
   createCoupon,
   updateCoupon,
 } from '../services/coupons/coupons';
@@ -24,7 +24,7 @@ export function useCoupon(id?: string) {
 
   useEffect(() => {
     if (!id) return;
-    getCoupon(id)
+    getCouponById(id)
       .then(setData)
       .catch(() => setData(null))
       .finally(() => setLoading(false));

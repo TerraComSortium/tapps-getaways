@@ -1,13 +1,13 @@
 import { useQuery } from '@tanstack/react-query';
-import { getCoupon, getCoupons } from '../services/coupons/coupons';
+import { getCouponById, getCoupons } from '../services/coupons/coupons';
 
 // Hook (modo edit)
-export function useCoupon(id?: string) {
+export function useCouponById(id?: string) { 
   const { data, isLoading, error } = useQuery({
     queryKey: ['coupon', id],
     queryFn: async () => {
       if (!id) return null;
-      const res = await getCoupon(id);
+      const res = await getCouponById(id);
       return res;
     },
     enabled: !!id,

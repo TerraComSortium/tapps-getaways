@@ -2,9 +2,7 @@ import {
   useNavigate, useParams,
   useSearchParams
 } from 'react-router-dom';
-import { useCoupon,
-  // useCouponActions
-} from '../hooks/useCoupon';
+import { useCouponById } from '../hooks/useCoupon';
 import { Box, CircularProgress } from '@mui/material';
 import Grid from '@mui/material/Grid2';
 import {firestoreToDate} from '../utils/dates';
@@ -21,7 +19,10 @@ export default function CouponFormView() {
   const isEditing = !!id;
 
   //if(edit) -> fetch(coupon to insert presets in fields)
-  const { data: existing, loading } = useCoupon(id); //hook return null if !id
+  // console.log('id de cupon', id)
+  const { data: existing, loading } = useCouponById(id); //hook return null if !id
+  console.log('uso de cupont', existing)
+  
   const handleError = (error: string) => {
     console.log('CouponFormView: error', error);
   };
@@ -38,6 +39,7 @@ export default function CouponFormView() {
     <Grid container rowSpacing={1} columnSpacing={{ xs: 1, sm: 2, md: 3 }}>
       <AdminSideBar />
       <Grid size={{ xs: 12, sm: 9, md: 10 }} className='section blueBg'>
+        {/* <h1>Holis</h1> */}
       <CouponForm
         mode={isEditing ? 'edit' : 'create'}
         // initialValues={{ ofertaId }}

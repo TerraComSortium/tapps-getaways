@@ -374,10 +374,13 @@
   "academy.showSessions": "Mostrar sesiones disponibles",
 
   "sched.dates": "Fechas",
+  "sched.clubName": "Club",
   "sched.rankingType": "Tipo de ranking",
   "sched.modality": "Modalidad",
   "sched.required": "Obligatorio",
   "sched.afterStart": "Debe ser posterior a la hora de inicio",
+  "sched.PlayLevel": "Nivel de juego",
+
   "sched.schedule": "Agenda",
   "sched.date": "Fecha",
   "sched.startTime": "Hora de inicio",
@@ -400,7 +403,14 @@
 
   "tournaments.addPrompt": "Puedes añadir estas sesiones de Tournaments™ disponibles en el Getaway™",
   "tournaments.header": "Torneo",
-  "tournaments.prompt": "¿Quieres ver las sesiones disponibles de Racquets Tournaments™ para estas fechas?",
+  "tournaments.prompt": "¿Quiere ver las sesiones disponibles de Racquets Tournaments™ para estas fechas?",
+  "tournaments.get":"Obtener Torneos",
+  "tournaments.unavailable":" No hay torneos disponibles.",
+  "tournaments.tournament": "Torneo:",
+  "tournaments.unavailableHeadquarter": "Sede por definir",
+  "tournaments.undefinedDates": "Fechas por definir",
+  "tournaments.loading": "Cargando torneos...",
+
 
   "ladders.addPrompt": "Puedes añadir estas sesiones de Ladders™ disponibles en este Getaway™",
   "ladders.header": "Torneo de escaleras",

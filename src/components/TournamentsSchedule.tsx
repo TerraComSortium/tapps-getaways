@@ -21,16 +21,18 @@ import { useTournaments } from '../hooks/useTournaments';
 export interface TournamentRow {
   id: string;
   tournamentName: string;
-  clubName: string;	
+  clubName: string;
   dates: string;
   type: string;
   location: string;
   sport: string;
   price: string;
   playingLevelMax: string;
-  playingLevelMin: string;	
+  playingLevelMin: string;
   participantLimit: string;
   included: boolean;
+  typeDraw: string;
+  quantityGames: string;
 }
 
 interface FirestoreDate {
@@ -69,11 +71,26 @@ const formatNullableNumber = (value: unknown) => {
   return Number.isFinite(numberValue) ? String(numberValue) : '-';
 };
 
+const formatMoney = (value: unknown) => {
+  if (value === null || value === undefined || value === '') return '-';
+
+  const numberValue = typeof value === 'number' ? value : Number(value);
+
+  return Number.isFinite(numberValue) ? `$${numberValue.toLocaleString()} fee` : '-';
+};
+
+const formatInteger = (value: unknown) => {
+  if (value === null || value === undefined || value === '') return '-';
+
+  const numberValue = typeof value === 'number' ? value : Number(value);
+
+  return Number.isInteger(numberValue) ? String(numberValue) : '-';
+};
+
 const toTournamentRows = (tournaments: Tournament[], t: (key: string) => string): TournamentRow[] =>
   tournaments.map((tournament) => {
     const startDate = formatTournamentDate(tournament.startDate);
     const endDate = formatTournamentDate(tournament.endDate);
-    const fees = typeof tournament.fees === 'number' ? tournament.fees : Number(tournament.fees);
 
     return {
       id: tournament.id,
@@ -86,11 +103,13 @@ const toTournamentRows = (tournaments: Tournament[], t: (key: string) => string)
       type: typeof tournament.type === 'string' && tournament.type ? tournament.type : '-',
       location: typeof tournament.location === 'string' && tournament.location ? tournament.location : '-',
       sport: typeof tournament.sport === 'string' && tournament.sport ? tournament.sport : '-',
+      typeDraw: typeof tournament.typeDraw === 'string' && tournament.typeDraw ? tournament.typeDraw : '-',
       playingLevelMax: formatNullableNumber(tournament.playingLevelMax),
       playingLevelMin: formatNullableNumber(tournament.playingLevelMin),
       participantLimit: formatNullableNumber(tournament.participantLimit),
-      price: Number.isFinite(fees) ? `$${fees} fee` : '-',
+      price: formatMoney(tournament.fees),
       included: false,
+      quantityGames: formatInteger(tournament.quantityGames),
     };
   });
 
@@ -201,7 +220,9 @@ export default function TournamentTable(
                         <span>{t('sched.dates')}: {row.dates}</span>
                         <span>{t('sched.type')}: {row.type}</span>
                         <span>{t('sched.PlayLevel')}: {row.playingLevelMin} - {row.playingLevelMax}</span>
+                        <span>{t('sched.quantityGames')}: {row.quantityGames}</span>
                         <span>{t('sched.sport')}: {row.sport}</span>
+                        <span>{t('sched.typeDraw')}: {row.typeDraw}</span>
                         <span>{t('sched.location')}: {row.location}</span>
                       </Stack>
                     </StyledTableCell>

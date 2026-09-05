@@ -1,7 +1,7 @@
 {
   "common.loading": "Loading...",
   "common.save": "Save",
-  "common.saving": "Guardando",
+  "common.saving": "Saving...",
   "common.cancel": "Cancel",
   "common.confirm": "Confirm",
   "common.delete": "Delete",
@@ -14,8 +14,9 @@
   "common.required": "Required",
   "common.noData": "No data available. Please fill the form first.",
   "common.untitledGetaway": "Untitled getaway",
+  "common.noAccess": "Unauthorized access. Login to continue.",
 
-  "discount.create":"Create coupon", 
+  "discount.create":"Create coupon",
   "discount.edit":"Edit coupon",
   "discount.fetchingCoupons":"Fetching coupons...",
 
@@ -330,14 +331,14 @@
   "coupons.confirmDelete":"Are you sure you want to permanently delete this coupon? ",
   "coupons.deleteSuccess":"Coupon deleted successfully!",
   "coupons.deleteError":"An error occurred while deleting the coupon on the server. Please try again later.",
-  
+
   "coupons.title":"Coupons management",
   "coupons.create":"Create coupon",
   "coupons.edit":"Edit coupon",
   "coupons.fetchingCoupons":"Fetching coupons...",
 
   "discount.remove": "Remove",
-  
+
   "coupon.couponName": "Coupon name or title",
   "coupon.startDate": "Start date",
   "coupon.startRequired": "Start date is required",
@@ -381,25 +382,29 @@
   "academy.enhance": "Enhance your Getaway",
   "academy.prompt": "Do you want to see available Racquets Academy™ sessions for these dates?",
   "academy.showSessions": "Show available sessions",
-
-  "sched.dates": "Dates",
+  
+  "sched.required": "Required",
   "sched.clubName": "Club",
   "sched.rankingType": "Ranking type",
+  "sched.typeDraw": "Type draw",
   "sched.type": "Type",
   "sched.location": "Location",
+  "sched.PlayLevel": "Playing level",
+  "sched.quantityGames": "#Games",
   "sched.sport": "Sport",
-  "sched.required": "Required",
-  "sched.afterStart": "Must be after start time",
+
+  
   "sched.schedule": "Schedule",
+  "sched.dates": "Dates",
   "sched.date": "Date",
   "sched.startTime": "Start time",
   "sched.endTime": "End time",
-  "sched.PlayLevel": "Playing level",
+  "sched.activityTitle": "Activity title",
   "sched.activity": "Activity",
-  "sched.location": "Location",
+  "sched.fee": "Tarifa",
   "sched.hr": "Hr",
   "sched.min": "Min",
-  "sched.activityTitle": "Activity title",
+  "sched.afterStart": "Must be after start time",
   "sched.save": "Save",
   "sched.addActivity": "Add activity",
 
@@ -422,6 +427,7 @@
   "tournaments.undefinedDates": "Dates to be defined",
   "tournaments.fees": "Fee per person",
   "tournaments.loading": "Loading tournaments...",
+  "tournaments.error": "Error fetching tournaments.",
 
 
   "ladders.addPrompt": "You can add these available Ladders™ sessions in this Getaway™",

@@ -14,7 +14,8 @@
   "common.required": "Campo requerido",
   "common.noData": "No hay datos disponibles. Completa el formulario primero.",
   "common.untitledGetaway": "Oferta Getaway sin título",
-  
+  "common.noAccess": "Acceso no autorizado . Inicia sesión para continuar.",
+
   "coupon.addCoupon": "Crear cupón",
   "coupon.couponName": "Nombre de cupon",
   "coupon.couponRequired": "Valor requerido",
@@ -373,23 +374,28 @@
   "academy.prompt": "¿Quieres ver las sesiones disponibles de Racquets Academy™ para estas fechas?",
   "academy.showSessions": "Mostrar sesiones disponibles",
 
-  "sched.dates": "Fechas",
+  "sched.required": "Obligatorio",
   "sched.clubName": "Club",
   "sched.rankingType": "Tipo de ranking",
-  "sched.modality": "Modalidad",
-  "sched.required": "Obligatorio",
-  "sched.afterStart": "Debe ser posterior a la hora de inicio",
+  "sched.type": "Tipo",
+  "sched.location": "Ubicación sede",
+  "sched.typeDraw": "Modalidad",
   "sched.PlayLevel": "Nivel de juego",
-
+  "sched.sport": "Deporte",
+  "sched.quantityGames": "#Juegos",
+  
   "sched.schedule": "Agenda",
+  "sched.dates": "Fechas",
   "sched.date": "Fecha",
   "sched.startTime": "Hora de inicio",
   "sched.endTime": "Hora de fin",
+  "sched.activityTitle": "Título de la actividad",
   "sched.activity": "Actividad",
-  "sched.location": "Ubicación",
+  "sched.fee": "Tarifa",
+  
   "sched.hr": "Hr",
   "sched.min": "Min",
-  "sched.activityTitle": "Título de la actividad",
+  "sched.afterStart": "Debe ser posterior a la hora de inicio",
   "sched.save": "Guardar",
   "sched.addActivity": "Agregar actividad",
 
@@ -410,7 +416,7 @@
   "tournaments.unavailableHeadquarter": "Sede por definir",
   "tournaments.undefinedDates": "Fechas por definir",
   "tournaments.loading": "Cargando torneos...",
-
+  "tournaments.error": "'Error al obtener torneos.",
 
   "ladders.addPrompt": "Puedes añadir estas sesiones de Ladders™ disponibles en este Getaway™",
   "ladders.header": "Torneo de escaleras",

@@ -24,6 +24,7 @@ import { BRAND } from '../theme/colors';
 import AcademySchedule from '../components/AcademySchedule';
 import LaddersSchedule from '../components/LaddersSchedule';
 import TournamentsSchedule from '../components/TournamentsSchedule';
+import { getCouponLabel, getCouponValue } from '../utils/couponHelpers';
 
 const TAX_RATE = 0.0654;
 interface FormData {
@@ -91,10 +92,11 @@ export default function BookGetaway() {
       }
     });
 
+    const couponValue = getCouponValue(coupon);
     const discount = coupon
       ? coupon.discountType === 'amount'
-        ? Number(coupon.discount) || 0
-        : sub * ((Number(coupon.discount) || 0) / 100)
+        ? couponValue
+        : sub * (couponValue / 100)
       : 0;
     const discountedSubtotal = Math.max(sub - discount, 0);
     const tax = discountedSubtotal * TAX_RATE;
@@ -107,11 +109,7 @@ export default function BookGetaway() {
     };
   }, [getaway, watchLodging, watchAddOns, coupon]);
 
-  const couponLabel = coupon
-    ? coupon.discountType === 'amount'
-      ? `$${coupon.discount} Off`
-      : `${coupon.discount}% Off`
-    : '';
+  const couponLabel = getCouponLabel(coupon);
 
   const onSubmit = async (formData: FormData) => {
     if (!getaway || !user) return;

@@ -80,6 +80,8 @@ export interface Discount {
   title: string;
   description?: string;
   discount: number;
+  percent?: number;
+  amount?: number;
   discountType?: DiscountType;
   ownerId: string;
   getawayId?: string;

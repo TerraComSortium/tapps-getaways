@@ -1,6 +1,6 @@
 import './App.css'
 import './index.css'
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { APIProvider, useMapsLibrary } from '@vis.gl/react-google-maps';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import { ROUTES, ROUTE_PATTERNS } from './constants/routes';
@@ -91,28 +91,31 @@ const AppLocationInitializer: React.FC = () => {
   const userLocation = useUserStore((state) => state.userLocation);
   const userAddress = useUserStore((state) => state.userAddress);
   const setUserAddress = useUserStore((state) => state.setUserAddress);
-
+  const addressRef = useRef(userAddress);
+  
+  useEffect(() => {
+    addressRef.current = userAddress;
+  }, [userAddress]);
   // Accedemos de forma instantánea a la librería global ya descargada
   const geocodingLib = useMapsLibrary('geocoding');
 
   useEffect(() => {
     // Si no hay coordenadas, ya tenemos dirección, o Google no cargó, no hacemos nada
     if (!userLocation || userAddress !== "" || !geocodingLib) return;
-
-    console.log("Geocodificando ubicación inicial de forma segura con el SDK...");
     const geocoder = new geocodingLib.Geocoder();
 
     geocoder.geocode({ location: { lat: userLocation.lat, lng: userLocation.lng } }, (results, status) => {
       if (status === "OK" && results?.[0]) {
         const shortAddress = getCityAndCountry(results[0].address_components);
+        const finalAddress = shortAddress || results[0].formatted_address;
+        addressRef.current = finalAddress; 
         setUserAddress(shortAddress || results[0].formatted_address);
       } else {
         console.error("Error en geocoding inicial:", status);
       }
     });
   }, [userLocation, userAddress, setUserAddress, geocodingLib]);
-
-  return null; // Este componente no renderiza HTML, solo gestiona datos de fondo
+  return null;
 };
 
 function App() {

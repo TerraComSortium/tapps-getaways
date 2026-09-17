@@ -17,7 +17,7 @@ import { useTranslation } from 'react-i18next';
 
 const ALPHANUMERIC_I18N_REGEX : RegExp = /^[\p{L}0-9\s,._'";:()!/|&—’-]*$/u;
 
-interface CouponFormValues {
+interface CouponFormValues { 
   startDate: string;
   endDate: string;
   userLimit: number | undefined;
@@ -75,27 +75,31 @@ export default function CouponForm(
       userLimit: initialValues.userLimit ?? undefined,
       couponCode: initialValues.couponCode || '',
       description: initialValues.description || '',
-      amount: initialValues.amount ?? undefined,
-      percent: initialValues.percent ?? undefined,
-      discountType: initialValues.percent ? 'percentage' : 'amount',
+      amount: initialValues.amount ?? null,
+      percent: initialValues.percent ?? null,
+      discountType:
+        initialValues.discountType ?? (initialValues.percent ? 'percentage' : 'amount'),
     },
   });
-
   useEffect(() => {
     if (initialValues.getawayId) {
       setValue('getawayId', initialValues.getawayId);
     }
   }, [initialValues.getawayId, setValue]);
+
   // watch listener: discount type from RHF
   const currentDiscountType = watch('discountType');
-  const handleFocusType = (type: DiscountType) => {
+
+  // Ambos inputs quedan siempre habilitados: al escribir en uno, ese pasa a ser
+  // el tipo de descuento y el otro se pone en 0.
+  const handleDiscountType = (type: DiscountType) => {
+    if (currentDiscountType === type) return;
     setValue('discountType', type);
-    // reset unused field
     if (type === 'amount') {
-      setValue('percent', undefined);
+      setValue('percent', 0);
       clearErrors('percent');
     } else {
-      setValue('amount', undefined);
+      setValue('amount', 0);
       clearErrors('amount');
     }
   };
@@ -302,10 +306,9 @@ export default function CouponForm(
               <FormControl
                 sx={{
                   width:{ xs:'100%', sm:'auto' },
-                  minWidth:{ sm:'180'}, flex: { sm: '1 1 180px' }
+                  minWidth:{ sm:'180px'}, flex: { sm: '1 1 180px' }
                 }}
                 margin="normal" error={!!error}
-                disabled={currentDiscountType === 'percentage'}
               >
                 <InputLabel htmlFor="input-amount">{t('coupon.amount')}</InputLabel>
                 <OutlinedInput
@@ -319,15 +322,15 @@ export default function CouponForm(
                     '& input::-webkit-outer-spin-button, & input::-webkit-inner-spin-button': { WebkitAppearance: 'none', margin: 0 },
                     '& input[type=number]': { MozAppearance: 'textfield'} //Firefox
                   }}
-                  onFocus={() => handleFocusType('amount')}
                   onChange={(e) => {
                     const val = e.target.value;
+                    handleDiscountType('amount');
                     if (val === '') {
-                      field.onChange(''); //reset input
+                      field.onChange(null); //reset input
                       return;
                     }
                     const parsed = parseInt(val, 10);
-                    field.onChange(isNaN(parsed) || parsed < 0 ? '' : Math.floor(parsed));
+                    field.onChange(isNaN(parsed) || parsed < 0 ? null : Math.floor(parsed));
                   }}
                   onKeyDown={(e) => {
                     if (['.', ',', '-', 'e', 'E'].includes(e.key)) {
@@ -342,6 +345,7 @@ export default function CouponForm(
             )}
           />
           <Typography color={BRAND.primary} sx={{ fontSize: '14px', fontWeight:"bold", userSelect: 'none'  }}> {t('coupon.or')} </Typography>
+          
           <Controller
             name="percent" control={control}
             rules={{
@@ -357,7 +361,6 @@ export default function CouponForm(
             render={({ field, fieldState: { error } }) => (
               <FormControl
                 margin="normal" error={!!error}
-                disabled={currentDiscountType === 'amount'}
                 sx={{
                   width:{ xs: '100%', sm: 'auto'},
                   minWidth:{ sm:'180px'},
@@ -375,15 +378,15 @@ export default function CouponForm(
                     '& input[type=number]': { MozAppearance: 'textfield'} //Firefox
                   }}
                   endAdornment={<InputAdornment position="end">%</InputAdornment>}
-                  onFocus={() => handleFocusType('percentage')}
                   onChange={(e) => {
                     const val = e.target.value;
+                    handleDiscountType('percentage');
                     if (val === '') {
-                      field.onChange(undefined);
+                      field.onChange(null);
                       return;
                     }
                     const parsed = parseInt(val, 10);
-                    field.onChange(isNaN(parsed) || parsed < 0 ? undefined : Math.floor(parsed));
+                    field.onChange(isNaN(parsed) || parsed < 0 ? null : Math.floor(parsed));
                   }}
                   onKeyDown={(e) => {
                     if (['.', ',', '-', 'e', 'E'].includes(e.key)) {

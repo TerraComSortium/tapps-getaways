@@ -17,6 +17,7 @@ import { couponEditPath,
 import AdminSideBar from '../components/AdminSidebar';
 import { CouponItem } from '../components/CouponItem';
 import { firestoreToDate } from '../utils/dates';
+import { getCouponValue } from '../utils/couponHelpers';
 import { useDeleteCoupon } from '../hooks/useDeleteCoupon';
 
 export default function Coupons() {
@@ -110,7 +111,8 @@ export default function Coupons() {
                       title={coupon.title}
                       description={coupon.description ?? ''}
                       dates={`${firestoreToDate(coupon.validFrom)} - ${firestoreToDate(coupon.validUntil)}`}
-                      discount={coupon.discount}
+                      discount={getCouponValue(coupon)}
+                      discountType={coupon.discountType}
                       usersUsed={coupon.usersUsed ?? []}
                       userLimit={coupon.userLimit}
                       createdAt={firestoreToDate(coupon.createdAt)}

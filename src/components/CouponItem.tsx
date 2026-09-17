@@ -4,7 +4,7 @@ import LocalOfferIcon from '@mui/icons-material/LocalOffer';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import { BRAND } from '../theme/colors';
-// import { useTranslation } from 'react-i18next';
+import type { DiscountType } from '../types/getaway';
 
 interface CouponItemProps {
   id: string;
@@ -13,6 +13,7 @@ interface CouponItemProps {
   dates: string;
   // code: string;
   discount: number;
+  discountType?: DiscountType;
   userLimit: number;
   usersUsed: string[];
   // discountPercent?: number;
@@ -28,6 +29,7 @@ export const CouponItem = memo(({
   id,
   title, description, dates,
   discount,
+  discountType,
   userLimit,
   usersUsed,
   // discountPercent,
@@ -66,7 +68,7 @@ export const CouponItem = memo(({
         </Typography> */}
         <Chip size="medium"
           icon={ <LocalOfferIcon sx={{ p:'0 1px', color: 'text.primary',  }} /> }
-          label={`${discount}% Off`}
+          label={discountType === 'amount' ? `$${discount} Off` : `${discount}% Off`}
           sx={{
             width: 'fit-content',
             // mt: 1,

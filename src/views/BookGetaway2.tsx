@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useForm, Controller } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 
@@ -11,10 +11,12 @@ import { Box, TextField, Button, Typography, Divider, RadioGroup,
 import Grid from '@mui/material/Grid2';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import LocalOfferIcon from '@mui/icons-material/LocalOffer';
 
 import AdminSideBar from '../components/AdminSidebar';
 import { useAuth } from '../contexts/AuthContext';
 import { useGetawayById } from '../hooks/useGetawayById';
+import { useCouponById } from '../hooks/useCoupon';
 import { createPurchase, Reservation } from '../services/purchase/purchase';
 import { paymentPath } from '../constants/routes';
 import { BRAND } from '../theme/colors';
@@ -42,7 +44,12 @@ export default function BookGetaway() {
   const { t } = useTranslation();
   //get id param and fetch getaway
   const { id } = useParams<{ id: string }>();
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+  const stateCouponId = (location.state as { couponId?: string } | null)?.couponId;
+  const couponId = searchParams.get('couponId') || stateCouponId;
   const { data: getaway, loading, error } = useGetawayById(id || '');
+  const { data: coupon } = useCouponById(couponId);
 
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -84,13 +91,27 @@ export default function BookGetaway() {
       }
     });
 
-    const tax = sub * TAX_RATE;
+    const discount = coupon
+      ? coupon.discountType === 'amount'
+        ? Number(coupon.discount) || 0
+        : sub * ((Number(coupon.discount) || 0) / 100)
+      : 0;
+    const discountedSubtotal = Math.max(sub - discount, 0);
+    const tax = discountedSubtotal * TAX_RATE;
     return {
       subtotal: sub,
+      discount,
+      discountedSubtotal,
       taxes: tax,
-      total: sub + tax
+      total: discountedSubtotal + tax
     };
-  }, [getaway, watchLodging, watchAddOns]);
+  }, [getaway, watchLodging, watchAddOns, coupon]);
+
+  const couponLabel = coupon
+    ? coupon.discountType === 'amount'
+      ? `$${coupon.discount} Off`
+      : `${coupon.discount}% Off`
+    : '';
 
   const onSubmit = async (formData: FormData) => {
     if (!getaway || !user) return;
@@ -102,8 +123,9 @@ export default function BookGetaway() {
 
       //payload to POST
       const reservationPayload: Reservation = {
-        // El backend recalcula los precios/total desde este getaway (fuente de verdad).
+        //backend recalcula precios/total desde este getaway
         getawayId: id,
+        couponId,
         user: {
           id: user.uid,
           name: user.displayName || '',
@@ -257,10 +279,24 @@ export default function BookGetaway() {
                 mode="readonly"
                 selectedIds={getaway.tournamentIds || []}
               />
-              <LaddersSchedule/>
+              <LaddersSchedule
+                mode="readonly"
+                selectedIds={getaway.ladderIds || []}
+              />
               <Typography variant="h6" className='purpleLabel' sx={{ mt: 2, mb: 0.5, fontSize: '14px', fontWeight: 'bold' }}>{t('book.paymentDetails')}</Typography>
               <Divider aria-hidden="true" sx={{ bgcolor: BRAND.green }} />
+              {coupon && (
+                <Box sx={{ mt: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <LocalOfferIcon sx={{ color: BRAND.primary }} />
+                  <Typography variant="body2" sx={{ fontWeight: 'bold', color: BRAND.primary }}>
+                    Coupon: {coupon.title} - {couponLabel}
+                  </Typography>
+                </Box>
+              )}
               <Typography variant="body2" sx={{ mt: 1 }}>{t('book.subtotal')}: ${(totals.subtotal || 0).toFixed(2)} USD</Typography>
+              {coupon && (
+                <Typography variant="body2">Discount: -${(totals.discount || 0).toFixed(2)} USD</Typography>
+              )}
               <Typography variant="body2">{t('book.taxes')}: ${(totals.taxes || 0).toFixed(2)} USD</Typography>
               <Typography variant="body2" sx={{ fontWeight: 'bold' }}>{t('book.total')}: ${ (totals.total || 0).toFixed(2)} USD</Typography>
               <Typography variant="body2">{t('book.totalNote')}</Typography>

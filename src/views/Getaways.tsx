@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useMemo, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Box, Stack, Pagination, Typography, CircularProgress, Alert } from '@mui/material';
@@ -13,6 +13,7 @@ import { useUserStore } from '../store/useUserStore';
 import { getAllGetaways } from '../services/getaways/getaways';
 import { searchGetaways } from '../services/search/search';
 import { useGetawayNavigation } from '../hooks/useGetawayNavigation';
+import { useCouponsForGetaways } from '../hooks/useCoupon';
 
 import {
   normalizeGetawayData,
@@ -40,6 +41,19 @@ export default function Getaways() {
   const [isOfflineMode, setIsOfflineMode] = useState<boolean>(false);
   const [page, setPage] = useState(1);
   const ITEMS_PER_PAGE = 10;
+  const canViewCouponLabels = role === Role.ADMIN || role === Role.PLAYER;
+  const getawayIds = useMemo(() => getaways.map((getaway) => getaway._id).filter(Boolean), [getaways]);
+  const { data: coupons } = useCouponsForGetaways(getawayIds, canViewCouponLabels);
+  const couponsByGetawayId = useMemo(
+    () =>
+      coupons.reduce((map, coupon) => {
+        if (coupon.getawayId) {
+          map.set(coupon.getawayId, coupon);
+        }
+        return map;
+      }, new Map<string, (typeof coupons)[number]>()),
+    [coupons]
+  );
 
   // Track previous coordinates to avoid re-fetching when the location object
   // changes reference but lat/lng values are identical (watchPosition fires repeatedly)
@@ -138,8 +152,8 @@ export default function Getaways() {
     }
   };
 
-  const handleBooking = (getaway: Getaway) => {
-    navigate(bookingPath(getaway._id), { state: { getawayData: getaway } });
+  const handleBooking = (getaway: Getaway, couponId?: string) => {
+    navigate(bookingPath(getaway._id, couponId), { state: { getawayData: getaway, couponId } });
   };
   //initial search with userLocation
   const handleChange = (_event: React.ChangeEvent<unknown>, value: number) => {
@@ -202,9 +216,10 @@ export default function Getaways() {
                   lodgingOptions={getaway.lodgingOptions || []}
                   sport={getSportLabel(getaway.sport)}
                   galleryPhotos={getValidImages(getaway.galleryPhotos)}
+                  coupon={couponsByGetawayId.get(getaway._id)}
                   // isLoading={isLoading}
                   onViewDetails={() => handleViewDetails(getaway)}
-                  onBookNow={role === Role.PLAYER && !isGetawayExpired(getaway) ? () => handleBooking(getaway) : undefined}
+                  onBookNow={role === Role.PLAYER && !isGetawayExpired(getaway) ? () => handleBooking(getaway, couponsByGetawayId.get(getaway._id)?.id) : undefined}
                   // onEdit={role === 'admin' ? () => handleEdit(getaway.id) : undefined}
                 />
               ))

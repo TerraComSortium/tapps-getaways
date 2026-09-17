@@ -8,11 +8,13 @@ import EditIcon from '@mui/icons-material/Edit';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import ReceiptIcon from '@mui/icons-material/Receipt';
 import AddIcon from '@mui/icons-material/Add';
+import LocalOfferIcon from '@mui/icons-material/LocalOffer';
 
 // import Badge, { badgeClasses } from '@mui/material/Badge';
 // import { styled } from '@mui/material/styles';
 
 import { BRAND } from '../theme/colors';
+import type { Discount } from '../types/getaway';
 import prevPhoto from '../assets/backgrounds/hotel.jpg';
 import '../App.css';
 // import {Skeleton} from '@mui/material';
@@ -48,6 +50,7 @@ interface GetawayItemProps {
   // badgeCount?: number;
   onEdit?: () => void;
   onAddCoupon?: () => void;
+  coupon?: Discount;
   onDelete?: () => void;
   isDeleting?: boolean;
 }
@@ -56,7 +59,7 @@ export const GetawayItem = memo(
   ({
     name, dates, lodgingOptions, sport, galleryPhotos, bookedDate, isLoading = false, onViewDetails, onBookNow, onOrderDetails, onViewBookings,
     // badgeCount = 0,
-    onAddCoupon, onEdit,
+    onAddCoupon, onEdit, coupon,
     onDelete,
     isDeleting
   }: GetawayItemProps ) =>
@@ -81,6 +84,11 @@ export const GetawayItem = memo(
       return prevPhoto; //default img
     };
     const imageUrl = getDisplayImage();
+    const couponLabel = coupon
+      ? coupon.discountType === 'amount'
+        ? `$${coupon.discount} Off`
+        : `${coupon.discount}% Off`
+      : '';
 
     // if(isLoading){ return null; }
     if(isLoading){
@@ -116,6 +124,16 @@ export const GetawayItem = memo(
                 icon={ <SportsTennisIcon sx={{ p:'0 2px' }} /> }
                 sx={{ padding:'0 0.5rem', m:'3px 0' }}
               ></Chip>
+              {coupon && (
+                <Chip
+                  label={couponLabel} aria-label="coupon"
+                  icon={<LocalOfferIcon sx={{ color: `${BRAND.navy} !important`}} />}
+                  sx={{
+                    ml: 1, px: 0.5,
+                    color: BRAND.navy, bgcolor: BRAND.green, fontWeight: 'bold'
+                  }}
+                />
+              )}
 
               <Typography variant="subtitle2" sx={{ color: 'text.secondary', fontWeight: 'normal'}}>
                 {t('getawayItem.dates')}: {dates}

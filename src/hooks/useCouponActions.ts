@@ -6,6 +6,15 @@ import {
 } from '../services/coupons/coupons';
 import type { CouponPayload, Discount } from '../types/getaway';
 
+type CouponsResponse =
+  | Discount[]
+  | {
+      coupons?: Discount[];
+      response?: Discount[];
+      data?: Discount[];
+      items?: Discount[];
+    };
+
 interface UseCouponActionsState {
   isLoading: boolean;
   error: string | null;
@@ -33,36 +42,37 @@ export function useCoupon(id?: string) {
   return { data, loading };
 }
 
-export function useCoupons() {
+export function useCoupons(enabled = true) {
   const [data, setData] = useState<Discount[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(enabled);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    console.log('useCoupons: fetching...');
-    // getCoupons()
-    //   .then(setData)
-    //   .catch((err) => setError(err instanceof Error ? err.message : 'Error fetching coupons'))
-    //   .finally(() => setLoading(false));
+    if (!enabled) {
+      setData([]);
+      setLoading(false);
+      setError(null);
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
     getCoupons()
       .then((res) => {
-        // console.log('getCoupons response:', res);
-        // console.log('useCoupons: success', res.coupons);
-        console.log('raw res:', res);
-        console.log('res.coupons:', res.coupons);
-        console.log('keys:', Object.keys(res));
-        setData(res.coupons ?? []);
-        // setData(res.coupons);
+        const payload = res as CouponsResponse;
+        const coupons = Array.isArray(payload)
+          ? payload
+          : payload.coupons ?? payload.response ?? payload.data ?? payload.items ?? [];
+
+        setData(coupons);
       })
       .catch((err) => {
         console.error('useCoupons: error', err);
         setError(err instanceof Error ? err.message : 'Error fetching coupons');
       })
-      .finally(() => {
-        console.log('useCoupons: done');
-        setLoading(false);
-      });
-  }, []);
+      .finally(() => setLoading(false));
+  }, [enabled]);
   return { data, loading, error };
 }
 
@@ -83,7 +93,7 @@ export function useCouponActions(): UseCouponActionsReturn {
       } catch (err) {
         const error = err instanceof Error ? err.message : 'Unexpected error';
         setState((prev) => ({ ...prev, error }));
-        if (process.env.NODE_ENV === 'development') {
+        if (import.meta.env.DEV) {
           console.error('[useCouponActions]', error);
         }
         return fallback;

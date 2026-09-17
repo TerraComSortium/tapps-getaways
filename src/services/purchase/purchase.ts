@@ -33,6 +33,7 @@ interface PaymentDetails {
 
 export interface Reservation {
   getawayId?: string;
+  couponId?: string;
   user: ReservationUser;
   lodgingOption?: LodgingOption;
   optionalAddOns?: OptionalAddOn[];

@@ -27,7 +27,10 @@ export const ROUTE_PATTERNS = {
 } as const;
 
 // Constructores para navegar a rutas con parámetros.
-export const bookingPath = (id: string) => `${ROUTES.BOOKING}/${id}`;
+export const bookingPath = (id: string, couponId?: string) => {
+  const path = `${ROUTES.BOOKING}/${id}`;
+  return couponId ? `${path}?couponId=${encodeURIComponent(couponId)}` : path;
+};
 export const paymentPath = (orderId: string) => `${ROUTES.PAYMENT}/${orderId}`;
 export const getawayDetailPath = (id: string) => `${ROUTES.GETAWAY_DETAIL}/${id}`;
 export const reservationsPath = (id: string) => `${ROUTES.RESERVATIONS}/${id}/`;

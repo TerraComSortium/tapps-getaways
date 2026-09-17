@@ -4,7 +4,8 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta http-equiv="Content-Security-Policy" content="
+    
+    <!-- <meta http-equiv="Content-Security-Policy" content="
       default-src 'self'; 
       script-src 'self' blob: https://js.stripe.com https://maps.googleapis.com https://*.googleapis.com https://m.stripe.network; 
       frame-src 'self' https://js.stripe.com https://hooks.stripe.com https://m.stripe.network;
@@ -13,6 +14,16 @@
       img-src 'self' data: blob: https://*.stripe.com https://gstatic.com https://*.googleapis.com https://*.ggpht.com;
       style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
       font-src 'self' https://gstatic.com;
+    "> -->
+    <meta http-equiv="Content-Security-Policy" content="
+      default-src 'self'; 
+      script-src 'self' 'unsafe-inline' blob: https://js.stripe.com https://maps.googleapis.com https://*.googleapis.com https://m.stripe.network; 
+      frame-src 'self' https://js.stripe.com https://hooks.stripe.com https://m.stripe.network;
+      connect-src 'self' blob: http://localhost:8001 https://api.stripe.com https://maps.googleapis.com https://*.googleapis.com https://*.gstatic.com https://m.stripe.network;
+      worker-src 'self' blob: 'unsafe-inline' https://js.stripe.com https://m.stripe.network;
+      img-src 'self' data: blob: https://*.stripe.com https://*.gstatic.com https://*.googleapis.com https://*.ggpht.com;
+      style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+      font-src 'self' https://fonts.gstatic.com https://gstatic.com;
     ">
     <!-- <meta http-equiv="Content-Security-Policy" content="
   default-src 'self'; 

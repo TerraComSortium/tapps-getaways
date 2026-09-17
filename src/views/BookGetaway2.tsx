@@ -25,6 +25,8 @@ import AcademySchedule from '../components/AcademySchedule';
 import LaddersSchedule from '../components/LaddersSchedule';
 import TournamentsSchedule from '../components/TournamentsSchedule';
 import { getCouponLabel, getCouponValue } from '../utils/couponHelpers';
+import { useGetAcademy } from '../hooks/useGetAcademy';
+import { firestoreToInputDate } from '../utils/dates';
 
 const TAX_RATE = 0.0654;
 interface FormData {
@@ -50,6 +52,7 @@ export default function BookGetaway() {
   const stateCouponId = (location.state as { couponId?: string } | null)?.couponId;
   const couponId = searchParams.get('couponId') || stateCouponId;
   const { data: getaway, loading, error } = useGetawayById(id || '');
+  const { academyData, loading: loadingAcademy, fetchAcademy } = useGetAcademy();
   const { data: coupon } = useCouponById(couponId);
 
   const navigate = useNavigate();
@@ -272,7 +275,18 @@ export default function BookGetaway() {
                 </FormControl>
               )}
             />
-              <AcademySchedule/>
+              <AcademySchedule
+                mode="readonly"
+                schedules={academyData}
+                loading={loadingAcademy}
+                selectedIds={getaway.academyIds || []}
+                fetchAcademy={fetchAcademy}
+                searchParams={{
+                  startDate: firestoreToInputDate(getaway.startDate),
+                  endDate: firestoreToInputDate(getaway.endDate),
+                  sport: getaway.sport,
+                }}
+              />
               <TournamentsSchedule
                 mode="readonly"
                 selectedIds={getaway.tournamentIds || []}

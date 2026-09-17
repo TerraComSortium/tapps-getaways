@@ -279,6 +279,7 @@ export const CreateGetaway =() => {
               </Grid>
 
               <AddressAutocompleteField name="getawayAddress" control={control} />
+
               <Typography variant="h6" color={BRAND.primary} sx={{ mt:2, fontSize: '14px', fontWeight:"bold"  }}> {t('gallery.photoGallery')}</Typography>
               <Divider aria-hidden="true"/>
               <Box width={{ xs:'85%', sm:'100%' }} sx={{ mt:2, mb:3 }}>
@@ -521,6 +522,7 @@ export const CreateGetaway =() => {
 
               <Typography variant="h6" color={BRAND.primary} sx={{ m: '1 0', fontSize: '14px', fontWeight:"bold"  }}> {t('create.amenitiesSection')} </Typography>
               <Divider aria-hidden="true" sx={{ pt:0, mt: 0 }} />
+              
               {amenityFields.map((field, index) => (
                 <Box key={field.id} sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'start', gap: 1 }}>
                   <Controller
@@ -584,6 +586,11 @@ export const CreateGetaway =() => {
                 mode="select"
                 selectedIds={selectedTournamentIds}
                 setSelectedIds={setSelectedTournamentIds}
+                searchParams={{
+                  startDate: watchedStartDate,
+                  endDate: watchedEndDate,
+                  sport: watchedSport
+                }}
               />
 
               {/* <section style={{ marginTop: '20px' }}>
@@ -594,6 +601,11 @@ export const CreateGetaway =() => {
                 mode="select"
                 selectedIds={selectedLadderIds}
                 setSelectedIds={setSelectedLadderIds}
+                searchParams={{
+                  startDate: watchedStartDate,
+                  endDate: watchedEndDate,
+                  sport: watchedSport
+                }}
               />
 
               <Controller name="policies" defaultValue=""

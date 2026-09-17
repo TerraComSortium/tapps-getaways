@@ -105,3 +105,61 @@ export interface CouponPayload {
   getawayId?: string;
 }
 export type DiscountType = 'amount' | 'percentage';
+
+// ─── Órdenes de un getaway (colección `getaways_orders`) ───
+export interface OrderUser {
+  id: string;
+  name: string;
+  email: string;
+  cellphone?: string;
+  address?: {
+    street?: string;
+    city?: string;
+    state?: string;
+    country?: string;
+    zipCode?: string;
+  };
+}
+
+export interface OrderLodgingOption {
+  option: string;
+  price: number;
+  occupancy?: string | null;
+}
+
+export interface OrderAddOn {
+  addonName: string;
+  price: number;
+}
+
+export interface OrderPaymentDetails {
+  Subtotal: string;
+  Taxes: string;
+  Total: string;
+}
+
+export interface OrderReservation {
+  getawayId: string;
+  couponId?: string;
+  user: OrderUser;
+  lodgingOption?: OrderLodgingOption;
+  optionalAddOns?: OrderAddOn[];
+  paymentDetails: OrderPaymentDetails;
+}
+
+/**
+ * Una orden tal como la devuelve `GET /getaways/:id/subscribers`.
+ * `status` nace en 'pending' (createPurchase) y pasa a 'paid' al confirmarse el
+ * cobro; los campos de pago solo existen a partir de ese momento.
+ */
+export interface GetawayOrder {
+  id: string;
+  orderId: string;
+  createdAt: string;
+  status: 'pending' | 'paid' | string;
+  reservation: OrderReservation;
+  paymentStatus?: string;
+  paymentIntentId?: string;
+  invoiceNumber?: string;
+  paidAt?: string;
+}

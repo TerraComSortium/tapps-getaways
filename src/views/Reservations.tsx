@@ -1,8 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useMemo, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
 import {
-  Box, Typography, Button, IconButton, Dialog, DialogTitle, DialogContent, Divider, Stack, CircularProgress, Link
+  Box, Typography, Button, IconButton, Dialog, DialogTitle, DialogContent,
+  Divider, Stack, CircularProgress, Link, Chip, TextField, InputAdornment,
+  ToggleButton, ToggleButtonGroup, Alert
 } from '@mui/material';
 import Grid from '@mui/material/Grid2';
 import Table from '@mui/material/Table';
@@ -15,10 +17,14 @@ import Paper from '@mui/material/Paper';
 import CloseIcon from '@mui/icons-material/Close';
 import CreditCardIcon from '@mui/icons-material/CreditCard';
 import RefreshIcon from '@mui/icons-material/Refresh';
+import SearchIcon from '@mui/icons-material/Search';
+import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
 import { styled } from '@mui/material/styles';
 import { BRAND } from '../theme/colors';
 import AdminSideBar from '../components/AdminSidebar';
 import { useGetawaySubscribers } from '../hooks/useGetawaySubscribers';
+import { useInvoice } from '../hooks/useInvoice';
+import type { GetawayOrder } from '../types/getaway';
 
 const StyledTableCell = styled(TableCell)(({ theme }) => ({
   [`&.${tableCellClasses.head}`]: {
@@ -39,132 +45,94 @@ const StyledTableRow = styled(TableRow)(({ theme }) => ({
   },
 }));
 
-// function createData(
-//   id: string,
-//   playerName: string,
-//   city: string,
-//   paymentState: string,
-//   price: number,
-//   whatsappLink: string,
-// ) {
-//   return { id, playerName, city, paymentState, price, whatsappLink };
-// }
+/** Fila etiqueta → valor del detalle; el valor se alinea a la derecha. */
+const DetailRow = ({ label, value }: { label: string; value: ReactNode }) => (
+  <Stack
+    direction="row" spacing={2}
+    sx={{ justifyContent: 'space-between', alignItems: 'baseline', py: 0.4 }}
+  >
+    <Typography variant="body2" color="text.secondary" sx={{ flexShrink: 0 }}>
+      {label}
+    </Typography>
+    <Typography variant="body2" sx={{ fontWeight: 500, textAlign: 'right', wordBreak: 'break-word' }}>
+      {value || '—'}
+    </Typography>
+  </Stack>
+);
 
-// const rows = [
-//   createData('1', 'Joe Doe', 'Miami', 'Pending', 240, 'wa.me/59178326628'),
-//   createData('2', 'Ann Taylor', 'Las Palmas', 'Approved', 370, 'wa.me/1+number'),
-//   createData('3', 'Alan Smith', 'Miami', 'Rejected', 240.5, 'wa.me/+number'),
-// ];
-export interface UserReservation {
-  cellphone: string;
-  email: string;
-  id: string;
-  name: string;
-}
+const DetailSection = ({ title, children }: { title: string; children: ReactNode }) => (
+  <Box sx={{ mt: 2 }}>
+    <Typography
+      variant="overline"
+      sx={{ color: BRAND.primary, fontWeight: 'bold', letterSpacing: 0.6 }}
+    >
+      {title}
+    </Typography>
+    <Divider sx={{ mb: 1 }} />
+    {children}
+  </Box>
+);
 
-export interface LodgingOptionReservation {
-  occupancy: null | string; // Permitimos null o string según tu JSON
-  option: string;
-  price: number;            // Nota: Aquí el precio viene como número (1200)
-}
+type PaymentFilter = 'all' | 'paid' | 'unpaid';
 
-export interface PaymentDetailsReservation {
-  Subtotal: string;
-  Taxes: string;
-  Total: string;
-}
+/** Una orden cuenta como pagada cuando el backend la marcó así al confirmar el cobro. */
+const isPaid = (order: GetawayOrder): boolean =>
+  order.status === 'paid' || order.paymentStatus === 'succeeded';
 
-// Puedes tipar esto de manera más específica si en un futuro agregas AddOns
-export interface OptionalAddOnReservation {
-  [key: string]: any;
-}
+const formatDate = (value?: string): string => {
+  if (!value) return '—';
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? value : date.toLocaleDateString();
+};
 
-export interface Reservation {
-  getawayId: string;
-  lodgingOption: LodgingOptionReservation;
-  optionalAddOns: OptionalAddOnReservation[];
-  paymentDetails: PaymentDetailsReservation;
-  user: UserReservation;
-}
+/** wa.me solo acepta dígitos: se limpian espacios, guiones, paréntesis y el '+'. */
+const whatsappHref = (cellphone?: string): string | null => {
+  const digits = (cellphone ?? '').replace(/\D/g, '');
+  return digits ? `https://wa.me/${digits}` : null;
+};
 
-// Interfaz principal para el objeto completo (Orden de suscripción)
-export interface GetawayOrder {
-  id: string;
-  orderId: string;
-  createdAt: string;       // Formato ISO Fecha: "2026-07-23T..."
-  paymentIntentId: string; // "pi_3TwVNKEeR4qLCAZm1..."
-  invoiceNumber: string;   // "INV-202607-0003"
-  paidAt: string;          // Formato ISO Fecha
-  paymentStatus: "succeeded" | "failed" | "pending"; // Tipado estricto para estados
-  status: "paid" | "unpaid" | string;
-  reservation: Reservation;
-}
-
-// 
-interface RowData {
-  id: string;
-  playerName: string;
-  city: string;
-  paymentState: string;
-  price: number;
-  whatsappLink: string;
-}
-
-export interface LodgingOption {
-  option: string;
-  price: string;
-}
-
-export interface OptionalAddOn {
-  [key: string]: any; 
-}
-export interface PaymentDetails {
-  Subtotal: string;
-  Taxes: string;
-  Total: string;
-}
-export interface UserDetails {
-  cellphone: string;
-  email: string;
-  id: string;
-  name: string;
-}
-
-// Interfaz principal para tu estado 'selectedData'
-export interface SelectedData {
-  getawayAddress: string;
-  getawayDates: string;
-  getawayId: string;
-  getawayTitle: string;
-  lodgingOption: LodgingOption;
-  optionalAddOns: OptionalAddOn[];
-  orderId: string;
-  paymentDetails: PaymentDetails;
-  user: UserDetails;
-}
+/** Referencia legible: nº de factura si ya se pagó, si no el orderId acortado. */
+const orderReference = (order: GetawayOrder): string =>
+  order.invoiceNumber || `#${(order.orderId || order.id || '').slice(0, 8)}`;
 
 export const Reservations = () => {
   const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
 
-  const { data: subscribers, loading, error, refetch } = useGetawaySubscribers(id || '');
+  const { data: orders, loading, error, refetch } = useGetawaySubscribers(id || '');
+  const { download, loading: downloadingInvoice } = useInvoice();
 
   const [open, setOpen] = useState(false);
   const [selectedRow, setSelectedRow] = useState<GetawayOrder | null>(null);
-  const [selectedData, setSelectedData] = useState<SelectedData | null>(null);
+  const [paymentFilter, setPaymentFilter] = useState<PaymentFilter>('all');
+  const [search, setSearch] = useState('');
 
-  useEffect(() => {
-    const data = localStorage.getItem('selectedData');
-    if (data) {
-      const parsed = JSON.parse(data)
-      // console.log("Estructura real del JSON:", parsed)
-      setSelectedData(parsed);
-    }
-  }, []);
+  const paidCount = useMemo(() => orders.filter(isPaid).length, [orders]);
 
-  const handleOpenDialog = (row: RowData) => {
-    console.log(row)
-    setSelectedRow(row);
+  const visibleOrders = useMemo(() => {
+    const term = search.trim().toLowerCase();
+
+    return orders.filter((order) => {
+      if (paymentFilter === 'paid' && !isPaid(order)) return false;
+      if (paymentFilter === 'unpaid' && isPaid(order)) return false;
+      if (!term) return true;
+
+      const user = order.reservation?.user;
+      return [
+        user?.name,
+        user?.email,
+        user?.cellphone,
+        order.invoiceNumber,
+        order.orderId,
+        order.reservation?.lodgingOption?.option,
+      ]
+        .filter(Boolean)
+        .some((field) => String(field).toLowerCase().includes(term));
+    });
+  }, [orders, paymentFilter, search]);
+
+  const handleOpenDialog = (order: GetawayOrder) => {
+    setSelectedRow(order);
     setOpen(true);
   };
 
@@ -172,8 +140,9 @@ export const Reservations = () => {
     setOpen(false);
     setSelectedRow(null);
   };
-  // if (loading) return <p>Loading Bookings...</p>;
-  if (error) return <p>Error: {error}</p>;
+
+  const selectedReservation = selectedRow?.reservation;
+
   return (
     <>
       <Grid container columnSpacing={{ xs: 0, sm: 2, md: 3 }}>
@@ -181,134 +150,328 @@ export const Reservations = () => {
         <Grid size={{ xs: 12, sm: 9, md: 10 }} className="section blueBg">
           <Box>
             <Typography variant="h6">{t('reservations.assistantsList')}</Typography>
-            <Stack direction="row" spacing={2}
-            sx={{ alignItems:'center' }}>
+
+            {orders.length > 0 && (
               <Typography sx={{ mt: 1, mb: 3, color: 'text.secondary' }}>
-                {subscribers?.length > 0
-                  ? t('reservations.subscribersCount', { count: subscribers.length || 0 })
-                  : t('reservations.noSubscribers')
-                }
+                {t('reservations.ordersCount', { count: orders.length, paid: paidCount })}
               </Typography>
+            )}
+
+            {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+
+            {/* Filtro por estado de pago + buscador */}
+            <Stack
+              direction={{ xs: 'column', sm: 'row' }}
+              spacing={1.5}
+              sx={{ mb: 2, alignItems: { xs: 'stretch', sm: 'center' } }}
+            >
+              <ToggleButtonGroup
+                exclusive size="small" value={paymentFilter}
+                onChange={(_, value: PaymentFilter | null) => value && setPaymentFilter(value)}
+                sx={{
+                  bgcolor: 'background.paper',
+                  '& .MuiToggleButton-root.Mui-selected': {
+                    bgcolor: BRAND.primary, color: BRAND.white,
+                    '&:hover': { bgcolor: BRAND.primaryDark },
+                  },
+                }}
+              >
+                <ToggleButton value="all" sx={{ textTransform: 'none', px: 2 }}>
+                  {t('reservations.filterAll')}
+                </ToggleButton>
+                <ToggleButton value="paid" sx={{ textTransform: 'none', px: 2 }}>
+                  {t('reservations.filterPaid')}
+                </ToggleButton>
+                <ToggleButton value="unpaid" sx={{ textTransform: 'none', px: 2 }}>
+                  {t('reservations.filterUnpaid')}
+                </ToggleButton>
+              </ToggleButtonGroup>
+
+              <TextField
+                size="small" value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                placeholder={t('reservations.searchPlaceholder')}
+                sx={{ bgcolor: 'background.paper', borderRadius: 1, minWidth: { sm: 280 } }}
+                slotProps={{
+                  input: {
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <SearchIcon fontSize="small" />
+                      </InputAdornment>
+                    ),
+                  },
+                }}
+              />
+
+              {/* Empuja el refresh al extremo derecho de la barra */}
+              <Box sx={{ flexGrow: 1 }} />
+
               <Button disableElevation size="small"
                 startIcon={loading ? <CircularProgress size={16} color="inherit" /> : <RefreshIcon />}
                 onClick={refetch}
                 sx={{
-                  width: 115, borderRadius: '18px',
-                  bgcolor:BRAND.primary, color: BRAND.white, fontVariantCaps: 'normal', textTransform: 'none',
-                  '&.Mui-disabled': {
-                    bgcolor: 'action.disabledBackground',
-                  }
+                  width: 115, alignSelf: { xs: 'flex-end', sm: 'center' }, flexShrink: 0,
+                  borderRadius: '18px',
+                  bgcolor: BRAND.primary, color: BRAND.white, fontVariantCaps: 'normal', textTransform: 'none',
+                  '&.Mui-disabled': { bgcolor: 'action.disabledBackground' }
                 }}
-                > {loading ? t('reservations.refreshing') : t('reservations.refresh')} </Button>
+              > {loading ? t('reservations.refreshing') : t('reservations.refresh')} </Button>
             </Stack>
+
             {loading ? (
               <Box sx={{
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'center',
-                alignItems: 'center',
-                minHeight: '250px',
-                bgcolor: 'background.paper',
-                borderRadius: '12px'
+                display: 'flex', flexDirection: 'column', justifyContent: 'center',
+                alignItems: 'center', minHeight: '250px',
+                bgcolor: 'background.paper', borderRadius: '12px'
               }}>
-                <CircularProgress size={36} sx={{ color: BRAND.primary, mb: 2 }}/>
+                <CircularProgress size={36} sx={{ color: BRAND.primary, mb: 2 }} />
                 <Typography variant="body2" color="text.secondary">{t('reservations.fetchingBookings')}</Typography>
               </Box>
-            ):(
-              // <ul>
-              //   {subscribers?.map((subscriber: any) => (
-              //     <li key={subscriber.id}>{subscriber.name} - {subscriber.email}</li>
-              //   ))}
-              // </ul>
+            ) : visibleOrders.length === 0 ? (
+              <Box sx={{
+                display: 'flex', justifyContent: 'center', alignItems: 'center',
+                minHeight: '200px', bgcolor: 'background.paper', borderRadius: '12px'
+              }}>
+                <Typography variant="body2" color="text.secondary">
+                  {orders.length === 0 ? t('reservations.noSubscribers') : t('reservations.noMatches')}
+                </Typography>
+              </Box>
+            ) : (
               <TableContainer component={Paper} sx={{ overflowX: 'auto', width: '100%' }}>
-              <Table sx={{ minWidth: 650 }} aria-label="customized table">
-                <TableHead>
-                  <TableRow>
-                    <StyledTableCell align="left">{t('reservations.id')}</StyledTableCell>
-                    <StyledTableCell>{t('reservations.playerName')}</StyledTableCell>
-                    <StyledTableCell align="left">{t('reservations.paymentState')}</StyledTableCell>
-                    <StyledTableCell align="right">{t('reservations.amount')}&nbsp;($)</StyledTableCell>
-                    <StyledTableCell align="left">{t('reservations.contact')}</StyledTableCell>
-                    <StyledTableCell align="center">{t('reservations.saleDetail')}</StyledTableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {subscribers.map((row:any, index: number) => (
-                  <StyledTableRow key={index}>
-                    <StyledTableCell align="left">{index+1}</StyledTableCell>
-                    <StyledTableCell component="th" scope="row">
-                      {row.reservation.user.name}
-                    </StyledTableCell>
-                    <StyledTableCell align="left">{row.paymentStatus}</StyledTableCell>
-                    <StyledTableCell align="right">{row.reservation.paymentDetails.Total}</StyledTableCell>
-                    <StyledTableCell align="left">
-                      <Link target="_blank" href={`https://${row.whatsappLink}`}>
-                        {row.reservation.user.cellphone}
-                      </Link>
-                    </StyledTableCell>
-                    <StyledTableCell align="center">
-                      <Button startIcon={<CreditCardIcon />}
-                        onClick={() => handleOpenDialog(row)}
-                        sx={{ width: 136, bgcolor: BRAND.primary, color: BRAND.white, fontWeight: 'medium', textTransform: 'none', borderRadius: '8px', }}
-                      > {t('reservations.saleDetails')} </Button>
-                    </StyledTableCell>
-                  </StyledTableRow>
-                ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
+                <Table sx={{ minWidth: 820 }} aria-label="orders table">
+                  <TableHead>
+                    <TableRow>
+                      <StyledTableCell align="left">{t('reservations.reference')}</StyledTableCell>
+                      <StyledTableCell>{t('reservations.playerName')}</StyledTableCell>
+                      <StyledTableCell align="left">{t('reservations.date')}</StyledTableCell>
+                      <StyledTableCell align="left">{t('reservations.paymentState')}</StyledTableCell>
+                      <StyledTableCell align="right">{t('reservations.amount')}</StyledTableCell>
+                      <StyledTableCell align="left">{t('reservations.contact')}</StyledTableCell>
+                      <StyledTableCell align="center">{t('reservations.saleDetail')}</StyledTableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {visibleOrders.map((order) => {
+                      const user = order.reservation?.user;
+                      const paid = isPaid(order);
+                      const waLink = whatsappHref(user?.cellphone);
+
+                      return (
+                        <StyledTableRow key={order.id || order.orderId}>
+                          <StyledTableCell align="left">{orderReference(order)}</StyledTableCell>
+
+                          <StyledTableCell component="th" scope="row">
+                            <Stack direction="column" spacing={0.3}>
+                              <strong>{user?.name || t('common.noData')}</strong>
+                              {user?.email && (
+                                <Link href={`mailto:${user.email}`} variant="caption" underline="hover">
+                                  {user.email}
+                                </Link>
+                              )}
+                            </Stack>
+                          </StyledTableCell>
+
+                          <StyledTableCell align="left">{formatDate(order.createdAt)}</StyledTableCell>
+
+                          <StyledTableCell align="left">
+                            <Chip size="small"
+                              label={paid ? t('reservations.paid') : t('reservations.unpaid')}
+                              sx={{
+                                fontWeight: 'bold',
+                                bgcolor: paid ? BRAND.green : 'warning.light',
+                                color: paid ? BRAND.navy : 'warning.contrastText',
+                              }}
+                            />
+                          </StyledTableCell>
+
+                          <StyledTableCell align="right">
+                            {order.reservation?.paymentDetails?.Total ?? '—'}
+                          </StyledTableCell>
+
+                          <StyledTableCell align="left">
+                            {waLink ? (
+                              <Link target="_blank" rel="noopener" href={waLink}>
+                                {user?.cellphone}
+                              </Link>
+                            ) : (
+                              <Typography variant="body2" color="text.secondary">—</Typography>
+                            )}
+                          </StyledTableCell>
+
+                          <StyledTableCell align="center">
+                            <Button startIcon={<CreditCardIcon />}
+                              onClick={() => handleOpenDialog(order)}
+                              sx={{
+                                width: 136, bgcolor: BRAND.primary, color: BRAND.white,
+                                fontWeight: 'medium', textTransform: 'none', borderRadius: '8px',
+                              }}
+                            > {t('reservations.saleDetails')} </Button>
+                          </StyledTableCell>
+                        </StyledTableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </TableContainer>
             )}
-
-            
           </Box>
-        </Grid>     
-      </Grid>     
+        </Grid>
+      </Grid>
 
-      {/* Receipt Modal */}
+      {/* Detalle de la orden: todo sale de la fila seleccionada */}
       <Dialog open={open} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
         <DialogTitle>
-          <Typography variant="subtitle1" sx={{ textAlign: 'center' }}>{t('reservations.saleDetails')}</Typography>
-          <IconButton
-            aria-label="close"
-            onClick={handleCloseDialog}
-            sx={{
-              position: 'absolute',
-              right: 8,
-              top: 8,
-              color: (theme) => theme.palette.grey[500],
-            }}
+          {/* component="span": DialogTitle ya es un <h2> y subtitle1 renderiza <h6>
+              por defecto, lo que anida un encabezado dentro de otro. */}
+          <Typography
+            variant="subtitle1" component="span"
+            sx={{ display: 'block', textAlign: 'center' }}
+          >
+            {t('reservations.saleDetails')}
+          </Typography>
+          <IconButton aria-label="close" onClick={handleCloseDialog}
+            sx={{ position: 'absolute', right: 8, top: 8, color: (theme) => theme.palette.grey[500] }}
           ><CloseIcon />
           </IconButton>
         </DialogTitle>
-        <DialogContent>
+        <DialogContent dividers>
           {selectedRow && (
             <>
-              <Typography variant="body1">{t('reservations.playerName')}: {selectedRow?.reservation.user.name}</Typography>
-              {/* <Typography variant="body1">{t('reservations.city')}: {selectedRow.city}</Typography> */}
-              <Typography variant="body1">{t('reservations.paymentState')}: {selectedRow.paymentStatus}</Typography>
-              <Typography variant="body1">{t('reservations.priceLabel')}: ${selectedRow?.reservation.paymentDetails.Total || 0}</Typography>
+              {/* Cabecera: referencia + estado */}
+              <Stack
+                direction="row" spacing={1}
+                sx={{ justifyContent: 'space-between', alignItems: 'center', mb: 1 }}
+              >
+                <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: BRAND.primary }}>
+                  {orderReference(selectedRow)}
+                </Typography>
+                <Chip size="small"
+                  label={isPaid(selectedRow) ? t('reservations.paid') : t('reservations.unpaid')}
+                  sx={{
+                    fontWeight: 'bold',
+                    bgcolor: isPaid(selectedRow) ? BRAND.green : 'warning.light',
+                    color: isPaid(selectedRow) ? BRAND.navy : 'warning.contrastText',
+                  }}
+                />
+              </Stack>
 
-              {selectedData ? (
-                <>
-                  <Divider sx={{ my: 2 }} />
-                  <Typography variant="subtitle1">{t('reservations.bookingDetails')}</Typography>
-                  <Typography variant="body1">{t('reservations.lodgingOption')}: {selectedData.lodgingOption.option}</Typography>
-                  <Typography variant="body1">
-                    {t('reservations.addOns')}:
-                    {/* {selectedData.amenities.specialDinner && ` ${t('reservations.specialDinner')},`}
-                    {selectedData.amenities.meetGreet && ` ${t('reservations.meetGreet')},`}
-                    {selectedData.amenities.tennisClass && ` ${t('reservations.tennisClass')}`} */}
+              <DetailSection title={t('reservations.customer')}>
+                <DetailRow label={t('reservations.playerName')} value={selectedReservation?.user?.name} />
+                <DetailRow
+                  label={t('book.email')}
+                  value={selectedReservation?.user?.email && (
+                    <Link href={`mailto:${selectedReservation.user.email}`} underline="hover">
+                      {selectedReservation.user.email}
+                    </Link>
+                  )}
+                />
+                <DetailRow
+                  label={t('book.cellphone')}
+                  value={whatsappHref(selectedReservation?.user?.cellphone) && (
+                    <Link
+                      href={whatsappHref(selectedReservation?.user?.cellphone) as string}
+                      target="_blank" rel="noopener" underline="hover"
+                    >
+                      {selectedReservation?.user?.cellphone}
+                    </Link>
+                  )}
+                />
+                {selectedReservation?.user?.address && (
+                  <DetailRow
+                    label={t('book.address')}
+                    value={[
+                      selectedReservation.user.address.street,
+                      selectedReservation.user.address.city,
+                      selectedReservation.user.address.state,
+                      selectedReservation.user.address.zipCode,
+                      selectedReservation.user.address.country,
+                    ].filter(Boolean).join(', ')}
+                  />
+                )}
+              </DetailSection>
+
+              <DetailSection title={t('reservations.bookingDetails')}>
+                <DetailRow
+                  label={t('reservations.lodgingOption')}
+                  value={selectedReservation?.lodgingOption?.option}
+                />
+                {selectedReservation?.lodgingOption?.price != null && (
+                  <DetailRow
+                    label={t('reservations.price')}
+                    value={`$${selectedReservation.lodgingOption.price}`}
+                  />
+                )}
+                {selectedReservation?.lodgingOption?.occupancy && (
+                  <DetailRow
+                    label={t('reservations.occupancy')}
+                    value={selectedReservation.lodgingOption.occupancy}
+                  />
+                )}
+
+                <Box sx={{ mt: 1 }}>
+                  <Typography variant="body2" color="text.secondary">{t('reservations.addOns')}</Typography>
+                  {selectedReservation?.optionalAddOns?.length ? (
+                    selectedReservation.optionalAddOns.map((addOn, index) => (
+                      <DetailRow
+                        key={`${addOn.addonName}-${index}`}
+                        label={addOn.addonName}
+                        value={`$${addOn.price}`}
+                      />
+                    ))
+                  ) : (
+                    <Typography variant="body2" sx={{ fontWeight: 500 }}>{t('payment.none')}</Typography>
+                  )}
+                </Box>
+
+                {selectedReservation?.couponId && (
+                  <DetailRow label={t('reservations.coupon')} value={selectedReservation.couponId} />
+                )}
+              </DetailSection>
+
+              <DetailSection title={t('reservations.paymentDetails')}>
+                <DetailRow label={t('book.subtotal')} value={selectedReservation?.paymentDetails?.Subtotal} />
+                <DetailRow label={t('reservations.taxes')} value={selectedReservation?.paymentDetails?.Taxes} />
+                <Divider sx={{ my: 0.5 }} />
+                <Stack
+                  direction="row" spacing={2}
+                  sx={{ justifyContent: 'space-between', alignItems: 'baseline', py: 0.4 }}
+                >
+                  <Typography variant="body2" sx={{ fontWeight: 'bold' }}>{t('reservations.total')}</Typography>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: BRAND.primary }}>
+                    {selectedReservation?.paymentDetails?.Total || '—'}
                   </Typography>
-                  <Divider sx={{ my: 2 }} />
-                  <Typography variant="subtitle1">{t('reservations.paymentDetails')}</Typography>
-                  <Typography variant="body1">{t('reservations.taxes')}: ${selectedData.paymentDetails.Taxes}</Typography>
-                  <Typography variant="body1">{t('reservations.total')}: ${selectedData.paymentDetails.Total}</Typography>
-                </>
-              ) : (
-                <>
-                  <Divider sx={{ my: 2 }} />
-                  <Typography variant="body2" color="text.secondary">{t('reservations.noBookingDetails')}</Typography>
-                </>
+                </Stack>
+              </DetailSection>
+
+              <DetailSection title={t('reservations.orderInfo')}>
+                <DetailRow label={t('reservations.date')} value={formatDate(selectedRow.createdAt)} />
+                {selectedRow.paidAt && (
+                  <DetailRow label={t('reservations.paidOn')} value={formatDate(selectedRow.paidAt)} />
+                )}
+                <DetailRow label={t('paid.orderId')} value={selectedRow.orderId || selectedRow.id} />
+                {selectedRow.invoiceNumber && (
+                  <DetailRow label={t('reservations.invoice')} value={selectedRow.invoiceNumber} />
+                )}
+                {selectedRow.paymentIntentId && (
+                  <DetailRow label={t('reservations.paymentRef')} value={selectedRow.paymentIntentId} />
+                )}
+                {selectedRow.paymentStatus && (
+                  <DetailRow label={t('reservations.paymentState')} value={selectedRow.paymentStatus} />
+                )}
+              </DetailSection>
+
+              {isPaid(selectedRow) && (
+                <Button fullWidth
+                  startIcon={downloadingInvoice ? <CircularProgress size={16} color="inherit" /> : <ReceiptLongIcon />}
+                  onClick={() => download(selectedRow.orderId || selectedRow.id)}
+                  disabled={downloadingInvoice}
+                  sx={{
+                    mt: 3, py: 1, borderRadius: '8px', textTransform: 'none',
+                    bgcolor: BRAND.primary, color: BRAND.white,
+                    ':hover': { bgcolor: BRAND.primaryDark },
+                    '&.Mui-disabled': { bgcolor: 'action.disabledBackground' },
+                  }}
+                > {t('reservations.downloadInvoice')} </Button>
               )}
             </>
           )}
@@ -317,4 +480,3 @@ export const Reservations = () => {
     </>
   );
 };
-// export default Reservations;

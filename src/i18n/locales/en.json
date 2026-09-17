@@ -15,11 +15,9 @@
   "common.noData": "No data available. Please fill the form first.",
   "common.untitledGetaway": "Untitled getaway",
   "common.noAccess": "Unauthorized access. Login to continue.",
-
-  "discount.create":"Create coupon",
-  "discount.edit":"Edit coupon",
-  "discount.fetchingCoupons":"Fetching coupons...",
-
+  "discount.create": "Create coupon",
+  "discount.edit": "Edit coupon",
+  "discount.fetchingCoupons": "Fetching coupons...",
   "nav.getaways": "Getaways",
   "nav.myGetaways": "My Getaways",
   "nav.myOrders": "My Orders",
@@ -27,15 +25,11 @@
   "nav.login": "Sign In",
   "nav.logout": "Sign Out",
   "nav.language": "Language",
-
   "sidebar.myGetaways": "My getaways",
   "sidebar.newGetaway": "New getaway",
   "sidebar.coupons": "Coupons",
-
-
   "footer.rights": "All rights reserved",
   "footer.followUs": "Follow us on our social networks to keep up with all our updates!",
-
   "getawayItem.by": "By",
   "getawayItem.nameUnavailable": "Getaway name unavailable",
   "getawayItem.dates": "Dates",
@@ -48,12 +42,10 @@
   "getawayItem.wait": "Wait...",
   "getawayItem.delete": "Delete",
   "getawayItem.editGetaway": "Edit getaway",
-
   "validation.emailRequired": "Email is required",
   "validation.emailInvalid": "Invalid email address",
   "validation.passwordMin": "Password must be at least 6 characters",
   "validation.passwordRequired": "Password is required",
-
   "login.title": "Log in",
   "login.emailLabel": "Email | Use your Racquets!™ account",
   "login.passwordLabel": "Password",
@@ -61,7 +53,6 @@
   "login.noAccount": "Don't have a Racquets! AppSuite™ account?",
   "login.googleStore": "Google Store",
   "login.appleStore": "Apple Store",
-
   "paid.authRequired": "Authentication Required",
   "paid.authRequiredDetail": "Your bank requires extra verification. In a complete integration, Stripe Elements would trigger a verification modal here using the clientSecret.",
   "paid.status": "Status",
@@ -74,7 +65,6 @@
   "paid.declinedDetail": "We couldn't process your payment. Please check your card details or use a different payment method.",
   "paid.tryAgain": "Try Again",
   "paid.searchMore": "Search more getaways!",
-
   "payment.genericError": "We couldn't process your payment right now. No charge was made. Please try again later or contact the app administrator.",
   "payment.card.card_declined": "Your card was declined. Try another card.",
   "payment.card.insufficient_funds": "The card has insufficient funds.",
@@ -102,13 +92,11 @@
   "payment.retry": "Retry",
   "payment.processing": "Processing…",
   "payment.confirm": "Confirm payment",
-
   "myOrders.title": "My bookings",
   "myOrders.mustLogin": "You must be logged in to review your bookings",
   "myOrders.subscribed_one": "You are subscribed to {{count}} getaway",
   "myOrders.subscribed_other": "You are subscribed to {{count}} getaways",
   "myOrders.none": "You are not subscribed to any getaway yet",
-
   "dataView.result": "Result",
   "dataView.state": "state",
   "dataView.statusCode": "Status code",
@@ -117,7 +105,6 @@
   "dataView.status.API_ERROR": "API Error",
   "dataView.status.NETWORK_ERROR": "Network Error",
   "dataView.status.LOCAL_SAVE": "Saved on LocalStorage (Backend unavailable)",
-
   "mygetaways.title": "My getaways",
   "mygetaways.mustLogin": "You must be logged in to review your getaways",
   "mygetaways.confirmDelete": "Are you sure you want to delete getaway: \"{{title}}\"? This action cannot be undone.",
@@ -126,12 +113,30 @@
   "mygetaways.count_one": "You have {{count}} getaway registered",
   "mygetaways.count_other": "You have {{count}} getaways registered",
   "mygetaways.none": "No offers registered yet",
-
   "reservations.playersList": "Getaway's players list",
   "reservations.assistantsList": "Getaway's assistants list",
   "reservations.subscribersCount_one": "{{count}} subscriber registered for this getaway",
   "reservations.subscribersCount_other": "{{count}} subscribers registered for this getaway",
   "reservations.noSubscribers": "No subscribers registered yet",
+  "reservations.ordersCount_one": "{{count}} order · {{paid}} paid",
+  "reservations.ordersCount_other": "{{count}} orders · {{paid}} paid",
+  "reservations.filterAll": "All",
+  "reservations.filterPaid": "Paid",
+  "reservations.filterUnpaid": "Unpaid",
+  "reservations.searchPlaceholder": "Search by name, email, phone or invoice",
+  "reservations.noMatches": "No orders match your search.",
+  "reservations.reference": "Invoice / Order",
+  "reservations.date": "Date",
+  "reservations.paid": "Paid",
+  "reservations.unpaid": "Unpaid",
+  "reservations.downloadInvoice": "Download invoice",
+  "reservations.customer": "Customer",
+  "reservations.orderInfo": "Order information",
+  "reservations.occupancy": "Occupancy",
+  "reservations.coupon": "Coupon",
+  "reservations.invoice": "Invoice number",
+  "reservations.paymentRef": "Payment reference",
+  "reservations.paidOn": "Paid on",
   "reservations.refreshing": "Refreshing...",
   "reservations.refresh": "Refresh",
   "reservations.fetchingBookings": "Fetching latest bookings...",
@@ -156,7 +161,6 @@
   "reservations.taxes": "Taxes",
   "reservations.total": "Total",
   "reservations.noBookingDetails": "No booking details available.",
-
   "getaways.loadError": "No getaways could be loaded at this time. Please try again later.",
   "getaways.locationRequired": "Please provide a valid location to search for getaways.",
   "getaways.localCorrupted": "API failed and local data is corrupted.",
@@ -166,7 +170,6 @@
   "getaways.localMatches": "Local matches",
   "getaways.offers": "Getaways offers",
   "getaways.noMatches": "No offers match your search",
-
   "book.unavailable": "Getaway unavailable for booking, try later.",
   "book.title": "Getaway reservation",
   "book.paymentContactInfo": "Payment & contact info",
@@ -194,7 +197,6 @@
   "book.back": "Back",
   "book.processing": "Processing...",
   "book.submit": "Book getaway",
-
   "landing.popularDestinations": "Most popular destinations nearby your area",
   "landing.rcnetsOffering": "RCnets offering Getaways Tours™",
   "landing.joinUs": "Join us and enjoy exclusive benefits!",
@@ -217,7 +219,6 @@
   "landing.rcnetsB2": "Offer your best Getaways™ to connect with players in their local area.",
   "landing.rcnetsB3": "Customize your offers within the Racquets! Getaways™ platform",
   "landing.offerGetawaysBtn": "Offer Getaways™",
-
   "search.title": "Search your next Racquets!™ getaway | Live the full experience",
   "search.nearestCity": "Nearest city",
   "search.date": "Date",
@@ -232,7 +233,6 @@
   "search.arrivalExpired": "Arrival date is expired",
   "search.departureBeforeArrival": "Check dates: Departure cannot be before Arrival.",
   "search.somethingWrong": "Something went wrong. Please try again later.",
-
   "detail.notFound": "Getaway not found",
   "detail.notFoundDetail": "The offer data could not be loaded.",
   "detail.searchMore": "Search more getaways",
@@ -265,23 +265,18 @@
   "detail.sendMail": "Send mail",
   "detail.whatsapp": "WhatsApp",
   "detail.faqs": "FAQs",
-
   "getawaySchedule.date": "Date",
   "getawaySchedule.activity": "Activity",
   "getawaySchedule.location": "Location",
   "getawaySchedule.notAvailable": "The schedule is not currently available",
-
   "map.allowLocation": "Please allow location access to find Getaways offers near you",
   "map.centerLocation": "Center my location",
-
   "errorBoundary.title": "Oops! Something went wrong",
-
   "testApi.loading": "Loading...",
   "testApi.unknownError": "Unknown error",
   "testApi.error": "Error",
   "testApi.getawayIdPlaceholder": "Getaway ID",
   "testApi.searchTermPlaceholder": "Search term",
-
   "create.title": "Create getaway",
   "create.onlyAlphanumeric": "Only letters and numbers are allowed.",
   "create.onlyAlphanumericHelper": "Only letters and numbers allowed.",
@@ -324,21 +319,17 @@
   "create.back": "Back",
   "create.saving": "Saving...",
   "create.saveChanges": "Save changes",
-
   "coupon.addCoupon": "Add coupon",
   "couponItem.wait": "Deleting...",
   "couponItem.delete": "Delete",
-  "coupons.confirmDelete":"Are you sure you want to permanently delete this coupon? ",
-  "coupons.deleteSuccess":"Coupon deleted successfully!",
-  "coupons.deleteError":"An error occurred while deleting the coupon on the server. Please try again later.",
-
-  "coupons.title":"Coupons management",
-  "coupons.create":"Create coupon",
-  "coupons.edit":"Edit coupon",
-  "coupons.fetchingCoupons":"Fetching coupons...",
-
+  "coupons.confirmDelete": "Are you sure you want to permanently delete this coupon? ",
+  "coupons.deleteSuccess": "Coupon deleted successfully!",
+  "coupons.deleteError": "An error occurred while deleting the coupon on the server. Please try again later.",
+  "coupons.title": "Coupons management",
+  "coupons.create": "Create coupon",
+  "coupons.edit": "Edit coupon",
+  "coupons.fetchingCoupons": "Fetching coupons...",
   "discount.remove": "Remove",
-
   "coupon.couponName": "Coupon name or title",
   "coupon.startDate": "Start date",
   "coupon.startRequired": "Start date is required",
@@ -349,18 +340,15 @@
   "coupon.description": "Description",
   "coupon.limit": "Coupon's limit",
   "coupon.amount": "Discount Amount",
-  "coupon.or":"Or",
-  "coupon.percentage":"Discount in percentage",
-  "coupon.created":"Coupon updated successfully",
-  "coupon.edited":"Coupon edited successfully",
-  "common.update.failed":"Update failed",
-
+  "coupon.or": "Or",
+  "coupon.percentage": "Discount in percentage",
+  "coupon.created": "Coupon updated successfully",
+  "coupon.edited": "Coupon edited successfully",
+  "common.update.failed": "Update failed",
   "discount.amountRequired": "Amount is required",
   "coupon.amountPositive": "Amount must be positive number",
   "coupon.positive": "Value must be positive",
-
   "discount.activate": "Activate discount",
-
   "address.invalidChars": "Invalid characters are not allowed.",
   "address.getawayAddress": "Getaway address",
   "address.geoUnsupported": "Geolocation is not supported by your browser",
@@ -370,19 +358,22 @@
   "address.cityPlaceholder": "City or RCnet",
   "address.locating": "Locating...",
   "address.myPosition": "My position",
-
   "academy.selectSessions": "Select the Academy™ class sessions you want to include:",
   "academy.weekday": "Weekday",
+  "academy.class": "Class",
   "academy.location": "Location",
   "academy.trainer": "Trainer",
   "academy.price": "Price",
   "academy.include": "Include",
+  "academy.included": "Included",
   "academy.court": "Court",
   "academy.removeSelection": "Remove Selection",
   "academy.enhance": "Enhance your Getaway",
   "academy.prompt": "Do you want to see available Racquets Academy™ sessions for these dates?",
   "academy.showSessions": "Show available sessions",
-  
+  "academy.noSchedules": "No sessions found for the selected dates and sport.",
+  "academy.places_one": "{{count}} place",
+  "academy.places_other": "{{count}} places",
   "sched.required": "Required",
   "sched.clubName": "Club",
   "sched.rankingType": "Ranking type",
@@ -392,8 +383,6 @@
   "sched.PlayLevel": "Playing level",
   "sched.quantityGames": "#Games",
   "sched.sport": "Sport",
-
-  
   "sched.schedule": "Schedule",
   "sched.dates": "Dates",
   "sched.date": "Date",
@@ -407,7 +396,6 @@
   "sched.afterStart": "Must be after start time",
   "sched.save": "Save",
   "sched.addActivity": "Add activity",
-
   "gallery.fileTooLarge": "File size must be less than 5MB",
   "gallery.invalidType": "Invalid file type. Only JPG, PNG, and GIF are allowed",
   "gallery.invalidName": "File name can only contain letters, numbers, spaces, @, - and _",
@@ -415,20 +403,17 @@
   "gallery.photoGallery": "Photo Gallery",
   "gallery.uploadFile": "Upload file",
   "gallery.reset": "Reset",
-
   "tournaments.addPrompt": "You can add these available Tournaments™ sessions in the Getaway™",
   "tournaments.header": "Tournament",
   "tournaments.prompt": "Do you want to see available Racquets Tournaments™ sessions for these dates?",
-  "tournaments.get":"Get Tournaments",
-  "tournaments.unavailable":"No tournaments available",
+  "tournaments.get": "Get Tournaments",
+  "tournaments.unavailable": "No tournaments available",
   "tournaments.tournament": "Tournament:",
   "tournaments.unavailableHeadquarter": "Headquarter to be determined",
-
   "tournaments.undefinedDates": "Dates to be defined",
   "tournaments.fees": "Fee per person",
   "tournaments.loading": "Loading tournaments...",
   "tournaments.error": "Error fetching tournaments.",
-
   "ladders.error": "Error fetching ladders.",
   "ladders.addPrompt": "You can add these available Ladders™ sessions in this Getaway™",
   "ladders.header": "Ladders Tournament",

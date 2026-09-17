@@ -3,7 +3,7 @@ import { styled } from "@mui/material/styles";
 import { BRAND } from "../theme/colors";
 
 import {
-  Box, Divider, Paper, Stack, Button, Typography, Card, CardContent, CardActions
+  Box, Chip, Divider, Paper, Stack, Button, Typography, Card, CardContent, CardActions
 } from '@mui/material';
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
@@ -17,6 +17,7 @@ import { useTranslation } from 'react-i18next';
 import tournamentsLogo from '../assets/RappsIcons/tournamentsLogo.svg';
 import type { Tournament } from '../services/tournament';
 import { useTournaments } from '../hooks/useTournaments';
+import { matchesScheduleFilters, type ScheduleFilters } from '../utils/scheduleFilters';
 
 export interface TournamentRow {
   id: string;
@@ -33,6 +34,9 @@ export interface TournamentRow {
   included: boolean;
   typeDraw: string;
   quantityGames: string;
+  gender: string;
+  rawStart: unknown;
+  rawEnd: unknown;
 }
 
 interface FirestoreDate {
@@ -88,7 +92,10 @@ const formatInteger = (value: unknown) => {
 };
 
 const toTournamentRows = (tournaments: Tournament[], t: (key: string) => string): TournamentRow[] =>
-  tournaments.map((tournament) => {
+  (Array.isArray(tournaments) ? tournaments : [])
+    // Sin id no hay key única para React ni nada que incluir en el getaway.
+    .filter((tournament) => typeof tournament?.id === 'string' && tournament.id !== '')
+    .map((tournament) => {
     const startDate = formatTournamentDate(tournament.startDate);
     const endDate = formatTournamentDate(tournament.endDate);
 
@@ -110,6 +117,9 @@ const toTournamentRows = (tournaments: Tournament[], t: (key: string) => string)
       price: formatMoney(tournament.fees),
       included: false,
       quantityGames: formatInteger(tournament.quantityGames),
+      gender: typeof tournament.gender === 'string' && tournament.gender ? tournament.gender : '',
+      rawStart: tournament.startDate,
+      rawEnd: tournament.endDate,
     };
   });
 
@@ -127,6 +137,8 @@ interface TournamentTableProps {
   mode?: 'select' | 'readonly';
   selectedIds?: string[];
   setSelectedIds?: React.Dispatch<React.SetStateAction<string[]>>;
+  /** Deporte y fechas del formulario de getaway; filtran la tabla. */
+  searchParams?: ScheduleFilters;
 }
 
 const StyledTableRow = styled(TableRow)(({ theme }) => ({
@@ -137,7 +149,7 @@ const StyledTableRow = styled(TableRow)(({ theme }) => ({
 }));
 
 export default function TournamentTable(
-  { mode = 'readonly', selectedIds = [], setSelectedIds }: TournamentTableProps
+  { mode = 'readonly', selectedIds = [], setSelectedIds, searchParams }: TournamentTableProps
 ) {
   const { t } = useTranslation();
   const { tournaments, loading, error, fetchTournaments } = useTournaments();
@@ -175,9 +187,22 @@ export default function TournamentTable(
     setShowTable(false);
   };
 
-  const visibleRows = mode === 'readonly'
-    ? rows.filter((row) => selectedIds.includes(row.id))
-    : rows;
+  const { startDate, endDate, sport } = searchParams ?? {};
+
+  // En 'select' se acota a lo que encaja con el getaway; en 'readonly' se muestra
+  // lo ya elegido aunque las fechas del formulario hayan cambiado después.
+  const visibleRows = React.useMemo(() => {
+    if (mode === 'readonly') return rows.filter((row) => selectedIds.includes(row.id));
+
+    return rows.filter(
+      (row) =>
+        selectedIds.includes(row.id) ||
+        matchesScheduleFilters(
+          { sport: row.sport, start: row.rawStart, end: row.rawEnd },
+          { startDate, endDate, sport }
+        )
+    );
+  }, [rows, mode, selectedIds, startDate, endDate, sport]);
 
   return (
     <Box sx={{ width:'100%', margin:'25px 0' }}>
@@ -200,10 +225,13 @@ export default function TournamentTable(
           )}
           <Paper sx={{ width: '100%', overflow: 'hidden' }}>
           <TableContainer sx={{ maxHeight: 360, overflowY: 'auto', overflowX: 'auto' }}>
-            <Table stickyHeader sx={{ minWidth:700, tableLayout: 'fixed' }} aria-label="tournaments table">
+            <Table stickyHeader sx={{ minWidth: 900 }} aria-label="tournaments table">
               <TableHead>
                 <TableRow>
                   <StyledTableCell align="left">{t('tournaments.header')}</StyledTableCell>
+                  <StyledTableCell align="left">{t('sched.dates')}</StyledTableCell>
+                  <StyledTableCell align="left">{t('sched.location')}</StyledTableCell>
+                  <StyledTableCell align="left">{t('sched.type')}</StyledTableCell>
                   <StyledTableCell align="left">{t('academy.price')}</StyledTableCell>
                   {mode === 'select' && (
                     <StyledTableCell align="center">{t('academy.include')}</StyledTableCell>
@@ -211,34 +239,78 @@ export default function TournamentTable(
                 </TableRow>
               </TableHead>
               <TableBody>
-                {visibleRows.map((row) => (
-                  <StyledTableRow hover key={row.id}>
-                    <StyledTableCell component="th" scope="row">
-                      <Stack direction="column" spacing={0.5}>
-                        <strong>{row.tournamentName}</strong>
-                        <span>{t('sched.clubName')}: {row.clubName}</span>
-                        <span>{t('sched.dates')}: {row.dates}</span>
-                        <span>{t('sched.type')}: {row.type}</span>
-                        <span>{t('sched.PlayLevel')}: {row.playingLevelMin} - {row.playingLevelMax}</span>
-                        <span>{t('sched.quantityGames')}: {row.quantityGames}</span>
-                        <span>{t('sched.sport')}: {row.sport}</span>
-                        <span>{t('sched.typeDraw')}: {row.typeDraw}</span>
-                        <span>{t('sched.location')}: {row.location}</span>
-                      </Stack>
-                    </StyledTableCell>
-                    <StyledTableCell align="left">{row.price}</StyledTableCell>
-                    {mode === 'select' && (
-                      <StyledTableCell align="center">
-                        <input id={`tournamentOption-${row.id}`}
-                          type="checkbox"
-                          checked={selectedIds.includes(row.id)}
-                          onChange={() => handleIncludeChange(row.id)}
-                          aria-label={`Include ${row.tournamentName}`}
-                        />
+                {visibleRows.map((row) => {
+                  const isIncluded = selectedIds.includes(row.id);
+                  return (
+                    <StyledTableRow hover key={row.id}>
+                      <StyledTableCell component="th" scope="row">
+                        <Stack direction="column" spacing={0.5}>
+                          <strong>{row.tournamentName}</strong>
+                          <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap>
+                            {row.sport !== '-' && (
+                              <Chip size="small" label={row.sport}
+                                sx={{ bgcolor: BRAND.green, color: BRAND.navy, fontWeight: 'bold' }}
+                              />
+                            )}
+                            {row.gender && (
+                              <Chip size="small" variant="outlined" label={row.gender}
+                                sx={{ borderColor: BRAND.primary, color: BRAND.primary }}
+                              />
+                            )}
+                          </Stack>
+                          <Typography variant="caption" color="text.secondary">
+                            {row.clubName || t('tournaments.unavailableHeadquarter')}
+                          </Typography>
+                        </Stack>
                       </StyledTableCell>
-                    )}
-                  </StyledTableRow>
-                ))}
+
+                      <StyledTableCell align="left">{row.dates}</StyledTableCell>
+
+                      <StyledTableCell align="left">{row.location}</StyledTableCell>
+
+                      <StyledTableCell align="left">
+                        <Stack direction="column" spacing={0.5}>
+                          <span>{row.type}</span>
+                          <Typography variant="caption" color="text.secondary">
+                            {t('sched.typeDraw')}: {row.typeDraw}
+                          </Typography>
+                          <Typography variant="caption" color="text.secondary">
+                            {t('sched.PlayLevel')}: {row.playingLevelMin} - {row.playingLevelMax}
+                          </Typography>
+                          <Typography variant="caption" color="text.secondary">
+                            {t('sched.quantityGames')}: {row.quantityGames}
+                          </Typography>
+                        </Stack>
+                      </StyledTableCell>
+
+                      <StyledTableCell align="left">{row.price}</StyledTableCell>
+
+                      {mode === 'select' && (
+                        <StyledTableCell align="center">
+                          <Button
+                            variant={isIncluded ? "contained" : "outlined"}
+                            size="small"
+                            onClick={() => handleIncludeChange(row.id)}
+                            aria-label={`Include ${row.tournamentName}`}
+                            sx={{
+                              borderRadius: '20px',
+                              textTransform: 'none',
+                              bgcolor: isIncluded ? BRAND.green : 'transparent',
+                              color: isIncluded ? BRAND.navy : BRAND.primary,
+                              borderColor: BRAND.primary,
+                              '&:hover': {
+                                bgcolor: isIncluded ? BRAND.primary : 'rgba(0,0,0,0.04)',
+                                color: isIncluded ? BRAND.white : BRAND.primary,
+                              }
+                            }}
+                          >
+                            {isIncluded ? t('academy.included') : t('academy.include')}
+                          </Button>
+                        </StyledTableCell>
+                      )}
+                    </StyledTableRow>
+                  );
+                })}
               </TableBody>
             </Table>
           </TableContainer>

@@ -14,6 +14,7 @@ import LocalOfferIcon from '@mui/icons-material/LocalOffer';
 // import { styled } from '@mui/material/styles';
 
 import { BRAND } from '../theme/colors';
+import { getCouponLabel } from '../utils/couponHelpers';
 import type { Discount } from '../types/getaway';
 import prevPhoto from '../assets/backgrounds/hotel.jpg';
 import '../App.css';
@@ -84,11 +85,7 @@ export const GetawayItem = memo(
       return prevPhoto; //default img
     };
     const imageUrl = getDisplayImage();
-    const couponLabel = coupon
-      ? coupon.discountType === 'amount'
-        ? `$${coupon.discount} Off`
-        : `${coupon.discount}% Off`
-      : '';
+    const couponLabel = getCouponLabel(coupon);
 
     // if(isLoading){ return null; }
     if(isLoading){

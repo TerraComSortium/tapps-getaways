@@ -9,7 +9,7 @@ export type DateLike =
   | undefined;
 
 /** Normaliza a Date: Timestamp de Firestore, Date, ms, ISO o DD/MM/YYYY. */
-const parseDateLike = (value: DateLike): Date | null => {
+export const parseDateLike = (value: DateLike): Date | null => {
   if (value === null || value === undefined || value === '') return null;
 
   if (value instanceof Date) {

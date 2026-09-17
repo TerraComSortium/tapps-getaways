@@ -2,8 +2,8 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ROUTES } from '../constants/routes';
 import { useFormData } from '../contexts/FormDataContext';
-import { handleGetawaySubmit, handleCouponSubmit } from '../services/getaways/getawayCreate';
-import type { GetawayFormData, GetawayPayload, CouponPayload, ScheduleRow } from '../types/getaway';
+import { handleGetawaySubmit } from '../services/getaways/getawayCreate';
+import type { GetawayFormData, GetawayPayload, ScheduleRow } from '../types/getaway';
 import { mapScheduleRowsToApiFormat } from '../utils/dataMappers';
 
 interface UseCreateGetawayReturn {
@@ -15,6 +15,7 @@ interface UseCreateGetawayReturn {
     validPhotos: File[],
     validCaptions: string[],
     selectedTournamentIds: string[],
+    selectedLadderIds: string[],
     selectedAcademyIds: string[]
   ) => Promise<void>;
 }
@@ -38,13 +39,14 @@ export function useCreateGetaway(
     validPhotos: File[],
     validCaptions: string[],
     selectedTournamentIds: string[],
+    selectedLadderIds: string[],
     selectedAcademyIds: string[]
   ): Promise<void> => {
     setIsLoading(true);
 
     try {
       const apiSchedule = mapScheduleRowsToApiFormat(scheduleRows);
-      const { discounts, getawayAddress, ...rest } = data;
+      const { getawayAddress, ...rest } = data;
 
       delete (rest as Partial<GetawayFormData>).optionalAddOns;
       delete (rest as Partial<GetawayFormData>).galleryPhotos;
@@ -61,23 +63,13 @@ export function useCreateGetaway(
         galleryPhotos: validPhotos,
         galleryPhotoCaptions: validCaptions,
         tournamentIds: selectedTournamentIds,
+        ladderIds: selectedLadderIds,
         academyIds: selectedAcademyIds,
       };
 
       const result = await handleGetawaySubmit(payload);
 
       if (result.status === 'SUCCESS' && result.getawayId) {
-        if (discounts?.length) {
-          await Promise.all(
-            discounts.map((discount) =>
-              handleCouponSubmit({
-                ...discount,
-                getawayId: result.getawayId!,
-              } satisfies CouponPayload)
-            )
-          );
-        }
-
         showSnackbar('Getaway created successfully!', 'success');
         setSubmissionData(result);
         navigate(ROUTES.DATA_VIEW);

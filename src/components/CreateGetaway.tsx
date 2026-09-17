@@ -79,6 +79,7 @@ export const CreateGetaway =() => {
   const watchedSport = useWatch({ control, name: 'sport' });
 
   const [selectedTournamentIds, setSelectedTournamentIds] = useState<string[]>([]);
+  const [selectedLadderIds, setSelectedLadderIds] = useState<string[]>([]);
 
   const { fields: photoFields, append: appendPhoto, remove: removePhoto } = useFieldArray({
     control,
@@ -149,6 +150,7 @@ export const CreateGetaway =() => {
       validPhotos,
       validCaptions,
       selectedTournamentIds,
+      selectedLadderIds,
       selectedAcademyIds
     );
   };
@@ -588,7 +590,11 @@ export const CreateGetaway =() => {
                 <Tournaments />
               </section> */}
 
-              <LaddersSchedule/>
+              <LaddersSchedule
+                mode="select"
+                selectedIds={selectedLadderIds}
+                setSelectedIds={setSelectedLadderIds}
+              />
 
               <Controller name="policies" defaultValue=""
                 control={control}
@@ -646,3 +652,4 @@ export const CreateGetaway =() => {
     </>
   );
 }
+export default CreateGetaway;

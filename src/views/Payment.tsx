@@ -19,6 +19,7 @@ import { processPayment, confirmPayment } from '../services/payment/payment';
 import { listSavedCards, type SavedCard } from '../services/payment/paymentMethods';
 import { ROUTES } from '../constants/routes';
 import { BRAND } from '../theme/colors';
+import { useSidebar } from '../contexts/SidebarContext';
 
 const NEW_CARD = 'new';
 
@@ -93,6 +94,26 @@ function CheckoutForm({ orderId, amount, user }: { orderId: string; amount: numb
   const elements = useElements();
   const navigate = useNavigate();
   const [processing, setProcessing] = useState(false);
+  const { setLocked } = useSidebar();
+
+  /**
+   * Mientras se cobra no se puede navegar: salir a media transacción dejaría la
+   * orden sin confirmar sin que el usuario sepa si se le cobró o no.
+   * - El sidebar se deshabilita.
+   * - El navegador avisa si se intenta cerrar o recargar la pestaña.
+   */
+  useEffect(() => {
+    setLocked(processing);
+
+    if (!processing) return;
+    const warn = (event: BeforeUnloadEvent) => event.preventDefault();
+    window.addEventListener('beforeunload', warn);
+
+    return () => window.removeEventListener('beforeunload', warn);
+  }, [processing, setLocked]);
+
+  // Si se abandona la vista, el bloqueo no debe quedarse activo.
+  useEffect(() => () => setLocked(false), [setLocked]);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   // Tarjetas guardadas del usuario

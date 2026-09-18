@@ -170,7 +170,6 @@ function App() {
                       {/* Sin sidebar */}
                       <Route path={ROUTES.LANDING} element={<Landing />} />
                       <Route path={ROUTES.LOGIN} element={<Login />} />
-                      <Route path={ROUTE_PATTERNS.PAYMENT} element={<ProtectedRoute><Payment /></ProtectedRoute>} />
                       <Route path={ROUTES.PAID} element={<Paid />} />
                       <Route path={ROUTES.DATA_VIEW} element={<DataViewWrapper />} />
                       <Route path={ROUTES.TEST_API} element={<TestApi/>} />
@@ -182,6 +181,7 @@ function App() {
                         <Route path={ROUTE_PATTERNS.GETAWAY_DETAIL} element={<ProtectedRoute><GetawayDetail /></ProtectedRoute>} />
                         <Route path={ROUTES.MY_GETAWAYS} element={<ProtectedRoute><Mygetaways/></ProtectedRoute>} />
                         <Route path={ROUTE_PATTERNS.BOOKING} element={<ProtectedRoute><BookGetaway2 /></ProtectedRoute>} />
+                        <Route path={ROUTE_PATTERNS.PAYMENT} element={<ProtectedRoute><Payment /></ProtectedRoute>} />
                         <Route path={ROUTES.MY_ORDERS} element={<ProtectedRoute><MyOrders /></ProtectedRoute>} />
                         <Route path={ROUTE_PATTERNS.RESERVATIONS} element={
                           <ProtectedRoute requiredRole={Role.ADMIN}>

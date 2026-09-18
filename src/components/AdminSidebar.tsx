@@ -9,6 +9,7 @@ import AddIcon from '@mui/icons-material/Add';
 import LocalOfferIcon from '@mui/icons-material/LocalOffer';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
+import { useSidebar } from '../contexts/SidebarContext';
 import { ROUTES } from '../constants/routes';
 import { Role } from '../constants/roles';
 import { BRAND } from '../theme/colors';
@@ -61,6 +62,7 @@ export default function AdminSideBar({ collapsed = false, onNavigate }: AdminSid
   const { t } = useTranslation();
   const { role, isLoading } = useAuth();
   const { pathname } = useLocation();
+  const { locked } = useSidebar();
 
   if (isLoading) {
     return (
@@ -79,14 +81,23 @@ export default function AdminSideBar({ collapsed = false, onNavigate }: AdminSid
         const active = isItemActive(item, pathname);
 
         return (
-          <Tooltip key={item.to} title={collapsed ? label : ''} placement="right">
+          <Tooltip
+            key={item.to}
+            title={locked ? t('sidebar.lockedHint') : collapsed ? label : ''}
+            placement="right"
+          >
             <ListItemButton
               component={RouterLink}
               to={item.to}
               onClick={onNavigate}
               aria-current={active ? 'page' : undefined}
+              // Durante un cobro no se navega: salir dejaría la orden a medias.
+              disabled={locked}
               sx={{
                 mb: 1,
+                // Durante un cobro no se navega: salir dejaría la orden a medias.
+                pointerEvents: locked ? 'none' : undefined,
+                opacity: locked ? 0.5 : 1,
                 borderRadius: '8px',
                 justifyContent: collapsed ? 'center' : 'flex-start',
                 px: collapsed ? 1 : 1.5,

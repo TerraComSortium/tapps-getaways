@@ -339,7 +339,7 @@ export default function TournamentTable(
         </>
       ) : (
         <Card variant="outlined" sx={{
-            p: 3, textAlign: 'center', bgcolor: '#F8F9FA', border: '1px dashed #bdbdbd'
+            p: 3, textAlign: 'center', bgcolor: 'action.hover', border: '1px dashed', borderColor: 'divider'
           }}>
           <CardContent>
             <Typography variant="h6" component="div" gutterBottom sx={{ fontWeight: 'bold', color: BRAND.primary }}> {t('academy.enhance')} </Typography>

@@ -70,7 +70,17 @@ export default function AdminLayout() {
           onClose={closeMobile}
           // keepMounted: no se remonta al abrir y cerrar
           ModalProps={{ keepMounted: true }}
-          slotProps={{ paper: { sx: { width: EXPANDED_WIDTH, pt: 2, overflowY: 'auto', overscrollBehavior: 'contain' } } }}
+          slotProps={{
+            paper: {
+              sx: {
+                width: EXPANDED_WIDTH, pt: 2,
+                overflowY: 'auto', overscrollBehavior: 'contain',
+                bgcolor: 'background.paper',
+                borderRight: '1px solid',
+                borderColor: 'divider',
+              },
+            },
+          }}
         >
           <AdminSideBar onNavigate={closeMobile} />
         </Drawer>
@@ -79,6 +89,12 @@ export default function AdminLayout() {
           component="nav"
           sx={{
             width, flexShrink: 0,
+            // Misma superficie que el Drawer de móvil: sin esto, en escritorio el
+            // sidebar quedaba transparente sobre el fondo de la página y no se
+            // leía como un panel.
+            bgcolor: 'background.paper',
+            borderRight: '1px solid',
+            borderColor: 'divider',
             // Se queda anclado bajo el navbar: el contenido scrollea por debajo y
             // el menú no se va arriba del todo.
             position: 'sticky',

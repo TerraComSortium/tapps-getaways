@@ -4,7 +4,7 @@ import { useForm, Controller } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { scrollToFirstError } from '../utils/formErrors';
 
-import { Box, TextField, Button, Typography, Divider, RadioGroup,
+import { Box, TextField, Button, Typography, Divider, RadioGroup, Paper, Stack, Chip,
   FormGroup, FormControl,
   FormControlLabel,
   // FormLabel, FormHelperText,
@@ -12,10 +12,12 @@ import { Box, TextField, Button, Typography, Divider, RadioGroup,
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import LocalOfferIcon from '@mui/icons-material/LocalOffer';
+import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
 
 import { useAuth } from '../contexts/AuthContext';
 import { useGetawayById } from '../hooks/useGetawayById';
 import { useCouponById } from '../hooks/useCoupon';
+import { useCouponHold } from '../hooks/useCouponHold';
 import { createPurchase, Reservation } from '../services/purchase/purchase';
 import { paymentPath } from '../constants/routes';
 import { BRAND } from '../theme/colors';
@@ -24,11 +26,24 @@ import AcademySchedule from '../components/AcademySchedule';
 import LaddersSchedule from '../components/LaddersSchedule';
 import TournamentsSchedule from '../components/TournamentsSchedule';
 import { getCouponLabel, getCouponValue } from '../utils/couponHelpers';
+import { getScheduleFeeLines } from '../utils/scheduleFees';
 import type { AcademyClass } from '../hooks/useGetAcademy';
 import type { Tournament } from '../services/tournament';
 import type { Ladder } from '../services/ladder';
 
 const TAX_RATE = 0.0654;
+const CURRENCY = 'USD';
+
+/** Formato del payload: debe coincidir con el que reconstruye el backend. */
+const formatAmount = (value: number) => `${(value || 0).toFixed(2)} ${CURRENCY}`;
+
+/** Formato de pantalla: con separador de miles y sin repetir símbolo + código. */
+const displayAmount = (value: number) =>
+  (value || 0).toLocaleString(undefined, {
+    style: 'currency',
+    currency: CURRENCY,
+    minimumFractionDigits: 2,
+  });
 
 interface LodgingOption {
   name: string;
@@ -57,6 +72,26 @@ interface FormData {
   address: string;
 }
 
+/** Fila del resumen: concepto a la izquierda, importe alineado a la derecha. */
+const SummaryRow = ({
+  label, amount, highlight = false,
+}: { label: string; amount: string; highlight?: boolean }) => (
+  <Stack
+    direction="row"
+    sx={{ justifyContent: 'space-between', alignItems: 'baseline', py: 0.6 }}
+  >
+    <Typography variant="body2" color={highlight ? BRAND.primary : 'text.secondary'}>
+      {label}
+    </Typography>
+    <Typography
+      variant="body2"
+      sx={{ fontWeight: highlight ? 'bold' : 500, color: highlight ? BRAND.primary : 'inherit' }}
+    >
+      {amount}
+    </Typography>
+  </Stack>
+);
+
 export default function BookGetaway() {
   const { t } = useTranslation();
   //get id param and fetch getaway
@@ -67,6 +102,11 @@ export default function BookGetaway() {
   const couponId = searchParams.get('couponId') || stateCouponId;
   const { data: getaway, loading, error } = useGetawayById(id || '');
   const { data: coupon } = useCouponById(couponId);
+  // Aparta un cupo al entrar y lo devuelve al salir sin pagar.
+  const couponHold = useCouponHold(couponId);
+  // Si no se consiguió cupo, el cupón no descuenta: no se puede prometer un
+  // precio que el backend no va a aplicar.
+  const activeCoupon = couponHold.held ? coupon : null;
 
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -100,6 +140,13 @@ export default function BookGetaway() {
     }
   }, [id, getaway, reset]);
 
+  /** Actividades incluidas en el getaway (academia, torneos, ladders) y su coste. */
+  const scheduleLines = useMemo(() => getScheduleFeeLines(getaway), [getaway]);
+  const scheduleFees = useMemo(
+    () => scheduleLines.reduce((total, line) => total + line.price, 0),
+    [scheduleLines]
+  );
+
   const totals = useMemo(() => {
     let sub = 0;
     if (!getaway) return { subtotal: 0, taxes: 0, total: 0 };
@@ -113,10 +160,15 @@ export default function BookGetaway() {
       }
     });
 
-    const couponValue = getCouponValue(coupon);
-    const discount = coupon
-      ? coupon.discountType === 'amount'
-        ? couponValue
+    // Las actividades incluidas no son opcionales: vienen con el getaway.
+    sub += scheduleFees;
+
+    // Dos tipos de descuento: importe fijo se resta tal cual, porcentaje se
+    // calcula sobre el subtotal ya formado (alojamiento + add-ons + actividades).
+    const couponValue = getCouponValue(activeCoupon);
+    const discount = activeCoupon
+      ? activeCoupon.discountType === 'amount'
+        ? Math.min(couponValue, sub)
         : sub * (couponValue / 100)
       : 0;
     const discountedSubtotal = Math.max(sub - discount, 0);
@@ -128,9 +180,9 @@ export default function BookGetaway() {
       taxes: tax,
       total: discountedSubtotal + tax
     };
-  }, [getaway, watchLodging, watchAddOns, coupon]);
+  }, [getaway, watchLodging, watchAddOns, activeCoupon, scheduleFees]);
 
-  const couponLabel = getCouponLabel(coupon);
+  const couponLabel = getCouponLabel(activeCoupon);
 
   const onSubmit = async (formData: FormData) => {
     if (!getaway || !user) return;
@@ -175,16 +227,16 @@ export default function BookGetaway() {
           price: addon.price
         })) || [],
         paymentDetails: {
-          Subtotal: `${totals.subtotal.toFixed(2)} USD`,
-          Taxes: `${totals.taxes.toFixed(2)} USD`,
-          Total: `${totals.total.toFixed(2)} USD`
+          Subtotal: formatAmount(totals.subtotal),
+          Taxes: formatAmount(totals.taxes),
+          Total: formatAmount(totals.total),
         }
       };
 
       const response = await createPurchase(reservationPayload);
       const fetchedOrderId = response.orderSummary?.orderId || response.orderId;
       if (!fetchedOrderId) {
-        throw new Error("Not received valid orderId from server");
+        throw new Error(t('book.noOrderId'));
       }
       //save order with id
       const dataForPayment = {
@@ -212,12 +264,24 @@ export default function BookGetaway() {
   if (error) return <Alert severity="error">{error}</Alert>;
   if (!getaway) return <Alert severity="info">{t('book.unavailable')}</Alert>;
   return (
-    <>
-            <Typography variant="h5" className='title'>{t('book.title')}</Typography>
-      <Typography variant="h6" className='title'>{getaway.title || t('book.title')}</Typography>
-      {/* <Typography variant="h6" className='title'><span>{getaway.startDate} to {getaway.endDate}</span></Typography> */}
+    // Un único contenedor centrado: antes los títulos iban centrados a todo el
+    // ancho y el formulario pegado a la izquierda, así que no cuadraban entre sí.
+    <Box sx={{ width: '100%', maxWidth: 1000, mx: 'auto', boxSizing: 'border-box' }}>
+      <Box sx={{ textAlign: 'center', mb: 2 }}>
+        <Typography variant="h5" className='title' sx={{ fontWeight: 'bold' }}>
+          {t('book.title')}
+        </Typography>
+        <Typography variant="h6" className='title' sx={{ color: 'text.secondary' }}>
+          {getaway.title || t('book.title')}
+        </Typography>
+        {(getaway.startDate || getaway.endDate) && (
+          <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+            {getaway.startDate} - {getaway.endDate}
+          </Typography>
+        )}
+      </Box>
 
-      <Box sx={{ width: 1000, maxWidth: '100%', padding: { xs: 1, sm: '7px' }, boxSizing: 'border-box' }}>
+      <Box sx={{ px: { xs: 0, sm: 1 } }}>
         <form onSubmit={handleSubmit(onSubmit, scrollToFirstError)} noValidate>
           <Typography variant="h6" className='purpleLabel' sx={{ mt: 2, mb: 1, fontSize: '14px', fontWeight: 'bold' }}>{t('book.paymentContactInfo')}</Typography>
           <TextField label={t('book.playerName')} margin="dense" fullWidth disabled defaultValue={user?.displayName || ''} />
@@ -289,7 +353,7 @@ export default function BookGetaway() {
                 {getaway.optionalAddOns?.map((addon: AddOnOption) => (
                   <FormControlLabel
                     key={addon.name}
-                    label={`${addon.name}:  $${addon.price}`}
+                    label={`${addon.name}: ${displayAmount(Number(addon.price))}`}
                     control={
                       <Checkbox
                         // name="addOns"
@@ -324,23 +388,90 @@ export default function BookGetaway() {
             selectedIds={getaway.ladderIds || []}
             items={(getaway.ladders as Ladder[] | undefined) ?? []}
           />
-          <Typography variant="h6" className='purpleLabel' sx={{ mt: 2, mb: 0.5, fontSize: '14px', fontWeight: 'bold' }}>{t('book.paymentDetails')}</Typography>
-          <Divider aria-hidden="true" sx={{ bgcolor: BRAND.green }} />
-          {coupon && (
-            <Box sx={{ mt: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
-              <LocalOfferIcon sx={{ color: BRAND.primary }} />
-              <Typography variant="body2" sx={{ fontWeight: 'bold', color: BRAND.primary }}>
-                Coupon: {coupon.title} - {couponLabel}
+          {/* Resumen de pago: tarjeta aparte para que destaque sobre el formulario */}
+          <Paper
+            elevation={0}
+            sx={{
+              mt: 3, p: { xs: 2, sm: 2.5 },
+              borderRadius: '12px',
+              bgcolor: 'background.paper',
+              border: '1px solid',
+              borderColor: 'divider',
+            }}
+          >
+            <Stack direction="row" spacing={1} sx={{ alignItems: 'center', mb: 1 }}>
+              <ReceiptLongIcon sx={{ color: BRAND.primary }} />
+              <Typography sx={{ fontSize: 15, fontWeight: 'bold', color: BRAND.primary }}>
+                {t('book.paymentDetails')}
               </Typography>
-            </Box>
-          )}
-          <Typography variant="body2" sx={{ mt: 1 }}>{t('book.subtotal')}: ${(totals.subtotal || 0).toFixed(2)} USD</Typography>
-          {coupon && (
-            <Typography variant="body2">Discount: -${(totals.discount || 0).toFixed(2)} USD</Typography>
-          )}
-          <Typography variant="body2">{t('book.taxes')}: ${(totals.taxes || 0).toFixed(2)} USD</Typography>
-          <Typography variant="body2" sx={{ fontWeight: 'bold' }}>{t('book.total')}: ${ (totals.total || 0).toFixed(2)} USD</Typography>
-          <Typography variant="body2">{t('book.totalNote')}</Typography>
+            </Stack>
+            <Divider aria-hidden="true" sx={{ bgcolor: BRAND.green, mb: 1 }} />
+
+            {activeCoupon && (
+              <Box sx={{ my: 1 }}>
+                <Chip
+                  icon={<LocalOfferIcon />}
+                  label={`${activeCoupon.title} · ${couponLabel}`}
+                  sx={{
+                    fontWeight: 'bold',
+                    bgcolor: BRAND.green, color: BRAND.navy,
+                    '& .MuiChip-icon': { color: BRAND.navy },
+                  }}
+                />
+                {couponHold.remaining !== null && (
+                  <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
+                    {t('book.couponRemaining', { count: couponHold.remaining })}
+                  </Typography>
+                )}
+              </Box>
+            )}
+
+            {/* El cupón existe pero no se pudo apartar cupo */}
+            {coupon && !couponHold.held && !couponHold.loading && (
+              <Alert severity="warning" sx={{ my: 1 }}>
+                {couponHold.reason === 'expired'
+                  ? t('book.couponExpired')
+                  : t('book.couponSoldOut')}
+              </Alert>
+            )}
+
+            {scheduleLines
+              .filter((line) => line.price > 0)
+              .map((line) => (
+                <SummaryRow key={line.id} label={line.name} amount={displayAmount(line.price)} />
+              ))}
+
+            <SummaryRow label={t('book.subtotal')} amount={displayAmount(totals.subtotal)} />
+            {activeCoupon && (
+              <SummaryRow
+                // Se distingue el tipo: "Descuento (20%)" vs "Descuento (importe fijo)"
+                label={
+                  activeCoupon.discountType === 'amount'
+                    ? t('book.discountFixed')
+                    : t('book.discountPercent', { percent: getCouponValue(activeCoupon) })
+                }
+                amount={`−${displayAmount(totals.discount || 0)}`}
+                highlight
+              />
+            )}
+            <SummaryRow label={t('book.taxes')} amount={displayAmount(totals.taxes)} />
+
+            <Divider sx={{ my: 1 }} />
+
+            <Stack
+              direction="row"
+              sx={{ justifyContent: 'space-between', alignItems: 'baseline', pt: 0.5 }}
+            >
+              <Typography sx={{ fontWeight: 'bold' }}>{t('book.total')}</Typography>
+              <Typography variant="h6" sx={{ fontWeight: 'bold', color: BRAND.primary }}>
+                {displayAmount(totals.total)}
+              </Typography>
+            </Stack>
+
+            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
+              {t('book.totalNote')}
+            </Typography>
+          </Paper>
 
           <Typography variant="h6" className='purpleLabel' sx={{ mt: 2, mb: 0.5, fontSize: '16px', fontWeight: 'bold' }}>{t('book.policies')}</Typography>
           <Typography variant="body2" sx={{ mt: 1 }}>{getaway.policies || t('book.noPolicies')}</Typography>
@@ -399,7 +530,6 @@ export default function BookGetaway() {
         </Box>
         </form>
       </Box>
-    
-    </>
+    </Box>
   );
 }

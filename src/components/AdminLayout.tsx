@@ -24,7 +24,10 @@ const NAVBAR_HEIGHT = 64;
 export default function AdminLayout() {
   const { t } = useTranslation();
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  // noSsr: evalúa la media query en el PRIMER render. Sin esto devuelve false y
+  // corrige después, lo que provoca un segundo render y, como el sidebar vive en
+  // dos ramas distintas (Drawer vs Box), lo desmonta y lo vuelve a montar.
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'), { noSsr: true });
 
   const [collapsed, setCollapsed] = useState(() => {
     try {

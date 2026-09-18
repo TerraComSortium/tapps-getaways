@@ -1,9 +1,8 @@
-import { Box, Container, Link, Button, Typography, TypographyProps } from '@mui/material';
+import { Box, Container, Link, Typography, TypographyProps } from '@mui/material';
 import Grid from '@mui/material/Grid2';
 import { styled } from '@mui/material/styles';
 import { useTranslation } from 'react-i18next';
 import { BRAND } from '../theme/colors';
-import ArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 
 import RacquetsLogo from '../components/RacquetsLogo/RacquetS 25 LogoHorizontal_FondoMorado.png'
 import ig from '../assets/instagram.svg'

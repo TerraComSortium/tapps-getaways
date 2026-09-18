@@ -27,6 +27,8 @@ interface OptionalAddOn {
 
 interface PaymentDetails {
   Subtotal: string;
+  /** Solo presente si el backend aplicó un cupón. */
+  Discount?: string;
   Taxes: string;
   Total: string;
 }
@@ -40,7 +42,8 @@ export interface Reservation {
   paymentDetails: PaymentDetails;
 }
 
-export const createPurchase = async (reservation: Reservation) => {
-  const response = await api.post("/purchase", { reservation });
+/** `signal` permite cancelar la petición si el usuario aborta la espera. */
+export const createPurchase = async (reservation: Reservation, signal?: AbortSignal) => {
+  const response = await api.post("/purchase", { reservation }, { signal });
   return response.data;
 };

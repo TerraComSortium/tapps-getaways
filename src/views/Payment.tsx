@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { useNavigate, useParams, useLocation } from 'react-router-dom';
+import { useEffect, useMemo, useState } from 'react';
+import { useNavigate, useParams, useLocation, Link as RouterLink } from 'react-router-dom';
 import {
   Container, Box, Stack,
   Divider, Typography, Button, Alert, CircularProgress,
@@ -20,6 +20,8 @@ import { listSavedCards, type SavedCard } from '../services/payment/paymentMetho
 import { ROUTES } from '../constants/routes';
 import { BRAND } from '../theme/colors';
 import { useSidebar } from '../contexts/SidebarContext';
+import CardBrands from '../components/CardBrands';
+import { useOrderById } from '../hooks/useOrderById';
 
 const NEW_CARD = 'new';
 
@@ -36,8 +38,6 @@ const CARD_ERROR_CODES = new Set([
   'processing_error',
 ]);
 
-// Códigos de error que genera nuestro propio backend (no Stripe): su mensaje ya
-// viene traducido por el server (Accept-Language) → se muestra tal cual.
 const SAFE_BACKEND_CODES = new Set([
   'amount_mismatch',
   'order_not_found',
@@ -45,28 +45,19 @@ const SAFE_BACKEND_CODES = new Set([
   'invalid_order_amount',
 ]);
 
-/**
- * Traduce cualquier error del flujo de pago a un mensaje seguro para el usuario.
- * - Errores de tarjeta (rechazo, CVC, fondos…) → mensaje específico y accionable.
- * - Errores de validación de Stripe.js (tarjeta incompleta) → su mensaje, ya es claro.
- * - Cualquier otro (config/sistema) → mensaje genérico para contactar al administrador.
- */
 function getFriendlyPaymentError(e: any, t: TFunction): string {
   const data = e?.response?.data;
 
-  // Error proveniente del backend (POST /payment)
   if (data) {
     const code: string | undefined = data.code || data.declineCode;
     if (code && CARD_ERROR_CODES.has(code)) return t(`payment.card.${code}`);
-    // Errores de validación que genera nuestro propio backend (ya localizados por el server).
+
     if (code && SAFE_BACKEND_CODES.has(code) && typeof data.error === 'string') return data.error;
-    // El backend marca los errores de tarjeta con type StripeCardError y nos manda
-    // un mensaje seguro en data.error. El resto se oculta tras el genérico.
+
     if (data.type === 'StripeCardError' && typeof data.error === 'string') return data.error;
     return t('payment.genericError');
   }
 
-  // Error de Stripe.js en el navegador (createPaymentMethod): validación de tarjeta.
   if (e?.code && CARD_ERROR_CODES.has(e.code)) return t(`payment.card.${e.code}`);
   if (e?.type === 'validation_error' && typeof e?.message === 'string') return e.message;
 
@@ -85,9 +76,6 @@ const CARD_ELEMENT_OPTIONS = {
   },
 };
 
-// Formulario de pago — debe vivir dentro de <Elements> para usar los hooks de Stripe.
-// La orden ya fue creada en BookGetaway2 (orderId viene por la URL), así que aquí
-// solo se cobra la tarjeta real con ese orderId.
 function CheckoutForm({ orderId, amount, user }: { orderId: string; amount: number; user: any }) {
   const { t } = useTranslation();
   const stripe = useStripe();
@@ -96,12 +84,6 @@ function CheckoutForm({ orderId, amount, user }: { orderId: string; amount: numb
   const [processing, setProcessing] = useState(false);
   const { setLocked } = useSidebar();
 
-  /**
-   * Mientras se cobra no se puede navegar: salir a media transacción dejaría la
-   * orden sin confirmar sin que el usuario sepa si se le cobró o no.
-   * - El sidebar se deshabilita.
-   * - El navegador avisa si se intenta cerrar o recargar la pestaña.
-   */
   useEffect(() => {
     setLocked(processing);
 
@@ -112,20 +94,19 @@ function CheckoutForm({ orderId, amount, user }: { orderId: string; amount: numb
     return () => window.removeEventListener('beforeunload', warn);
   }, [processing, setLocked]);
 
-  // Si se abandona la vista, el bloqueo no debe quedarse activo.
   useEffect(() => () => setLocked(false), [setLocked]);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  // Tarjetas guardadas del usuario
   const [savedCards, setSavedCards] = useState<SavedCard[]>([]);
   const [selectedMethod, setSelectedMethod] = useState<string>(NEW_CARD); // pm_id | 'new'
   const [saveCard, setSaveCard] = useState(false);
+
+  const [cardBrand, setCardBrand] = useState<string>('unknown');
 
   useEffect(() => {
     listSavedCards()
       .then((cards) => {
         setSavedCards(cards);
-        // Si hay tarjetas guardadas, preseleccionar la primera; si no, tarjeta nueva.
         if (cards.length > 0) setSelectedMethod(cards[0].id);
       })
       .catch((e) => console.warn('[STRIPE] No se pudieron cargar tarjetas guardadas:', e));
@@ -164,7 +145,6 @@ function CheckoutForm({ orderId, amount, user }: { orderId: string; amount: numb
         paymentMethodId = selectedMethod;
       }
 
-      // 2. Procesar el pago en el backend. saveCard solo aplica a tarjeta nueva.
       const paymentPayload = {
         orderId,
         paymentMethodId,
@@ -176,7 +156,6 @@ function CheckoutForm({ orderId, amount, user }: { orderId: string; amount: numb
       let payRes = await processPayment(paymentPayload);
       console.log('%c[STRIPE] Paso 2 — /payment OK (respuesta)', 'color:#00A36C;font-weight:bold', payRes);
 
-      // 3. 3D Secure — si la tarjeta requiere autenticación adicional
       if (payRes?.requiresAction && payRes?.clientSecret) {
         console.log('%c[STRIPE] Paso 3 — requiere 3D Secure, confirmCardPayment...', 'color:#E69500;font-weight:bold');
         const { error: confirmError } = await stripe.confirmCardPayment(payRes.clientSecret);
@@ -184,14 +163,12 @@ function CheckoutForm({ orderId, amount, user }: { orderId: string; amount: numb
           console.error('[STRIPE] error 3DS:', confirmError);
           throw new Error(confirmError.message);
         }
-        // Tras autenticar, el backend re-consulta el PaymentIntent y finaliza la orden
-        // (paid + factura + suscripción). Usamos su respuesta como resultado final.
+
         console.log('%c[STRIPE] Paso 3b — 3DS OK, POST /payment/confirm...', 'color:#E69500;font-weight:bold');
         payRes = await confirmPayment(orderId);
         console.log('%c[STRIPE] Paso 3b — /payment/confirm OK', 'color:#00A36C;font-weight:bold', payRes);
       }
 
-      // 4. Éxito → navegar a /paid con el paymentResult que espera la vista Paid
       localStorage.removeItem('selectedData');
       navigate(ROUTES.PAID, {
         state: {
@@ -200,13 +177,11 @@ function CheckoutForm({ orderId, amount, user }: { orderId: string; amount: numb
             orderId: payRes?.orderId ?? orderId,
             paymentStatus: payRes?.paymentStatus,
             invoiceNumber: payRes?.invoiceNumber,
-            // Tras confirmar, ya no hay acción pendiente.
             requiresAction: false,
           },
         },
       });
     } catch (e: any) {
-      // El detalle técnico completo queda en la consola para revisión (no se muestra al usuario).
       console.error('[STRIPE] ❌ Error en el flujo de pago:', {
         message: e?.message,
         code: e?.code,
@@ -214,7 +189,6 @@ function CheckoutForm({ orderId, amount, user }: { orderId: string; amount: numb
         status: e?.response?.status,
         backendError: e?.response?.data,
       });
-      // Al usuario solo se le muestra un mensaje amable (tarjeta accionable o genérico).
       setErrorMsg(getFriendlyPaymentError(e, t));
     } finally {
       setProcessing(false);
@@ -223,7 +197,6 @@ function CheckoutForm({ orderId, amount, user }: { orderId: string; amount: numb
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-      {/* Tarjeta decorativa */}
       <Card
         sx={{
           m: 2,
@@ -313,8 +286,14 @@ function CheckoutForm({ orderId, amount, user }: { orderId: string; amount: numb
         {usingNewCard && (
           <>
             <Box sx={{ bgcolor: BRAND.white, borderRadius: '8px', p: 1.5, mt: 0.5 }}>
-              <CardElement options={CARD_ELEMENT_OPTIONS} />
+              <CardElement
+                options={CARD_ELEMENT_OPTIONS}
+                onChange={(event) => setCardBrand(event.brand)}
+              />
             </Box>
+
+            {/* Marcas aceptadas; la detectada se resalta al teclear. */}
+            <CardBrands detected={cardBrand} onDark />
             <FormControlLabel
               sx={{ mt: 0.5 }}
               control={
@@ -372,15 +351,67 @@ function CheckoutForm({ orderId, amount, user }: { orderId: string; amount: numb
 
 function Payment() {
   const { t } = useTranslation();
-  const navigate = useNavigate();
   const { orderId } = useParams<{ orderId: string }>();
   const location = useLocation();
 
-  const orderData = location.state?.dataForPayment || JSON.parse(localStorage.getItem('selectedData') || '{}');
+  // Fuente de verdad: la orden del backend, identificada por la URL.
+  const { data: order, loading: loadingOrder, error: orderError } = useOrderById(orderId);
+
+  /**
+   * Datos locales SOLO como pintado inmediato mientras llega la orden, y solo si
+   * son de ESTA orden. Antes se usaba `localStorage['selectedData']` sin
+   * comprobar el id, así que abrir /payment/ORDEN_A con los datos de ORDEN_B en
+   * localStorage mostraba un resumen y cobraba otro.
+   */
+  const placeholder = useMemo(() => {
+    const fromState = location.state?.dataForPayment;
+    if (fromState?.orderId === orderId) return fromState;
+
+    try {
+      const stored = JSON.parse(localStorage.getItem('selectedData') || '{}');
+      return stored?.orderId === orderId ? stored : null;
+    } catch {
+      // JSON corrupto: antes reventaba la vista con un SyntaxError sin capturar
+      return null;
+    }
+  }, [location.state, orderId]);
+
+  const orderData = useMemo(() => {
+    if (!order) return placeholder ?? {};
+
+    // El backend adjunta los datos del getaway a la orden, así que el resumen se
+    // pinta igual aunque se recargue o se entre desde otro dispositivo.
+    const getaway = order.getaway as
+      | { title?: string; address?: string; startDate?: string; endDate?: string }
+      | null;
+
+    const dates = getaway && (getaway.startDate || getaway.endDate)
+      ? [getaway.startDate, getaway.endDate]
+          .filter(Boolean)
+          .map((value) => new Date(value as string).toLocaleDateString())
+          .join(' - ')
+      : undefined;
+
+    return {
+      ...placeholder,
+      ...(order.reservation as Record<string, unknown>),
+      orderId: (order.orderId as string) ?? orderId,
+      getawayTitle: getaway?.title || placeholder?.getawayTitle,
+      getawayAddress: getaway?.address || placeholder?.getawayAddress,
+      getawayDates: dates || placeholder?.getawayDates,
+    };
+  }, [order, placeholder, orderId]);
 
   const paymentDetails = orderData?.paymentDetails || {};
   const lodgingOption = orderData?.lodgingOption || {};
   const optionalAddOns = orderData?.optionalAddOns || [];
+  // Actividades incluidas (academia, torneos, ladders): el backend guarda el
+  // desglose en la orden para que aquí se vea lo mismo que en la reserva.
+  const scheduleItems = orderData?.scheduleItems || [];
+  // Cupón aplicado por el backend (no el que pidió el cliente).
+  const appliedCoupon = orderData?.coupon as
+    | { title?: string; discountType?: string; value?: number }
+    | undefined;
   const user = orderData?.user || {};
   const getawayTitle = orderData?.getawayTitle || t('payment.unavailableName');
   const getawayAddress = orderData?.getawayAddress || t('payment.unavailableAddress');
@@ -390,11 +421,58 @@ function Payment() {
   const numericTotal = parseFloat((paymentDetails.Total || '0').replace('USD', ''));
   const resolvedOrderId = orderId || orderData.orderId || '';
 
-  useEffect(() => {
-    if (!paymentDetails?.Total) {
-      navigate(ROUTES.GETAWAYS, { replace: true });
-    }
-  }, [paymentDetails, navigate]);
+  const alreadyPaid = order?.status === 'paid';
+
+  // Mientras llega la orden se pinta el placeholder si lo hay; si no, un spinner.
+  if (loadingOrder && !placeholder) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', p: 6 }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  /**
+   * Antes esto era un `navigate(ROUTES.GETAWAYS, { replace: true })` silencioso:
+   * el usuario pulsaba pagar y aparecía en el listado sin saber por qué.
+   */
+  if (orderError || (!loadingOrder && !paymentDetails?.Total)) {
+    return (
+      <Box sx={{ maxWidth: 560, mx: 'auto', p: 3 }}>
+        <Alert severity={orderError === 'forbidden' ? 'error' : 'warning'}>
+          {orderError === 'not_found'
+            ? t('payment.orderNotFound')
+            : orderError === 'forbidden'
+              ? t('payment.orderForbidden')
+              : t('payment.orderUnavailable')}
+        </Alert>
+        <Button
+          component={RouterLink} to={ROUTES.MY_ORDERS}
+          variant="contained"
+          sx={{ mt: 2, borderRadius: '8px', textTransform: 'none', bgcolor: BRAND.primary }}
+        >
+          {t('paid.viewBookings')}
+        </Button>
+      </Box>
+    );
+  }
+
+  // Una orden ya pagada no se vuelve a cobrar: el backend lo rechaza con
+  // `order_already_paid`, pero es mejor no dejar siquiera intentarlo.
+  if (alreadyPaid) {
+    return (
+      <Box sx={{ maxWidth: 560, mx: 'auto', p: 3 }}>
+        <Alert severity="success">{t('payment.orderAlreadyPaid')}</Alert>
+        <Button
+          component={RouterLink} to={ROUTES.MY_ORDERS}
+          variant="contained"
+          sx={{ mt: 2, borderRadius: '8px', textTransform: 'none', bgcolor: BRAND.primary }}
+        >
+          {t('paid.viewBookings')}
+        </Button>
+      </Box>
+    );
+  }
 
   return (
     <>
@@ -459,6 +537,19 @@ function Payment() {
                 )}
               </Box>
 
+              {scheduleItems.length > 0 && (
+                <Box sx={{ mb: 1.5 }}>
+                  <Typography variant="caption" sx={{ color: BRAND.green, fontWeight: 'bold', letterSpacing: 0.5 }}>
+                    {t('payment.activities')}
+                  </Typography>
+                  {scheduleItems.map((item: { id: string; name: string; price: number }, index: number) => (
+                    <Typography key={item.id || index} variant="body2">
+                      • {item.name} - ${item.price} USD
+                    </Typography>
+                  ))}
+                </Box>
+              )}
+
               <Divider sx={{ borderColor: 'rgba(255,255,255,0.25)', my: 1.5 }} />
 
               {/* Desglose de precios */}
@@ -467,6 +558,19 @@ function Payment() {
                   <Typography variant="body2" sx={{ opacity: 0.85 }}>{t('payment.subtotal')}</Typography>
                   <Typography variant="body2">{paymentDetails.Subtotal}</Typography>
                 </Box>
+                {paymentDetails.Discount && (
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <Typography variant="body2" sx={{ color: BRAND.green, fontWeight: 'bold' }}>
+                      {appliedCoupon?.discountType === 'amount'
+                        ? t('book.discountFixed')
+                        : t('book.discountPercent', { percent: appliedCoupon?.value ?? 0 })}
+                      {appliedCoupon?.title ? ` · ${appliedCoupon.title}` : ''}
+                    </Typography>
+                    <Typography variant="body2" sx={{ color: BRAND.green, fontWeight: 'bold' }}>
+                      −{paymentDetails.Discount}
+                    </Typography>
+                  </Box>
+                )}
                 <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                   <Typography variant="body2" sx={{ opacity: 0.85 }}>{t('payment.taxes')}</Typography>
                   <Typography variant="body2">{paymentDetails.Taxes}</Typography>

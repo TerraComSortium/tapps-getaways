@@ -1,8 +1,10 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+import axios from 'axios';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useForm, Controller } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { scrollToFirstError } from '../utils/formErrors';
+import LoadingOverlay from '../components/LoadingOverlay';
 
 import { Box, TextField, Button, Typography, Divider, RadioGroup, Paper, Stack, Chip,
   FormGroup, FormControl,
@@ -108,10 +110,34 @@ export default function BookGetaway() {
   // precio que el backend no va a aplicar.
   const activeCoupon = couponHold.held ? coupon : null;
 
+  // Minutos que le quedan a la reserva del cupo; se refresca cada 30 s.
+  const [holdMinutesLeft, setHoldMinutesLeft] = useState<number | null>(null);
+  useEffect(() => {
+    if (!couponHold.expiresAt) {
+      setHoldMinutesLeft(null);
+      return;
+    }
+    const update = () => {
+      const ms = new Date(couponHold.expiresAt as string).getTime() - Date.now();
+      setHoldMinutesLeft(Math.max(Math.ceil(ms / 60000), 0));
+    };
+    update();
+    const timer = setInterval(update, 30000);
+    return () => clearInterval(timer);
+  }, [couponHold.expiresAt]);
+
   const navigate = useNavigate();
   const { user } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  // Permite abortar la creación de la reserva si el usuario se cansa de esperar.
+  const abortRef = useRef<AbortController | null>(null);
+
+  const cancelSubmit = useCallback(() => {
+    abortRef.current?.abort();
+    abortRef.current = null;
+    setIsSubmitting(false);
+  }, []);
 
   const { handleSubmit, control, formState: { errors }, watch, reset } = useForm<FormData>({
     defaultValues: {
@@ -130,7 +156,10 @@ export default function BookGetaway() {
   useEffect(() => {
     if (getaway) {
       reset({
-        lodgingOption: '',
+        // Siempre hay una opción de alojamiento marcada: reservar sin alojamiento
+        // no es un estado válido, y así el resumen muestra un precio desde el inicio.
+        // Se usa la primera, igual que en GetawayDetail.
+        lodgingOption: getaway.lodgingOptions?.[0]?.name ?? '',
         selectedAddOns: [],
         agreePolicies: false,
         agreeTerms: false,
@@ -142,26 +171,46 @@ export default function BookGetaway() {
 
   /** Actividades incluidas en el getaway (academia, torneos, ladders) y su coste. */
   const scheduleLines = useMemo(() => getScheduleFeeLines(getaway), [getaway]);
-  const scheduleFees = useMemo(
-    () => scheduleLines.reduce((total, line) => total + line.price, 0),
-    [scheduleLines]
-  );
+  /**
+   * Conceptos que forman el subtotal. El desglose y la suma salen de la MISMA
+   * lista, así no pueden descuadrar: lo que se ve es exactamente lo que se cobra.
+   * Se incluyen los de precio 0 (servicios sin coste que el usuario seleccionó).
+   */
+  const summaryLines = useMemo(() => {
+    if (!getaway) return [] as { id: string; label: string; price: number }[];
 
-  const totals = useMemo(() => {
-    let sub = 0;
-    if (!getaway) return { subtotal: 0, taxes: 0, total: 0 };
+    const lines: { id: string; label: string; price: number }[] = [];
 
-    const selectedLodging = getaway.lodgingOptions?.find((opt: LodgingOption) => opt.name === watchLodging);
-    if (selectedLodging) sub += Number(selectedLodging.price) || 0;
+    const selectedLodging = getaway.lodgingOptions?.find(
+      (opt: LodgingOption) => opt.name === watchLodging
+    );
+    if (selectedLodging) {
+      lines.push({
+        id: `lodging-${selectedLodging.name}`,
+        label: selectedLodging.name,
+        price: Number(selectedLodging.price) || 0,
+      });
+    }
 
-    getaway.optionalAddOns?.forEach((addon: AddOnOption) => {
-      if (watchAddOns?.includes(addon.name)) {
-        sub += Number(addon.price) || 0;
-      }
+    getaway.optionalAddOns?.forEach((addon: AddOnOption, index: number) => {
+      if (!watchAddOns?.includes(addon.name)) return;
+      lines.push({
+        id: `addon-${addon.name}-${index}`,
+        label: addon.name,
+        price: Number(addon.price) || 0,
+      });
     });
 
-    // Las actividades incluidas no son opcionales: vienen con el getaway.
-    sub += scheduleFees;
+    // Actividades incluidas: no son opcionales, vienen con el getaway.
+    scheduleLines.forEach((line) => {
+      lines.push({ id: line.id, label: line.name, price: line.price });
+    });
+
+    return lines;
+  }, [getaway, watchLodging, watchAddOns, scheduleLines]);
+
+  const totals = useMemo(() => {
+    const sub = summaryLines.reduce((total, line) => total + line.price, 0);
 
     // Dos tipos de descuento: importe fijo se resta tal cual, porcentaje se
     // calcula sobre el subtotal ya formado (alojamiento + add-ons + actividades).
@@ -171,16 +220,18 @@ export default function BookGetaway() {
         ? Math.min(couponValue, sub)
         : sub * (couponValue / 100)
       : 0;
+
     const discountedSubtotal = Math.max(sub - discount, 0);
     const tax = discountedSubtotal * TAX_RATE;
+
     return {
       subtotal: sub,
       discount,
       discountedSubtotal,
       taxes: tax,
-      total: discountedSubtotal + tax
+      total: discountedSubtotal + tax,
     };
-  }, [getaway, watchLodging, watchAddOns, activeCoupon, scheduleFees]);
+  }, [summaryLines, activeCoupon]);
 
   const couponLabel = getCouponLabel(activeCoupon);
 
@@ -188,6 +239,9 @@ export default function BookGetaway() {
     if (!getaway || !user) return;
     setIsSubmitting(true);
     setSubmitError(null);
+
+    const controller = new AbortController();
+    abortRef.current = controller;
 
     try {
       const originalLodging = getaway.lodgingOptions?.find((opt: LodgingOption) => opt.name === formData.lodgingOption);
@@ -233,7 +287,7 @@ export default function BookGetaway() {
         }
       };
 
-      const response = await createPurchase(reservationPayload);
+      const response = await createPurchase(reservationPayload, controller.signal);
       const fetchedOrderId = response.orderSummary?.orderId || response.orderId;
       if (!fetchedOrderId) {
         throw new Error(t('book.noOrderId'));
@@ -250,22 +304,25 @@ export default function BookGetaway() {
       localStorage.setItem('selectedData', JSON.stringify(dataForPayment));
       navigate(paymentPath(fetchedOrderId), { state: { dataForPayment } });
     } catch (err) {
+      // Cancelar con Escape no es un error: el botón vuelve a estar disponible.
+      if (axios.isCancel(err) || (err as Error)?.name === 'CanceledError') return;
+
       // Antes solo se logueaba: el botón se rehabilitaba y el usuario no sabía
       // por qué no avanzaba al pago.
       console.error('[BOOKING] Error al crear la reserva:', err);
       setSubmitError(err instanceof Error ? err.message : t('book.submitError'));
     } finally {
+      abortRef.current = null;
       setIsSubmitting(false);
     }
   };
 
-  //loading & error
+
   if (loading) return <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}><CircularProgress /></Box>;
   if (error) return <Alert severity="error">{error}</Alert>;
   if (!getaway) return <Alert severity="info">{t('book.unavailable')}</Alert>;
   return (
-    // Un único contenedor centrado: antes los títulos iban centrados a todo el
-    // ancho y el formulario pegado a la izquierda, así que no cuadraban entre sí.
+
     <Box sx={{ width: '100%', maxWidth: 1000, mx: 'auto', boxSizing: 'border-box' }}>
       <Box sx={{ textAlign: 'center', mb: 2 }}>
         <Typography variant="h5" className='title' sx={{ fontWeight: 'bold' }}>
@@ -289,9 +346,7 @@ export default function BookGetaway() {
           <TextField label={t('book.email')} fullWidth margin="dense" disabled
             defaultValue={user?.email || ''}
           />
-          {/* Firebase no expone teléfono ni dirección: se piden aquí. Antes eran
-              campos deshabilitados y la orden se guardaba siempre vacía, así que
-              el organizador no tenía forma de contactar al jugador. */}
+        
           <Controller
             name="cellphone" control={control}
             rules={{
@@ -317,9 +372,9 @@ export default function BookGetaway() {
           />
           <Typography variant="h6" className='purpleLabel' sx={{ mt: 2, mb: 0.5, fontSize: '14px', fontWeight: 'bold' }}>{t('book.lodgingOptions')}</Typography>
           <Divider aria-hidden="true" sx={{ bgcolor: BRAND.green }} />
+
           <Controller name="lodgingOption"
             control={control}
-            defaultValue=""
             rules={{ required: t('book.selectLodging') }}
             render={({ field }) => (
               <RadioGroup {...field} aria-labelledby="demo-radio-buttons-group-label" name="radio-buttons-group"
@@ -418,8 +473,13 @@ export default function BookGetaway() {
                     '& .MuiChip-icon': { color: BRAND.navy },
                   }}
                 />
+                {holdMinutesLeft !== null && holdMinutesLeft > 0 && (
+                  <Typography variant="caption" sx={{ display: 'block', mt: 0.5, color: BRAND.primary, fontWeight: 'bold' }}>
+                    {t('book.couponHeldFor', { count: holdMinutesLeft })}
+                  </Typography>
+                )}
                 {couponHold.remaining !== null && (
-                  <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
+                  <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
                     {t('book.couponRemaining', { count: couponHold.remaining })}
                   </Typography>
                 )}
@@ -435,11 +495,17 @@ export default function BookGetaway() {
               </Alert>
             )}
 
-            {scheduleLines
-              .filter((line) => line.price > 0)
-              .map((line) => (
-                <SummaryRow key={line.id} label={line.name} amount={displayAmount(line.price)} />
-              ))}
+            {summaryLines.length === 0 ? (
+              <Typography variant="body2" color="text.secondary" sx={{ py: 1 }}>
+                {t('book.nothingSelected')}
+              </Typography>
+            ) : (
+              summaryLines.map((line) => (
+                <SummaryRow key={line.id} label={line.label} amount={displayAmount(line.price)} />
+              ))
+            )}
+
+            <Divider sx={{ my: 1 }} />
 
             <SummaryRow label={t('book.subtotal')} amount={displayAmount(totals.subtotal)} />
             {activeCoupon && (
@@ -512,7 +578,6 @@ export default function BookGetaway() {
           <Button type="button" startIcon={<ArrowBackIcon />} variant="outlined" disableElevation
             onClick={() => navigate(-1)}
             sx={{ minWidth: '135px', whiteSpace: 'nowrap', px: 2, borderRadius: '8px', borderColor: BRAND.primary,
-            //bgcolor: BRAND.white, color: BRAND.primary,
             fontWeight: 'medium', textTransform: 'none',
             ':hover': { bgcolor: BRAND.primary, color: 'white' } }}
           >{t('book.back')}</Button>
@@ -530,6 +595,12 @@ export default function BookGetaway() {
         </Box>
         </form>
       </Box>
+
+      <LoadingOverlay
+        open={isSubmitting}
+        message={t('book.creatingBooking')}
+        onCancel={cancelSubmit}
+      />
     </Box>
   );
 }

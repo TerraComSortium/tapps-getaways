@@ -8,6 +8,7 @@ import SearchBar from '../components/SearchBar';
 import { useAuth } from '../contexts/AuthContext';
 import type { Getaway } from '../types/getaway';
 import { useUserStore } from '../store/useUserStore';
+import type { Discount } from '../types/getaway';
 import { getAllGetaways } from '../services/getaways/getaways';
 import { searchGetaways } from '../services/search/search';
 import { useGetawayNavigation } from '../hooks/useGetawayNavigation';
@@ -44,12 +45,15 @@ export default function Getaways() {
   const { data: coupons } = useCouponsForGetaways(getawayIds, canViewCouponLabels);
   const couponsByGetawayId = useMemo(
     () =>
-      coupons.reduce((map, coupon) => {
-        if (coupon.getawayId) {
-          map.set(coupon.getawayId, coupon);
-        }
-        return map;
-      }, new Map<string, (typeof coupons)[number]>()),
+      coupons.reduce(
+        (map: Map<string, Discount>, coupon: Discount) => {
+          if (coupon.getawayId) {
+            map.set(coupon.getawayId, coupon);
+          }
+          return map;
+        },
+        new Map<string, Discount>()
+      ),
     [coupons]
   );
 

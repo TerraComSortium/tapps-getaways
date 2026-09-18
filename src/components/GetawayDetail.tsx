@@ -18,6 +18,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 import ShareIcon from '@mui/icons-material/Share';
+import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
 import PlaceIcon from '@mui/icons-material/Place';
 import NotesIcon from '@mui/icons-material/Notes';
 import EventNoteIcon from '@mui/icons-material/EventNote';
@@ -35,7 +36,10 @@ import '../App.css';
 import { useAuth } from '../contexts/AuthContext';
 import type { Getaway } from '../types/getaway';
 import { useGetawayById } from '../hooks/useGetawayById';
+import { useMyOrderForGetaway } from '../hooks/useMyOrderForGetaway';
+import { useInvoice } from '../hooks/useInvoice';
 import { getSportLabel, isGetawayExpired } from '../utils/getawayHelpers';
+import { toEmbedUrl } from '../utils/videoUrl';
 import { ROUTES, bookingPath } from '../constants/routes';
 import { Role } from '../constants/roles';
 import GetawaySchedule from './GetawaySchedule';
@@ -67,6 +71,43 @@ const Section = ({
 );
 
 /** Texto de "aquí todavía no hay nada", que se repetía en cada bloque. */
+/**
+ * Acción principal del detalle: si el jugador ya pagó este getaway no tiene
+ * sentido volver a cobrarle, así que se le ofrece su factura.
+ */
+const PrimaryAction = ({
+  isPaid, onBook, onInvoice, downloading, label, invoiceLabel, sx,
+}: {
+  isPaid: boolean;
+  onBook: () => void;
+  onInvoice: () => void;
+  downloading: boolean;
+  label: string;
+  invoiceLabel: string;
+  sx?: object;
+}) => (
+  <Button
+    variant="contained"
+    onClick={isPaid ? onInvoice : onBook}
+    disabled={isPaid && downloading}
+    startIcon={
+      isPaid
+        ? (downloading ? <CircularProgress size={18} color="inherit" /> : <ReceiptLongIcon />)
+        : <ShoppingCartIcon />
+    }
+    sx={{
+      minWidth: '130px', whiteSpace: 'nowrap', px: 2, borderRadius: '8px',
+      bgcolor: isPaid ? BRAND.green : BRAND.primary,
+      color: isPaid ? BRAND.navy : BRAND.white,
+      fontWeight: 'bold', textTransform: 'none',
+      ':hover': { bgcolor: BRAND.white, color: BRAND.primary },
+      ...sx,
+    }}
+  >
+    {isPaid ? invoiceLabel : label}
+  </Button>
+);
+
 const EmptyText = ({ children }: { children: React.ReactNode }) => (
   <Typography variant="subtitle2" sx={{ fontStyle: 'italic', color: 'text.secondary' }}>
     {children}
@@ -95,31 +136,15 @@ function GetawayDetail() {
   const tournaments = (getaway?.tournaments as Tournament[] | undefined) ?? [];
   const ladders = (getaway?.ladders as Ladder[] | undefined) ?? [];
   const owner = getaway?.owner ?? null;
+  // El enlace se guarda tal cual lo pega el admin (watch?v=…, youtu.be/…), que
+  // YouTube no permite embeber. Se normaliza a /embed/ antes de usarlo.
+  const embedVideoUrl = toEmbedUrl(getaway?.galleryVideo);
 
-  // TODO quitar: log temporal para inspeccionar la respuesta de GET /getaways/:id.
-  // Depende solo de `getaway` para que se imprima una vez por carga y no en cada render.
-  useEffect(() => {
-    if (!getaway) return;
-    const raw = getaway as unknown as Record<string, unknown>;
-    const asArray = (value: unknown) => (Array.isArray(value) ? value : []);
+  // Si el jugador ya pagó este getaway, en vez de reservar otra vez se le ofrece
+  // su factura. Solo se consulta para PLAYER: al admin no le aplica.
+  const { order: myOrder, isPaid } = useMyOrderForGetaway(id, role === Role.PLAYER);
+  const { download: downloadInvoice, loading: downloadingInvoice } = useInvoice();
 
-    console.group('[GETAWAY_DETAIL] respuesta de GET /getaways/:id');
-    console.log('getaway completo:', getaway);
-    console.log('claves que llegan:', Object.keys(raw).sort());
-    console.table({
-      academyIds: asArray(raw.academyIds).length,
-      academyClasses: asArray(raw.academyClasses).length,
-      tournamentIds: asArray(raw.tournamentIds).length,
-      tournaments: asArray(raw.tournaments).length,
-      ladderIds: asArray(raw.ladderIds).length,
-      ladders: asArray(raw.ladders).length,
-    });
-    console.log('academyClasses:', raw.academyClasses);
-    console.log('tournaments:', raw.tournaments);
-    console.log('ladders:', raw.ladders);
-    console.log('owner:', raw.owner);
-    console.groupEnd();
-  }, [getaway]);
 
   // console.log("Estado de carga:", isLoading, "Rol recibido:", role);
   // console.log(getaway);
@@ -150,7 +175,7 @@ function GetawayDetail() {
       const photos: string[] = getaway.galleryPhotos && getaway.galleryPhotos.length > 0
         ? getaway.galleryPhotos
         : [prevPhoto]; //default img
-      const video = getaway.galleryVideo ? ["video"] : [];
+      const video = toEmbedUrl(getaway.galleryVideo) ? ["video"] : [];
       const allMedia = [...photos, ...video];
       setGalleryImages(allMedia);
       setMainImage(allMedia[0] || prevPhoto);
@@ -268,7 +293,7 @@ function GetawayDetail() {
               >
                 {mainImage === "video" ? (
                   <iframe
-                    src={getaway.galleryVideo}
+                    src={embedVideoUrl ?? undefined}
                     title={getaway.title}
                     frameBorder="0"
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
@@ -464,14 +489,14 @@ function GetawayDetail() {
                   alignItems={{ xs:'center', md:'flex-start'}}
                 >
                   { role === Role.PLAYER && (
-                    <Button type="submit" onClick={handleBookNow}
-                      startIcon={<ShoppingCartIcon/>} variant="contained"
-                      sx={{
-                        minWidth: '128px', whiteSpace: 'nowrap', px: 2, borderRadius:'8px',
-                        bgcolor: BRAND.primary, color: BRAND.white, fontWeight: 'semibold', textTransform: 'none',
-                        ':hover': { bgcolor: BRAND.white, color: BRAND.primary }
-                      }}
-                    >{t('detail.bookNow')}</Button>
+                    <PrimaryAction
+                      isPaid={isPaid}
+                      onBook={handleBookNow}
+                      onInvoice={() => downloadInvoice(myOrder?.orderId || myOrder?.id || '')}
+                      downloading={downloadingInvoice}
+                      label={t('detail.bookNow')}
+                      invoiceLabel={t('detail.downloadInvoice')}
+                    />
                   )}
                   <Button variant="contained"
                     onClick={handleShare} startIcon={copied ? <CheckIcon /> : <ShareIcon />}
@@ -518,7 +543,7 @@ function GetawayDetail() {
             <h5 className='titleLeft'>{getaway.getawayAddress?.address || t('detail.noAddress')}</h5>
             <center>
               {galleryImages[currentIndex] === "video" ? (
-                <iframe width="1280" height="519" src={getaway.galleryVideo} title={getaway.title} frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerPolicy="strict-origin-when-cross-origin" allowFullScreen style={{ width: '55vw', maxHeight: '35vw', objectFit: 'contain' }} />
+                <iframe width="1280" height="519" src={embedVideoUrl ?? undefined} title={getaway.title} frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerPolicy="strict-origin-when-cross-origin" allowFullScreen style={{ width: '55vw', maxHeight: '35vw', objectFit: 'contain' }} />
               ) : (
                 <img src={galleryImages[currentIndex]} alt={getaway.galleryPhotoCaptions?.[currentIndex] || "Full screen"} style={{ width:'55vw', maxHeight: '35vw', objectFit:'contain' }} />
               )}
@@ -549,16 +574,15 @@ function GetawayDetail() {
               </Stack>
               {!expired && (
                 role === Role.PLAYER && (
-                  <Button type="submit" startIcon={<ShoppingCartIcon />} variant="contained"
-                    onClick={handleBookNow}
-                    sx={{
-                      mt: 1, mb: 3, borderRadius:'8px',
-                      minWidth: '130px', whiteSpace: 'nowrap', px: 2,
-                      bgcolor: BRAND.primary, color: BRAND.white, fontWeight: 'bold', textTransform: 'none',
-                      ':hover': { bgcolor: BRAND.white, color: BRAND.primary},
-                      borderColor: 'primary.main', border: 1
-                    }}
-                  >{t('detail.bookNow')}</Button>
+                  <PrimaryAction
+                    isPaid={isPaid}
+                    onBook={handleBookNow}
+                    onInvoice={() => downloadInvoice(myOrder?.orderId || myOrder?.id || '')}
+                    downloading={downloadingInvoice}
+                    label={t('detail.bookNow')}
+                    invoiceLabel={t('detail.downloadInvoice')}
+                    sx={{ mt: 1, mb: 3 }}
+                  />
                 )
               )}
             </Stack>

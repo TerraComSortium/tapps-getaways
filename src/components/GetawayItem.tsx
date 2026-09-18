@@ -13,6 +13,7 @@ import LocalOfferIcon from '@mui/icons-material/LocalOffer';
 // import Badge, { badgeClasses } from '@mui/material/Badge';
 // import { styled } from '@mui/material/styles';
 
+import PlaceIcon from '@mui/icons-material/Place';
 import { BRAND } from '../theme/colors';
 import { getCouponLabel } from '../utils/couponHelpers';
 import type { Discount } from '../types/getaway';
@@ -52,13 +53,25 @@ interface GetawayItemProps {
   onEdit?: () => void;
   onAddCoupon?: () => void;
   coupon?: Discount;
+  /** Estado de cobro de la orden asociada; pinta un chip junto al deporte. */
+  paymentStatus?: 'paid' | 'pending';
+  /** Dirección del getaway. */
+  address?: string;
+  /**
+   * En una orden ya hay un precio cerrado: se muestra el total pagado y el
+   * alojamiento contratado, en vez del "desde" con la lista de tarifas.
+   */
+  totalPaid?: string;
+  lodgingName?: string;
   onDelete?: () => void;
   isDeleting?: boolean;
 }
 
 export const GetawayItem = memo(
   ({
-    name, dates, lodgingOptions, sport, galleryPhotos, bookedDate, isLoading = false, onViewDetails, onBookNow, onOrderDetails, onViewBookings,
+    name, dates, lodgingOptions, sport, galleryPhotos, bookedDate, paymentStatus,
+    address, totalPaid, lodgingName,
+    isLoading = false, onViewDetails, onBookNow, onOrderDetails, onViewBookings,
     // badgeCount = 0,
     onAddCoupon, onEdit, coupon,
     onDelete,
@@ -121,6 +134,17 @@ export const GetawayItem = memo(
                 icon={ <SportsTennisIcon sx={{ p:'0 2px' }} /> }
                 sx={{ padding:'0 0.5rem', m:'3px 0' }}
               ></Chip>
+              {paymentStatus && (
+                <Chip
+                  size="small"
+                  label={paymentStatus === 'paid' ? t('reservations.paid') : t('reservations.unpaid')}
+                  sx={{
+                    ml: 1, px: 0.5, fontWeight: 'bold',
+                    bgcolor: paymentStatus === 'paid' ? BRAND.green : 'warning.light',
+                    color: paymentStatus === 'paid' ? BRAND.navy : 'warning.contrastText',
+                  }}
+                />
+              )}
               {coupon && (
                 <Chip
                   label={couponLabel} aria-label="coupon"
@@ -130,6 +154,16 @@ export const GetawayItem = memo(
                     color: BRAND.navy, bgcolor: BRAND.green, fontWeight: 'bold'
                   }}
                 />
+              )}
+
+              {address && (
+                <Typography
+                  variant="subtitle2"
+                  sx={{ display: 'flex', alignItems: 'center', gap: 0.5, color: 'text.secondary', fontWeight: 'normal' }}
+                >
+                  <PlaceIcon sx={{ fontSize: 16, color: BRAND.primary }} />
+                  {address}
+                </Typography>
               )}
 
               <Typography variant="subtitle2" sx={{ color: 'text.secondary', fontWeight: 'normal'}}>
@@ -145,19 +179,39 @@ export const GetawayItem = memo(
               )}
 
               <Box sx={{ display: 'flex', alignItems: 'flex-start', mb:1 }}>
-                <Box >
-                  <Typography variant="subtitle2" sx={{ color: 'text.secondary', fontWeight: 'normal', alignItems: 'center' }}>
-                    {t('getawayItem.pricingStartsAt')}
-                  </Typography>
-                  {/* enlist array */}
-                  {lodgingOptions && lodgingOptions.length > 0 ? (
-                    lodgingOptions.map((option, index) => (
-                      <Typography key={index} variant="body2" sx={{ color: 'text.primary' }}>
-                        {option.name} ${option.price}
+                <Box>
+                  {totalPaid ? (
+                    // Orden ya cerrada: el precio no es un "desde", es lo pagado.
+                    <>
+                      <Typography variant="subtitle2" sx={{ color: 'text.secondary', fontWeight: 'normal' }}>
+                        {t('getawayItem.totalPaid')}
                       </Typography>
-                    ))
+                      <Typography variant="body1" sx={{ color: BRAND.primary, fontWeight: 'bold' }}>
+                        {totalPaid}
+                      </Typography>
+                      {lodgingName && (
+                        <Typography variant="body2" sx={{ color: 'text.primary' }}>
+                          {lodgingName}
+                        </Typography>
+                      )}
+                    </>
                   ) : (
-                    <Typography variant="body2" sx={{ color: 'text.secondary', fontStyle: 'italic' }}>{t('getawayItem.unavailablePricing')}</Typography>
+                    <>
+                      <Typography variant="subtitle2" sx={{ color: 'text.secondary', fontWeight: 'normal', alignItems: 'center' }}>
+                        {t('getawayItem.pricingStartsAt')}
+                      </Typography>
+                      {lodgingOptions && lodgingOptions.length > 0 ? (
+                        lodgingOptions.map((option, index) => (
+                          <Typography key={index} variant="body2" sx={{ color: 'text.primary' }}>
+                            {option.name} ${option.price}
+                          </Typography>
+                        ))
+                      ) : (
+                        <Typography variant="body2" sx={{ color: 'text.secondary', fontStyle: 'italic' }}>
+                          {t('getawayItem.unavailablePricing')}
+                        </Typography>
+                      )}
+                    </>
                   )}
                 </Box>
               </Box>

@@ -1,4 +1,5 @@
 import { Link as RouterLink, useLocation } from 'react-router-dom';
+import { memo } from 'react';
 import {
   Box, CircularProgress, List, ListItemButton, ListItemIcon, ListItemText, Tooltip,
 } from '@mui/material';
@@ -58,7 +59,7 @@ interface AdminSidebarProps {
   onNavigate?: () => void;
 }
 
-export default function AdminSideBar({ collapsed = false, onNavigate }: AdminSidebarProps) {
+function AdminSideBar({ collapsed = false, onNavigate }: AdminSidebarProps) {
   const { t } = useTranslation();
   const { role, isLoading } = useAuth();
   const { pathname } = useLocation();
@@ -124,3 +125,11 @@ export default function AdminSideBar({ collapsed = false, onNavigate }: AdminSid
     </List>
   );
 }
+
+/**
+ * memo: el sidebar se re-renderizaba en cada cambio del SidebarContext
+ * (`mobileOpen`, `locked`) y en cada render del layout, aunque sus props no
+ * cambiaran. `onNavigate` llega memoizado desde AdminLayout, así que la
+ * comparación por referencia funciona.
+ */
+export default memo(AdminSideBar);

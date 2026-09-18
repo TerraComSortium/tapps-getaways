@@ -6,7 +6,6 @@ import { Container, Divider, Stack, Box, Typography, Button } from '@mui/materia
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import TaskAltIcon from '@mui/icons-material/TaskAlt';
 
-import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import ShoppingBagIcon from '@mui/icons-material/ShoppingBag';
 import LoopIcon from '@mui/icons-material/Loop';

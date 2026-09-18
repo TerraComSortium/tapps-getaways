@@ -4,11 +4,35 @@ import { useTranslation } from 'react-i18next';
 import { getawayDetailPath } from '../constants/routes';
 import { Box, Stack, Pagination, Typography, CircularProgress, Alert } from '@mui/material';
 import { GetawayItem } from '../components/GetawayItem';
+import type { Discount } from '../types/getaway';
 
 import { useAuth } from '../contexts/AuthContext';
 import { useSubscribedGetaways } from '../hooks/useSubscribedGetaways';
 import { useGetawayNavigation } from '../hooks/useGetawayNavigation';
 import { normalizeGetawayData, getSportLabel, getValidImages, formatGetawayDates, parseFirestoreDate } from '../utils/getawayHelpers';
+
+const orderCoupon = (order?: {
+  coupon?: { title?: string; discountType?: string; value?: number };
+}): Discount | undefined => {
+  const coupon = order?.coupon;
+  if (!coupon?.value) return undefined;
+
+  const isFixed = coupon.discountType === 'amount';
+  return {
+    id: '',
+    title: coupon.title ?? '',
+    ownerId: '',
+    userLimit: 0,
+    usersUsed: [],
+    validFrom: null,
+    validUntil: null,
+    createdAt: { _seconds: 0, _nanoseconds: 0 },
+    updatedAt: { _seconds: 0, _nanoseconds: 0 },
+    discountType: isFixed ? 'amount' : 'percentage',
+    discount: isFixed ? coupon.value : 0,
+    percent: isFixed ? 0 : coupon.value,
+  };
+};
 
 export default function MyOrders() {
   const { t } = useTranslation();
@@ -18,10 +42,9 @@ export default function MyOrders() {
   const [page, setPage] = useState(1);
   const ITEMS_PER_PAGE = 10;
 
-  // Getaways a los que el jugador está suscrito (GET /getaways/subscribed)
   const { data, loading: isDataLoading, error: queryError } = useSubscribedGetaways();
   console.log('getSuscribed player', data)
-  // El backend responde { count, offers }; normalizamos a Getaway[].
+ 
   const rawOffers =
     (data as any)?.offers || (data as any)?.results || (Array.isArray(data) ? data : []);
   const getaways = Array.isArray(rawOffers) ? rawOffers.map(normalizeGetawayData) : [];
@@ -55,13 +78,22 @@ export default function MyOrders() {
       <Stack spacing={2}>
         {paginatedGetaways.map((getaway: any, index) => (
           <GetawayItem
-            key={getaway._id || getaway.id || index}
+            key={getaway.order?.orderId || getaway._id || getaway.id || index}
             name={getaway.title || t('common.untitledGetaway')}
             dates={formatGetawayDates(getaway.startDate, getaway.endDate)}
             lodgingOptions={getaway.lodgingOptions || []}
             sport={getSportLabel(getaway.sport)}
             galleryPhotos={getValidImages(getaway.galleryPhotos)}
             bookedDate={parseFirestoreDate(getaway.subscribedAt)}
+            address={getaway.getawayAddress?.address || getaway.address}
+            totalPaid={getaway.order?.paymentDetails?.Total}
+            lodgingName={getaway.order?.reservation?.lodgingOption?.option}
+            coupon={orderCoupon(getaway.order)}
+            paymentStatus={
+              getaway.order?.status === 'paid' || getaway.order?.paymentStatus === 'succeeded'
+                ? 'paid'
+                : 'pending'
+            }
             onViewDetails={() => handleViewDetails(getaway)}
             onOrderDetails={() =>
               navigate(getawayDetailPath(getaway._id || getaway.id), {

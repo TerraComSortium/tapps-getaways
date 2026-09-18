@@ -1,15 +1,8 @@
-// import * as React from 'react';
-// import { styled } from '@mui/material/styles';
-import Paper from '@mui/material/Paper';
-import Table from '@mui/material/Table';
-import TableBody from '@mui/material/TableBody';
-import TableCell from '@mui/material/TableCell';
-import TableContainer from '@mui/material/TableContainer';
-import TableHead from '@mui/material/TableHead';
-import TableRow from '@mui/material/TableRow';
-import { Typography, Stack } from '@mui/material';
+import { useMemo } from 'react';
+import { Box, Link, Paper, Stack, Typography } from '@mui/material';
+import PlaceIcon from '@mui/icons-material/Place';
 import { useTranslation } from 'react-i18next';
-// import { BRAND } from '../theme/colors';
+import { BRAND } from '../theme/colors';
 import '../App.css';
 
 interface ScheduleItem {
@@ -19,107 +12,199 @@ interface ScheduleItem {
   activity: string;
   location: string;
 }
+
 interface GetawayScheduleProps {
   schedule?: ScheduleItem[];
-}
-interface Column {
-  id: 'date' | 'activity' | 'location';
-  label: string;
-  minWidth?: number;
-  align?: 'right';
-  // format?: (value: number) => string;
+  /** Dirección del getaway: se añade a la búsqueda del mapa para desambiguar
+      ubicaciones genéricas como "Cancha central". */
+  address?: string;
 }
 
-const getDayOfWeek = (dateString: string) => {
-  if (!dateString) return '';
-  const timestamp = Date.parse(dateString);
-  if (isNaN(timestamp)) {
-    console.warn(`date format invalid: "${dateString}"`);
-    return '';
+/** La fecha puede venir como string ISO o como Timestamp serializado de Firestore. */
+const toDate = (value: unknown): Date | null => {
+  if (!value) return null;
+
+  if (typeof value === 'object') {
+    const seconds = (value as { _seconds?: number; seconds?: number })._seconds
+      ?? (value as { seconds?: number }).seconds;
+    if (typeof seconds === 'number') return new Date(seconds * 1000);
   }
-  const date = new Date(timestamp);
-  return new Intl.DateTimeFormat('en-US', { weekday: 'long' }).format(date); // 'es-ES' || 'en-US'
+
+  const parsed = new Date(String(value));
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
 };
 
-const columns: readonly Column[] = [
-  { id: 'date',     label: 'Date',     minWidth: 70 },
-  { id: 'activity', label: 'Activity', minWidth: 140 },
-  { id: 'location', label: 'Location', minWidth: 140 },
-];
+/** Clave del día en horario LOCAL. Con toISOString() (UTC) una actividad de las
+    23:00 se agrupaba en el día siguiente según la zona horaria del navegador. */
+const dayKey = (date: Date): string => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
 
-export default function GetawaySchedule({ schedule }: GetawayScheduleProps) {
-  const { t } = useTranslation();
-  const hasSchedule = schedule && schedule.length > 0;
+/** Enlace de búsqueda en Google Maps para la ubicación de una actividad. */
+const mapsHref = (place: string, address?: string): string => {
+  const query = [place, address].filter(Boolean).join(', ');
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
+};
+
+const asText = (value: unknown): string => {
+  if (!value) return '';
+  return typeof value === 'string' ? value : String(toDate(value)?.toLocaleDateString() ?? '');
+};
+
+export default function GetawaySchedule({ schedule, address }: GetawayScheduleProps) {
+  const { t, i18n } = useTranslation();
+
+  /** Se agrupa por día y se ordena: los días entre sí, y las actividades por hora. */
+  const days = useMemo(() => {
+    const groups = new Map<string, { date: Date | null; items: ScheduleItem[] }>();
+
+    (schedule ?? []).forEach((item) => {
+      const date = toDate(item.date);
+      const key = date ? dayKey(date) : asText(item.date) || '—';
+
+      if (!groups.has(key)) groups.set(key, { date, items: [] });
+      groups.get(key)!.items.push(item);
+    });
+
+    return Array.from(groups.entries())
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([key, group]) => ({
+        key,
+        date: group.date,
+        // startTime viene en 24h con cero a la izquierda ("09:30"), así que ordena bien como texto
+        items: [...group.items].sort((a, b) => (a.startTime || '').localeCompare(b.startTime || '')),
+      }));
+  }, [schedule]);
+
+  if (days.length === 0) {
+    return (
+      <Typography sx={{ fontStyle: 'italic', color: 'text.secondary', py: 2 }}>
+        {t('getawaySchedule.notAvailable')}
+      </Typography>
+    );
+  }
+
+  const weekdayOf = (date: Date | null) =>
+    date ? new Intl.DateTimeFormat(i18n.language, { weekday: 'long' }).format(date) : '';
+
+  const dateLabelOf = (date: Date | null, fallback: string) =>
+    date
+      ? new Intl.DateTimeFormat(i18n.language, { day: 'numeric', month: 'long' }).format(date)
+      : fallback;
+
+  // Con agendas largas se limita la altura y se hace scroll dentro del bloque,
+  // en vez de estirar la página entera.
+  const isLong = days.length > 3;
+
   return (
-    <Paper sx={{ width: '100%', overflow: 'hidden', boxShadow: 'none' }}>
-      <TableContainer sx={{ maxHeight: 430 }}>
-        <Table stickyHeader aria-label="Weekend schedule" >
-          <TableHead>
-            <TableRow>
-              {columns.map((column) => (
-                <TableCell
-                sx={{ maxHeight:10 }}
-                key={column.id} align={column.align} style={{ minWidth: column.minWidth }}
-                >
-                  <Typography variant="body2"
-                  className='title4'
-                  color="text.primary"
-                  sx={{ fontWeight: 'bold'}}
-                  >{t(`getawaySchedule.${column.id}`)}</Typography>
-                </TableCell>
-              ))}
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {hasSchedule ? (
-              schedule.map((item, index) => {
-                const safeRender = (field: any): string => {
-                  if (!field) return '';
-                  if (typeof field === 'string') return field;
-                  if (typeof field === 'object' && field._seconds) {
-                    return new Date(field._seconds * 1000).toLocaleDateString('en-US', {
-                      month: 'short', day: 'numeric', year: 'numeric'
-                    });
-                  }
-                  return String(field);
-                };
+    <Paper
+      elevation={0}
+      sx={{
+        width: '100%', bgcolor: 'transparent',
+        ...(isLong && { maxHeight: 560, overflowY: 'auto', pr: 1 }),
+      }}
+    >
+      {days.map((day) => (
+        <Box key={day.key} sx={{ mb: 3 }}>
+          {/* Cabecera del día */}
+          <Stack
+            direction="row" spacing={1}
+            sx={{
+              alignItems: 'baseline',
+              justifyContent: 'space-between',
+              mb: 1.5, pb: 0.5, pt: 0.5,
+              borderBottom: `2px solid ${BRAND.green}`,
+              // al hacer scroll, el día en curso se queda visible arriba
+              ...(isLong && {
+                position: 'sticky', top: 0, zIndex: 1,
+                bgcolor: 'background.paper',
+              }),
+            }}
+          >
+            <Stack direction="row" spacing={1} sx={{ alignItems: 'baseline', minWidth: 0 }}>
+              <Typography
+                sx={{ fontWeight: 'bold', color: BRAND.primary, textTransform: 'capitalize' }}
+              >
+                {weekdayOf(day.date)}
+              </Typography>
+              <Typography variant="body2" color="text.secondary" noWrap>
+                {dateLabelOf(day.date, day.key)}
+              </Typography>
+            </Stack>
+            <Typography variant="caption" color="text.secondary" sx={{ flexShrink: 0 }}>
+              {t('getawaySchedule.activityCount', { count: day.items.length })}
+            </Typography>
+          </Stack>
 
-                //Extract clean values
-                const cleanDate = safeRender(item.date);
-                const cleanStartTime = safeRender(item.startTime);
-                const cleanEndTime = safeRender(item.endTime);
-                const cleanActivity = safeRender(item.activity);
-                const cleanLocation = safeRender(item.location);
+          {/* Actividades del día, en línea de tiempo */}
+          {day.items.map((item, index) => {
+            const isLast = index === day.items.length - 1;
 
-                const dayName = getDayOfWeek(item.date);
-                return(
-                  <TableRow hover tabIndex={-1} key={index}>
-                    <TableCell>
-                      <Stack direction="column" spacing={0.2}>
-                        <strong style={{ textTransform: 'capitalize' }}>{dayName}</strong>
-                        <strong>{cleanDate}</strong>
-                        <Typography variant="subtitle2" color="text.secondary">
-                          {cleanStartTime} {cleanEndTime ? `- ${cleanEndTime}` : ''}
-                        </Typography>
-                      </Stack>
-                    </TableCell>
-                    <TableCell>{cleanActivity}</TableCell>
-                    <TableCell>{cleanLocation}</TableCell>
-                  </TableRow>
-                )
-              })
-            ) : (
-              <TableRow>
-                <TableCell colSpan={3} align="center">
-                  <Typography sx={{ fontStyle: 'italic', color: 'text.secondary', py: 2 }}>
-                    {t('getawaySchedule.notAvailable')}
+            return (
+              <Stack key={index} direction="row" spacing={2} sx={{ alignItems: 'stretch' }}>
+                {/* Horas */}
+                <Box sx={{ minWidth: { xs: 52, sm: 68 }, textAlign: 'right', pt: 0.2, flexShrink: 0 }}>
+                  <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
+                    {item.startTime}
                   </Typography>
-                </TableCell>
-              </TableRow>
-          )}
-          </TableBody>
-        </Table>
-      </TableContainer>
+                  {item.endTime && (
+                    <Typography variant="caption" color="text.secondary">
+                      {item.endTime}
+                    </Typography>
+                  )}
+                </Box>
+
+                {/* Raíl con el punto de cada actividad */}
+                <Box sx={{ position: 'relative', width: 12, display: 'flex', justifyContent: 'center' }}>
+                  <Box
+                    sx={{
+                      width: '2px', bgcolor: 'divider',
+                      flexGrow: 1, mt: 1.4,
+                      // el último tramo no continúa hacia abajo
+                      visibility: isLast ? 'hidden' : 'visible',
+                    }}
+                  />
+                  <Box
+                    sx={{
+                      position: 'absolute', top: 5,
+                      width: 11, height: 11, borderRadius: '50%',
+                      bgcolor: BRAND.green, border: `2px solid ${BRAND.primary}`,
+                    }}
+                  />
+                </Box>
+
+                {/* Actividad y ubicación */}
+                <Box sx={{ flexGrow: 1, pb: isLast ? 0 : 2.5, minWidth: 0 }}>
+                  <Typography sx={{ fontWeight: 600 }}>
+                    {asText(item.activity) || t('getawaySchedule.activity')}
+                  </Typography>
+                  {item.location && (
+                    <Link
+                      href={mapsHref(asText(item.location), address)}
+                      target="_blank" rel="noopener"
+                      underline="hover"
+                      sx={{
+                        display: 'inline-flex', alignItems: 'center', gap: 0.5, mt: 0.3,
+                        color: 'text.secondary',
+                        ':hover': { color: BRAND.primary },
+                      }}
+                      title={t('getawaySchedule.openInMaps')}
+                    >
+                      <PlaceIcon sx={{ fontSize: 16, color: BRAND.primary }} />
+                      <Typography variant="body2" component="span">
+                        {asText(item.location)}
+                      </Typography>
+                    </Link>
+                  )}
+                </Box>
+              </Stack>
+            );
+          })}
+        </Box>
+      ))}
     </Paper>
   );
 }

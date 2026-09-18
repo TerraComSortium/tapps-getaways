@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { ROUTES } from '../constants/routes';
+import { getawayDetailPath } from '../constants/routes';
 import { Box, Stack, Pagination, Typography, CircularProgress, Alert } from '@mui/material';
 import Grid from '@mui/material/Grid2';
 import AdminSideBar from '../components/AdminSidebar';
@@ -60,7 +60,7 @@ export default function MyOrders() {
           <Stack spacing={2}>
             {paginatedGetaways.map((getaway: any, index) => (
               <GetawayItem
-                key={index || getaway._id || getaway.id || ''}
+                key={getaway._id || getaway.id || index}
                 name={getaway.title || t('common.untitledGetaway')}
                 dates={formatGetawayDates(getaway.startDate, getaway.endDate)}
                 lodgingOptions={getaway.lodgingOptions || []}
@@ -68,7 +68,11 @@ export default function MyOrders() {
                 galleryPhotos={getValidImages(getaway.galleryPhotos)}
                 bookedDate={parseFirestoreDate(getaway.subscribedAt)}
                 onViewDetails={() => handleViewDetails(getaway)}
-                onOrderDetails={() => navigate(ROUTES.GETAWAY_DETAIL, { state: { getawayData: getaway } })}
+                onOrderDetails={() =>
+                  navigate(getawayDetailPath(getaway._id || getaway.id), {
+                    state: { getawayData: getaway },
+                  })
+                }
               />
             ))}
           </Stack>

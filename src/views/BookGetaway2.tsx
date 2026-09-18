@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useForm, Controller } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
+import { scrollToFirstError } from '../utils/formErrors';
 
 import { Box, TextField, Button, Typography, Divider, RadioGroup,
   FormGroup, FormControl,
@@ -25,8 +26,9 @@ import AcademySchedule from '../components/AcademySchedule';
 import LaddersSchedule from '../components/LaddersSchedule';
 import TournamentsSchedule from '../components/TournamentsSchedule';
 import { getCouponLabel, getCouponValue } from '../utils/couponHelpers';
-import { useGetAcademy } from '../hooks/useGetAcademy';
-import { firestoreToInputDate } from '../utils/dates';
+import type { AcademyClass } from '../hooks/useGetAcademy';
+import type { Tournament } from '../services/tournament';
+import type { Ladder } from '../services/ladder';
 
 const TAX_RATE = 0.0654;
 interface FormData {
@@ -52,7 +54,6 @@ export default function BookGetaway() {
   const stateCouponId = (location.state as { couponId?: string } | null)?.couponId;
   const couponId = searchParams.get('couponId') || stateCouponId;
   const { data: getaway, loading, error } = useGetawayById(id || '');
-  const { academyData, loading: loadingAcademy, fetchAcademy } = useGetAcademy();
   const { data: coupon } = useCouponById(couponId);
 
   const navigate = useNavigate();
@@ -200,7 +201,7 @@ export default function BookGetaway() {
           {/* <Typography variant="h6" className='title'><span>{getaway.startDate} to {getaway.endDate}</span></Typography> */}
 
           <Box sx={{ width: 1000, maxWidth: '100%', padding: { xs: 1, sm: '7px' }, boxSizing: 'border-box' }}>
-            <form onSubmit={handleSubmit(onSubmit)}>
+            <form onSubmit={handleSubmit(onSubmit, scrollToFirstError)} noValidate>
               <Typography variant="h6" className='purpleLabel' sx={{ mt: 2, mb: 1, fontSize: '14px', fontWeight: 'bold' }}>{t('book.paymentContactInfo')}</Typography>
               <TextField label={t('book.playerName')} margin="dense" fullWidth disabled defaultValue={user?.displayName || ''} />
 
@@ -277,23 +278,19 @@ export default function BookGetaway() {
             />
               <AcademySchedule
                 mode="readonly"
-                schedules={academyData}
-                loading={loadingAcademy}
+                schedules={(getaway.academyClasses as AcademyClass[] | undefined) ?? []}
+                loading={false}
                 selectedIds={getaway.academyIds || []}
-                fetchAcademy={fetchAcademy}
-                searchParams={{
-                  startDate: firestoreToInputDate(getaway.startDate),
-                  endDate: firestoreToInputDate(getaway.endDate),
-                  sport: getaway.sport,
-                }}
               />
               <TournamentsSchedule
                 mode="readonly"
                 selectedIds={getaway.tournamentIds || []}
+                items={(getaway.tournaments as Tournament[] | undefined) ?? []}
               />
               <LaddersSchedule
                 mode="readonly"
                 selectedIds={getaway.ladderIds || []}
+                items={(getaway.ladders as Ladder[] | undefined) ?? []}
               />
               <Typography variant="h6" className='purpleLabel' sx={{ mt: 2, mb: 0.5, fontSize: '14px', fontWeight: 'bold' }}>{t('book.paymentDetails')}</Typography>
               <Divider aria-hidden="true" sx={{ bgcolor: BRAND.green }} />
@@ -345,7 +342,7 @@ export default function BookGetaway() {
               <Box sx={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 2, my: '20px' }}>
               <Button type="button" startIcon={<ArrowBackIcon />} variant="outlined" disableElevation
                 onClick={() => navigate(-1)}
-                sx={{ width: '135px', borderRadius: '8px', borderColor: BRAND.primary,
+                sx={{ minWidth: '135px', whiteSpace: 'nowrap', px: 2, borderRadius: '8px', borderColor: BRAND.primary,
                 //bgcolor: BRAND.white, color: BRAND.primary,
                 fontWeight: 'medium', textTransform: 'none',
                 ':hover': { bgcolor: BRAND.primary, color: 'white' } }}

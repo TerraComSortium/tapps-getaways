@@ -210,7 +210,7 @@ export const Reservations = () => {
                 startIcon={loading ? <CircularProgress size={16} color="inherit" /> : <RefreshIcon />}
                 onClick={refetch}
                 sx={{
-                  width: 115, alignSelf: { xs: 'flex-end', sm: 'center' }, flexShrink: 0,
+                  minWidth: 115, whiteSpace: 'nowrap', px: 2, alignSelf: { xs: 'flex-end', sm: 'center' }, flexShrink: 0,
                   borderRadius: '18px',
                   bgcolor: BRAND.primary, color: BRAND.white, fontVariantCaps: 'normal', textTransform: 'none',
                   '&.Mui-disabled': { bgcolor: 'action.disabledBackground' }
@@ -302,7 +302,7 @@ export const Reservations = () => {
                             <Button startIcon={<CreditCardIcon />}
                               onClick={() => handleOpenDialog(order)}
                               sx={{
-                                width: 136, bgcolor: BRAND.primary, color: BRAND.white,
+                                minWidth: 136, whiteSpace: 'nowrap', px: 2, bgcolor: BRAND.primary, color: BRAND.white,
                                 fontWeight: 'medium', textTransform: 'none', borderRadius: '8px',
                               }}
                             > {t('reservations.saleDetails')} </Button>

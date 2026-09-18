@@ -26,8 +26,9 @@ interface AcademyScheduleProps {
   loading: boolean;
   selectedIds: string[];
   setSelectedIds?: React.Dispatch<React.SetStateAction<string[]>>;
-  fetchAcademy: (params: AcademyParams) => void;
-  searchParams: AcademyParams;
+  /** Solo se usan en modo 'select': el readonly pinta lo que recibe en `schedules`. */
+  fetchAcademy?: (params: AcademyParams) => void;
+  searchParams?: AcademyParams;
 }
 
 /**
@@ -177,20 +178,13 @@ export default function AcademySchedule({
 }: AcademyScheduleProps) {
   const { t } = useTranslation();
   const isSelectable = mode === 'select';
-  const [showTable, setShowTable] = React.useState(false);
+  // En readonly la tabla nace abierta: no hay tarjeta de "cargar" que mostrar.
+  const [showTable, setShowTable] = React.useState(!isSelectable);
 
   // Los datos llegan anidados desde Firestore; se aplanan una vez por respuesta.
   const rows = React.useMemo(() => toAcademyRows(schedules), [schedules]);
 
-  const { startDate, endDate, sport } = searchParams;
 
-  // En readonly no hay tarjeta de inicio: se piden las sesiones del getaway y se
-  // filtran a las que quedaron incluidas al crearlo.
-  React.useEffect(() => {
-    if (isSelectable || selectedIds.length === 0) return;
-    fetchAcademy({ startDate, endDate, sport });
-    setShowTable(true);
-  }, [isSelectable, selectedIds.length, fetchAcademy, startDate, endDate, sport]);
 
   const visibleRows = React.useMemo(
     () => (isSelectable ? rows : rows.filter((row) => selectedIds.includes(row.id))),
@@ -206,7 +200,7 @@ export default function AcademySchedule({
 
   const handleShowTable = () => {
     setShowTable(true);
-    fetchAcademy(searchParams);
+    if (searchParams) fetchAcademy?.(searchParams);
   };
 
   // Conditional table rendering state

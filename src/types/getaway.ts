@@ -44,6 +44,12 @@ export interface GetawayBase {
   tournamentIds?: string[];
   ladderIds?: string[];
   academyIds?: string[];
+  /** Documentos completos que el backend adjunta a partir de los ids de arriba. */
+  academyClasses?: unknown[];
+  tournaments?: unknown[];
+  ladders?: unknown[];
+  /** Datos públicos del dueño, resueltos por el backend desde `ownerId`. */
+  owner?: GetawayOwner | null;
   policies: string;
   terms: string;
 }
@@ -162,4 +168,15 @@ export interface GetawayOrder {
   paymentIntentId?: string;
   invoiceNumber?: string;
   paidAt?: string;
+}
+
+/** Datos públicos del RCNET que publica el getaway (`getOffer` los adjunta). */
+export interface GetawayOwner {
+  id: string;
+  name: string;
+  email: string;
+  phone?: string;
+  photoURL?: string;
+  clubId?: string | null;
+  clubName?: string;
 }

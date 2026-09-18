@@ -1,4 +1,4 @@
-import { useForm, Controller, useFieldArray, SubmitHandler,
+import { useForm, Controller, useFieldArray, SubmitHandler, SubmitErrorHandler,
   useWatch
 } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
@@ -32,6 +32,7 @@ import {
 } from '../types/getaway';
 
 import { useSnackbar } from '../hooks/useSnackbar';
+import { scrollToFirstError } from '../utils/formErrors';
 import { useCreateGetaway } from '../hooks/useCreateGetaway';
 import { useEffect, useState } from 'react';
 // import { useScheduleValidation } from '../hooks/useScheduleValidation';
@@ -128,7 +129,8 @@ export const CreateGetaway =() => {
 
     if (scheduleRows.length === 0) {
       setScheduleError(t('create.scheduleRequired'));
-      document.getElementById("schedule-section")?.scrollIntoView({ behavior: "smooth" });
+      document.getElementById('schedule-section')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      showSnackbar(t('create.scheduleRequired'), 'warning');
       return;
     }
     const cleanedAddOns= data.optionalAddOns
@@ -155,6 +157,21 @@ export const CreateGetaway =() => {
     );
   };
 
+  /**
+   * Se dispara cuando la validación falla: lleva al primer campo con error para
+   * que el usuario vea QUÉ le falta, en vez de que no pase nada al pulsar guardar.
+   */
+  const onInvalid: SubmitErrorHandler<GetawayFormData> = (validationErrors) => {
+    const field = scrollToFirstError(validationErrors);
+
+    if (!field && scheduleRows.length === 0) {
+      setScheduleError(t('create.scheduleRequired'));
+      document.getElementById('schedule-section')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+    showSnackbar(t('common.missingFields'), 'warning');
+  };
+
   useEffect(() => {
     if (scheduleRows.length > 0 && scheduleError) {
       setScheduleError(null);
@@ -178,11 +195,11 @@ export const CreateGetaway =() => {
         <Grid size={{ xs: 12, sm: 9, md: 10 }} className='section blueBg' sx={{ minWidth: 0 }}>
           <h2 className='title'>{t('create.title')}</h2>
           <Box sx={{ padding: '7px 0px' }}>
-            <form onSubmit={handleSubmit(onSubmit)}>
+            <form onSubmit={handleSubmit(onSubmit, onInvalid)} noValidate>
               <Controller name="title" defaultValue=""
                 control={control}
                 rules={{
-                  // required: "Getaway title is required",
+                  required: t('create.titleRequired'),
                   validate: (value?: string) =>
                     !value || ALPHANUMERIC_I18N_REGEX.test(value)
                       ? true
@@ -220,7 +237,7 @@ export const CreateGetaway =() => {
                 <Grid size={{ xs: 12, sm: 4 }}>
                   <Controller name="startDate" defaultValue=""
                     control={control}
-                    // rules={{ required: "Start date is required" }}
+                    rules={{ required: t('create.startRequired') }}
                     render={({ field }) => (
                       <TextField label={t('create.startDate')} type="date" fullWidth margin="normal"
                         {...field}
@@ -235,7 +252,7 @@ export const CreateGetaway =() => {
                   <Controller name="endDate" defaultValue=""
                     control={control}
                     rules={{
-                      // required: "End date is required",
+                      required: t('create.endRequired'),
                       validate: (value) => {
                         const start = control._formValues.startDate;
                         if (!value || !start) return true;
@@ -631,11 +648,11 @@ export const CreateGetaway =() => {
                 )}
               />
 
-              <Box style={{ display: 'flex', justifyContent: 'center', gap: 18, margin:'20px 0' }}>
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 2, m: '20px 0' }}>
                 <Button type="button" href={ROUTES.GETAWAYS}
                 startIcon={<ArrowBackIcon />} variant="outlined" disableElevation
                   sx={{
-                    width:'135px', borderRadius: '8px', bgcolor: BRAND.white, color: BRAND.primary, fontWeight: 'medium', textTransform: 'none',
+                    minWidth: '135px', whiteSpace: 'nowrap', px: 2, borderRadius: '8px', bgcolor: BRAND.white, color: BRAND.primary, fontWeight: 'medium', textTransform: 'none',
                     ':hover': { bgcolor: BRAND.primary, color: 'white' }
                   }}
                 > {t('create.back')} </Button>
@@ -644,7 +661,7 @@ export const CreateGetaway =() => {
                   disabled={isLoading}
                   // className={`className ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
                   sx={{
-                    width:'150px',
+                    minWidth: '150px', whiteSpace: 'nowrap', px: 2,
                     borderRadius: '8px', bgcolor: BRAND.primary, color: BRAND.white, fontWeight: 'medium', textTransform: 'none',
                     ':hover': { bgcolor: 'white', color: BRAND.primary }
                   }}

@@ -139,6 +139,8 @@ interface TournamentTableProps {
   setSelectedIds?: React.Dispatch<React.SetStateAction<string[]>>;
   /** Deporte y fechas del formulario de getaway; filtran la tabla. */
   searchParams?: ScheduleFilters;
+  /** Datos ya cargados (el getaway los trae embebidos); evita volver a pedirlos. */
+  items?: Tournament[];
 }
 
 const StyledTableRow = styled(TableRow)(({ theme }) => ({
@@ -149,7 +151,7 @@ const StyledTableRow = styled(TableRow)(({ theme }) => ({
 }));
 
 export default function TournamentTable(
-  { mode = 'readonly', selectedIds = [], setSelectedIds, searchParams }: TournamentTableProps
+  { mode = 'readonly', selectedIds = [], setSelectedIds, searchParams, items }: TournamentTableProps
 ) {
   const { t } = useTranslation();
   const { tournaments, loading, error, fetchTournaments } = useTournaments();
@@ -162,15 +164,11 @@ export default function TournamentTable(
   // const [selectedTournamentIds, setSelectedTournamentIds] = React.useState<string[]>([]);
 
   //Conditional table rendering state
-  const [showTable, setShowTable] = React.useState(false);
-  const rows = React.useMemo(() => toTournamentRows(tournaments, t), [tournaments, t]);
+  // En readonly la tabla nace abierta: no hay tarjeta de "cargar" que mostrar.
+  const [showTable, setShowTable] = React.useState(mode === 'readonly');
+  const source = items ?? tournaments;
+  const rows = React.useMemo(() => toTournamentRows(source, t), [source, t]);
 
-  React.useEffect(() => {
-    if (mode === 'readonly' && selectedIds.length > 0) {
-      fetchTournaments();
-      setShowTable(true);
-    }
-  }, [fetchTournaments, mode, selectedIds.length]);
 
   const handleIncludeChange = (id: string) => {
     if (!setSelectedIds) return;
@@ -204,6 +202,9 @@ export default function TournamentTable(
     );
   }, [rows, mode, selectedIds, startDate, endDate, sport]);
 
+
+  // En readonly sin nada incluido no hay sección que mostrar.
+  if (mode === 'readonly' && selectedIds.length === 0) return null;
   return (
     <Box sx={{ width:'100%', margin:'25px 0' }}>
       <Divider textAlign="center" aria-hidden="true">

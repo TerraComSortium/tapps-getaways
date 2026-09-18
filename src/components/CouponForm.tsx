@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { useForm, Controller, SubmitHandler } from 'react-hook-form';
+import { useForm, Controller, SubmitHandler, SubmitErrorHandler } from 'react-hook-form';
 import {
   Box, Button, Typography, TextField, Divider,
   FormControl, InputLabel, OutlinedInput, InputAdornment,Snackbar, Alert
@@ -14,6 +14,7 @@ import type { CouponPayload, DiscountType } from '../types/getaway';
 import { useCouponActions } from '../hooks/useCouponActions';
 import { useEditCoupon } from '../hooks/useEditCoupon';
 import { useTranslation } from 'react-i18next';
+import { scrollToFirstError } from '../utils/formErrors';
 
 const ALPHANUMERIC_I18N_REGEX : RegExp = /^[\p{L}0-9\s,._'";:()!/|&—’-]*$/u;
 
@@ -104,6 +105,16 @@ export default function CouponForm(
     }
   };
 
+  /**
+   * Sin `noValidate` el navegador validaba el `required` nativo ANTES que RHF y
+   * mostraba su propio mensaje en el idioma del navegador, ignorando i18n.
+   * Ahora valida solo RHF y aquí se lleva al usuario al primer campo que falla.
+   */
+  const onInvalid: SubmitErrorHandler<CouponFormValues> = (validationErrors) => {
+    scrollToFirstError(validationErrors);
+    showSnackbar(t('common.missingFields'), 'error');
+  };
+
   const onSubmit: SubmitHandler<CouponFormValues> = async (values) => {
     console.log('payload:', 'values:', values);
     const payload: CouponPayload = {
@@ -144,7 +155,7 @@ export default function CouponForm(
     }
   };
   return (
-    <Box component="form" onSubmit={handleSubmit(onSubmit)}
+    <Box component="form" onSubmit={handleSubmit(onSubmit, onInvalid)} noValidate
       sx={{ my:'20px', p:'20px 30px', borderRadius: '8px', bgcolor: BRAND.white }}
     >
       <Typography variant="h6" sx={{ color: BRAND.primary, fontWeight: 'bold', my: 1 }}>
@@ -405,7 +416,7 @@ export default function CouponForm(
           disabled={isLoading}
           // className={`className ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
           sx={{
-            my: 2, width:'160px', borderRadius: '8px',
+            my: 2, minWidth: '160px', whiteSpace: 'nowrap', px: 2, borderRadius: '8px',
             bgcolor: BRAND.primary, color: BRAND.white, fontWeight: 'medium', textTransform: 'none',
             ':hover': { bgcolor: 'white', color: BRAND.primary }
           }}

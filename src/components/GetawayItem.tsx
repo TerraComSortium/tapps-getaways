@@ -163,12 +163,11 @@ export const GetawayItem = memo(
               </Box>
             </Box>
             {/* <Box component="p" sx={{ fontSize: 14, color: "black", m: '10px 0'}}> {description} </Box> */}
-            <Box sx={{ display: "flex", alignItems: "center" }}>
+            <Box sx={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: 1 }}>
               { onBookNow && (
                 <Button disableElevation startIcon={<ShoppingCartIcon/>}
                   sx={{
-                    width: 128,
-                    m:'0 0.3rem',
+                    minWidth: 128, whiteSpace: 'nowrap', px: 2,
                     borderRadius: '30px',
                     bgcolor:BRAND.primary, color: BRAND.white,
                     fontVariantCaps: 'normal', textTransform: 'none',
@@ -180,8 +179,7 @@ export const GetawayItem = memo(
               { onOrderDetails && (
                 <Button disableElevation startIcon={<ReceiptIcon/>}
                   sx={{
-                    width: 160,
-                    m:'0 0.3rem',
+                    minWidth: 160, whiteSpace: 'nowrap', px: 2,
                     borderRadius: '30px',
                     bgcolor:BRAND.primary, color: BRAND.white,
                     fontVariantCaps: 'normal', textTransform: 'none',
@@ -206,8 +204,7 @@ export const GetawayItem = memo(
                     // </CartBadge>
                   }
                   sx={{
-                    width: 120,
-                    m: '0 0.5rem',
+                    minWidth: 120, whiteSpace: 'nowrap', px: 2,
                     borderRadius: '24px',
                     bgcolor: BRAND.primary, color: BRAND.white,
                     fontVariantCaps: 'normal', textTransform: 'none',
@@ -232,8 +229,7 @@ export const GetawayItem = memo(
                   disabled={isDeleting}
                   size="medium"
                   sx={{
-                    width:104,
-                    m:'0 0.3rem',
+                    minWidth: 104, whiteSpace: 'nowrap', px: 2,
                     borderRadius: '30px',
                     bgcolor: BRAND.primary, color: BRAND.white,
                     fontVariantCaps:'normal', textTransform: 'none',
@@ -266,7 +262,7 @@ export const GetawayItem = memo(
               { onEdit && (
                 <Button startIcon={<EditIcon />} onClick={onEdit} disableElevation size="medium"
                   sx={{
-                    width:145,
+                    minWidth: 145, whiteSpace: 'nowrap', px: 2,
                     color: BRAND.navy, bgcolor: BRAND.green,
                     borderRadius: '30px',
                     fontWeight: 'bold', textTransform: 'none',

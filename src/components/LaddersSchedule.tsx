@@ -138,10 +138,12 @@ interface LadderTableProps {
   setSelectedIds?: React.Dispatch<React.SetStateAction<string[]>>;
   /** Deporte y fechas del formulario de getaway; filtran la tabla. */
   searchParams?: ScheduleFilters;
+  /** Datos ya cargados (el getaway los trae embebidos); evita volver a pedirlos. */
+  items?: Ladder[];
 }
 
 export default function LaddersTable(
-  { mode = 'readonly', selectedIds = [], setSelectedIds, searchParams }: LadderTableProps
+  { mode = 'readonly', selectedIds = [], setSelectedIds, searchParams, items }: LadderTableProps
 ) {
   const { t } = useTranslation();
   const { ladders, loading, error, fetchLadders } = useLadders();
@@ -151,16 +153,12 @@ export default function LaddersTable(
     setShowTable(true);
   };
   //Conditional table rendering state
-  const [showTable, setShowTable] = React.useState(false);
+  // En readonly la tabla nace abierta: no hay tarjeta de "cargar" que mostrar.
+  const [showTable, setShowTable] = React.useState(mode === 'readonly');
 
-  const rows = React.useMemo(() => toLadderRows(ladders, t), [ladders, t]);
+  const source = items ?? ladders;
+  const rows = React.useMemo(() => toLadderRows(source, t), [source, t]);
 
-  React.useEffect(() => {
-    if (mode === 'readonly' && selectedIds.length > 0){
-      fetchLadders();
-      setShowTable(true);
-    }
-  }, [ fetchLadders, mode, selectedIds.length]);
 
   const handleIncludeChange = (id: string) => {
     if (!setSelectedIds) return;
@@ -194,6 +192,9 @@ export default function LaddersTable(
     );
   }, [rows, mode, selectedIds, startDate, endDate, sport]);
 
+
+  // En readonly sin nada incluido no hay sección que mostrar.
+  if (mode === 'readonly' && selectedIds.length === 0) return null;
   return (
     <Box sx={{ width:'100%', margin:'25px 0' }}>
       <Divider textAlign="center" aria-hidden="true">

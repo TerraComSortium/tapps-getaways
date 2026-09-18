@@ -2,12 +2,13 @@
 import{ useEffect, useState, useRef } from 'react';
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import {
-  Container, Box, Stack, Modal,
+  Container, Box, Stack, Modal, Paper, Chip,
   Typography, Divider, Button, IconButton,
   Radio, RadioGroup, FormControlLabel, FormControl,
-  ListItem, ListItemText, CircularProgress, Alert
+  CircularProgress, Alert
 } from '@mui/material';
 import Grid from '@mui/material/Grid2';
+import { Avatar, Link } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import MailIcon from '@mui/icons-material/Mail';
@@ -17,6 +18,15 @@ import CloseIcon from '@mui/icons-material/Close';
 import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 import ShareIcon from '@mui/icons-material/Share';
+import PlaceIcon from '@mui/icons-material/Place';
+import NotesIcon from '@mui/icons-material/Notes';
+import EventNoteIcon from '@mui/icons-material/EventNote';
+import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
+import AddShoppingCartIcon from '@mui/icons-material/AddShoppingCart';
+import GavelIcon from '@mui/icons-material/Gavel';
+import ContactSupportIcon from '@mui/icons-material/ContactSupport';
+import SportsTennisIcon from '@mui/icons-material/SportsTennis';
+import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import CheckIcon from '@mui/icons-material/Check';
 import prevPhoto from '../assets/backgrounds/hotel.jpg';
 import { BRAND } from '../theme/colors';
@@ -25,13 +35,45 @@ import '../App.css';
 import { useAuth } from '../contexts/AuthContext';
 import type { Getaway } from '../types/getaway';
 import { useGetawayById } from '../hooks/useGetawayById';
-import { isGetawayExpired } from '../utils/getawayHelpers';
+import { getSportLabel, isGetawayExpired } from '../utils/getawayHelpers';
 import {
   // ROUTES,
   bookingPath } from '../constants/routes';
 import { Role } from '../constants/roles';
 import GetawaySchedule from './GetawaySchedule';
+import AcademySchedule from './AcademySchedule';
+import TournamentsSchedule from './TournamentsSchedule';
+import LaddersSchedule from './LaddersSchedule';
+import type { AcademyClass } from '../hooks/useGetAcademy';
+import type { Tournament } from '../services/tournament';
+import type { Ladder } from '../services/ladder';
 import { useTranslation } from 'react-i18next';
+
+/** Bloque con cabecera (icono + título) para agrupar el contenido del detalle. */
+const Section = ({
+  icon, title, children,
+}: { icon: React.ReactNode; title: string; children: React.ReactNode }) => (
+  <Paper
+    elevation={0}
+    sx={{ p: { xs: 2, sm: 3 }, mb: 2.5, borderRadius: '12px', bgcolor: 'background.paper' }}
+  >
+    <Stack direction="row" spacing={1} sx={{ alignItems: 'center', mb: 1 }}>
+      <Box sx={{ color: BRAND.primary, display: 'flex' }}>{icon}</Box>
+      <Typography sx={{ fontSize: 16, fontWeight: 'bold', color: BRAND.primary }}>
+        {title}
+      </Typography>
+    </Stack>
+    <Divider aria-hidden="true" sx={{ bgcolor: BRAND.primary, mb: 2 }} />
+    {children}
+  </Paper>
+);
+
+/** Texto de "aquí todavía no hay nada", que se repetía en cada bloque. */
+const EmptyText = ({ children }: { children: React.ReactNode }) => (
+  <Typography variant="subtitle2" sx={{ fontStyle: 'italic', color: 'text.secondary' }}>
+    {children}
+  </Typography>
+);
 
 function GetawayDetail() {
   const { t } = useTranslation();
@@ -41,8 +83,45 @@ function GetawayDetail() {
   const { role } = useAuth();
   const location = useLocation();
   const { data: apiGetaway, loading, error } = useGetawayById(id || '');
-  const getaway: Getaway | null = location.state?.getawayData || apiGetaway;
+  // El objeto que llega por `state` viene del LISTADO (`getAllOffers`/`getOffersByRCNET`),
+  // que NO hidrata academyClasses/tournaments/ladders — solo lo hace `getOffer`.
+  // Por eso se usa únicamente como placeholder mientras carga: en cuanto llega la
+  // respuesta del endpoint por id, esa manda.
+  const getaway: Getaway | null = apiGetaway ?? location.state?.getawayData ?? null;
   const expired = isGetawayExpired(getaway);
+
+  // El backend completa el getaway con los documentos de academia, torneos y
+  // ladders a partir de los ids que se guardaron al crearlo. No se consulta nada
+  // más: el filtro por fechas/deporte es cosa del formulario de creación.
+  const academyClasses = (getaway?.academyClasses as AcademyClass[] | undefined) ?? [];
+  const tournaments = (getaway?.tournaments as Tournament[] | undefined) ?? [];
+  const ladders = (getaway?.ladders as Ladder[] | undefined) ?? [];
+  const owner = getaway?.owner ?? null;
+
+  // TODO quitar: log temporal para inspeccionar la respuesta de GET /getaways/:id.
+  // Depende solo de `getaway` para que se imprima una vez por carga y no en cada render.
+  useEffect(() => {
+    if (!getaway) return;
+    const raw = getaway as unknown as Record<string, unknown>;
+    const asArray = (value: unknown) => (Array.isArray(value) ? value : []);
+
+    console.group('[GETAWAY_DETAIL] respuesta de GET /getaways/:id');
+    console.log('getaway completo:', getaway);
+    console.log('claves que llegan:', Object.keys(raw).sort());
+    console.table({
+      academyIds: asArray(raw.academyIds).length,
+      academyClasses: asArray(raw.academyClasses).length,
+      tournamentIds: asArray(raw.tournamentIds).length,
+      tournaments: asArray(raw.tournaments).length,
+      ladderIds: asArray(raw.ladderIds).length,
+      ladders: asArray(raw.ladders).length,
+    });
+    console.log('academyClasses:', raw.academyClasses);
+    console.log('tournaments:', raw.tournaments);
+    console.log('ladders:', raw.ladders);
+    console.log('owner:', raw.owner);
+    console.groupEnd();
+  }, [getaway]);
 
   // console.log("Estado de carga:", isLoading, "Rol recibido:", role);
   // console.log(getaway);
@@ -149,7 +228,7 @@ function GetawayDetail() {
         <Button size="medium" variant="contained" startIcon={<ArrowBackIcon />}
           onClick={() => navigate(-1)}
           sx={{
-            m: '1em 0', p: '8px 0.8em', width: '220px',
+            m: '1em 0', p: '8px 0.8em', minWidth: '220px', whiteSpace: 'nowrap',
             borderRadius:'8px', color:BRAND.white, bgcolor: BRAND.primary, textTransform: 'none',
           }}
         > {t('detail.searchMore')}
@@ -178,7 +257,7 @@ function GetawayDetail() {
             startIcon={<ArrowBackIcon />} variant="text" size="medium"
             onClick={() => navigate(-1)}
             sx={{
-              m: '1em 0', p: '8px 0.8em', width: '220px',
+              m: '1em 0', p: '8px 0.8em', minWidth: '220px', whiteSpace: 'nowrap',
               borderRadius:'8px', color:BRAND.black,  textTransform: 'none',
             }}
           > {t('detail.searchMoreBang')} </Button>
@@ -290,27 +369,80 @@ function GetawayDetail() {
 
           <Grid size={{ xs: 12, md: 7 }}>
             <Stack sx={{ fontSize: 15 }}>
-              <h3 className='title4'> {getaway.title} </h3>
+              {/* Orden: qué es → cuándo y de qué → dónde → quién → de qué va → cuánto */}
+              <h3 className='title4' style={{ marginBottom: 8 }}>{getaway.title}</h3>
+
+              <Stack direction="row" spacing={1} sx={{ mb: 1.5, flexWrap: 'wrap' }} useFlexGap>
+                {getaway.sport && (
+                  <Chip
+                    size="small"
+                    icon={<SportsTennisIcon />}
+                    label={getSportLabel(getaway.sport)}
+                    sx={{ bgcolor: BRAND.green, color: BRAND.navy, fontWeight: 'bold' }}
+                  />
+                )}
+                {(getaway.startDate || getaway.endDate) && (
+                  <Chip
+                    size="small" variant="outlined"
+                    icon={<CalendarMonthIcon />}
+                    label={`${getaway.startDate} - ${getaway.endDate}`}
+                    sx={{ borderColor: BRAND.primary, color: BRAND.primary, fontWeight: 500 }}
+                  />
+                )}
+              </Stack>
+
               {getaway.getawayAddress?.address ? (
-                <h5 className='title4'> {getaway.getawayAddress?.address} </h5>
-              ):(
-                <Typography variant="subtitle2" sx={{fontStyle:'italic', color:'text.secondary'}}>
-                {t('detail.noAddress')}</Typography>
+                <Link
+                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(getaway.getawayAddress.address)}`}
+                  target="_blank" rel="noopener" underline="hover"
+                  sx={{
+                    display: 'inline-flex', alignItems: 'center', gap: 0.5,
+                    color: 'text.secondary', ':hover': { color: BRAND.primary },
+                  }}
+                >
+                  <PlaceIcon sx={{ fontSize: 18, color: BRAND.primary }} />
+                  <Typography variant="body2" component="span">
+                    {getaway.getawayAddress.address}
+                  </Typography>
+                </Link>
+              ) : (
+                <Typography variant="subtitle2" sx={{ fontStyle: 'italic', color: 'text.secondary' }}>
+                  {t('detail.noAddress')}
+                </Typography>
               )}
 
-              {/* {rcnet.name ? ( */}
-                <h5 className='title4'>
-                  {t('detail.byRcnet')}
-                  {/* {rcnet.name} */}
-                </h5>
-              {/* ):( */}
-                <Typography variant="subtitle2" sx={{fontStyle:'italic', color:'text.secondary'}}>{t('detail.providerUnavailable')}</Typography>
-              {/* )} */}
-              <p className='paragraph'> {getaway.overview} </p>
-              <div className='inline'>
-                <h4 className='title4'>{t('detail.dates')}:</h4>
-                <span> {getaway.startDate} - {getaway.endDate}</span>
-              </div>
+              {/* El backend resuelve `ownerId` y adjunta `owner` con nombre y correo. */}
+              {owner && (owner.clubName || owner.name) ? (
+                <Stack direction="row" spacing={1.2} sx={{ alignItems: 'center', mt: 2 }}>
+                  <Avatar
+                    src={owner.photoURL || undefined}
+                    sx={{ width: 38, height: 38, bgcolor: BRAND.primary, fontSize: 15 }}
+                  >
+                    {(owner.clubName || owner.name).charAt(0).toUpperCase()}
+                  </Avatar>
+                  <Box sx={{ minWidth: 0 }}>
+                    <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+                      {t('detail.organizedBy')}
+                    </Typography>
+                    <Typography variant="body2" sx={{ fontWeight: 'bold', color: BRAND.primary }}>
+                      {owner.clubName || owner.name}
+                    </Typography>
+                    {owner.clubName && owner.name && (
+                      <Typography variant="caption" color="text.secondary">
+                        {owner.name}
+                      </Typography>
+                    )}
+                  </Box>
+                </Stack>
+              ) : (
+                <Typography variant="subtitle2" sx={{ mt: 2, fontStyle: 'italic', color: 'text.secondary' }}>
+                  {t('detail.providerUnavailable')}
+                </Typography>
+              )}
+
+              <Divider aria-hidden="true" sx={{ my: 2 }} />
+
+              {getaway.overview && <p className='paragraph' style={{ marginTop: 0 }}>{getaway.overview}</p>}
 
               <FormControl>
                 <h4 className='title4'>{t('detail.ratesStartAt')}</h4>
@@ -348,7 +480,7 @@ function GetawayDetail() {
                     <Button type="submit" onClick={handleBookNow}
                       startIcon={<ShoppingCartIcon/>} variant="contained"
                       sx={{
-                        width:'128px', borderRadius:'8px',
+                        minWidth: '128px', whiteSpace: 'nowrap', px: 2, borderRadius:'8px',
                         bgcolor: BRAND.primary, color: BRAND.white, fontWeight: 'semibold', textTransform: 'none',
                         ':hover': { bgcolor: BRAND.white, color: BRAND.primary }
                       }}
@@ -357,7 +489,7 @@ function GetawayDetail() {
                   <Button variant="contained"
                     onClick={handleShare} startIcon={copied ? <CheckIcon /> : <ShareIcon />}
                     sx={{
-                      width:'128px', borderRadius:'8px',
+                      minWidth: '128px', whiteSpace: 'nowrap', px: 2, borderRadius:'8px',
                       bgcolor: copied ? '#00E392' : BRAND.primary,
                       fontWeight: 'semibold', textTransform: 'none',
                       color: copied ? BRAND.primary : BRAND.white,
@@ -434,7 +566,7 @@ function GetawayDetail() {
                     onClick={handleBookNow}
                     sx={{
                       mt: 1, mb: 3, borderRadius:'8px',
-                      width:'130px',
+                      minWidth: '130px', whiteSpace: 'nowrap', px: 2,
                       bgcolor: BRAND.primary, color: BRAND.white, fontWeight: 'bold', textTransform: 'none',
                       ':hover': { bgcolor: BRAND.white, color: BRAND.primary},
                       borderColor: 'primary.main', border: 1
@@ -446,105 +578,134 @@ function GetawayDetail() {
           </Box>
         </Modal>
       </Container>
-      <Container sx={{ display:"flex", flexDirection: 'column', mt: 3, mb: 3 }} >
-        <Stack>
-          <h4 className='title4'>{t('detail.description')}</h4>
-          <Divider aria-hidden="true" sx={{bgcolor:BRAND.primary}} />
+      <Container sx={{ display: 'flex', flexDirection: 'column', mt: 3, mb: 3 }}>
+        <Section icon={<NotesIcon />} title={t('detail.description')}>
           {getaway.mainDescription ? (
-            <p className='paragraph'> {getaway.mainDescription} </p>
-          ):(
-            <Typography variant="subtitle2" sx={{ mt: 1, mb: 3, fontStyle: 'italic', color: 'text.secondary' }}>
-              {t('detail.noDescription')}
-            </Typography>
+            <p className='paragraph' style={{ margin: 0 }}>{getaway.mainDescription}</p>
+          ) : (
+            <EmptyText>{t('detail.noDescription')}</EmptyText>
           )}
-          <h4 className='title4'>{t('detail.weekendSchedule')}</h4>
-          <Divider aria-hidden="true" sx={{bgcolor:BRAND.primary}} />
-          <GetawaySchedule schedule={getaway.schedule || []}/>
+        </Section>
 
-          <Stack spacing={1} sx={{ mt: 2, flexWrap: 'wrap', justifyContent: 'flex-start' }} >
-            <h5 className='title4'>{t('detail.includes')}</h5>
-            {getaway.amenities && getaway.amenities.length > 0 ? (
-              <ul>
-                {getaway.amenities.map((item, index) => (
-                  <li key={index}>{item.name || t('detail.noAmenities')}</li>
-                ))}
-              </ul>
-            ) : (
-              <Typography sx={{fontStyle:'italic', color:'text.secondary'}}> {t('detail.noAmenitiesYet')} </Typography>
-            )}
-          </Stack>
-          <Stack
-            sx={{ mt: 2, flexWrap: 'wrap', justifyContent: 'flex-start' }}>
-            <h5 className='title4'> {t('detail.optionalAddOns')} </h5>
-            {getaway.optionalAddOns && getaway.optionalAddOns.length > 0 ? (
-              getaway.optionalAddOns.map((option, index) => (
-                <ListItem key={index}>
-                  <ListItemText
-                    primary={option.name}
-                    secondary={`$ ${option.price}`}
+        {/* Agenda propia del getaway + las sesiones de Academy, torneos y ladders
+            que se incluyeron al crearlo (cada tabla se oculta sola si está vacía). */}
+        <Section icon={<EventNoteIcon />} title={t('detail.weekendSchedule')}>
+          <GetawaySchedule schedule={getaway.schedule || []} address={getaway.getawayAddress?.address} />
+          <AcademySchedule
+            mode="readonly"
+            schedules={academyClasses}
+            loading={false}
+            selectedIds={getaway.academyIds || []}
+          />
+          <TournamentsSchedule
+            mode="readonly"
+            selectedIds={getaway.tournamentIds || []}
+            items={tournaments}
+          />
+          <LaddersSchedule
+            mode="readonly"
+            selectedIds={getaway.ladderIds || []}
+            items={ladders}
+          />
+        </Section>
+
+        <Section icon={<CheckCircleOutlineIcon />} title={t('detail.includes')}>
+          {getaway.amenities && getaway.amenities.length > 0 ? (
+            <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap' }} useFlexGap>
+              {getaway.amenities
+                .filter((item) => item.name?.trim())
+                .map((item, index) => (
+                  <Chip
+                    key={index}
+                    icon={<CheckCircleOutlineIcon />}
+                    label={item.name}
+                    sx={{ bgcolor: BRAND.green, color: BRAND.navy, fontWeight: 500 }}
                   />
-                </ListItem>
-              ))
-            ):(
-              <Typography sx={{fontStyle:'italic', color:'text.secondary'}}>{t('detail.unavailableAddOns')}</Typography>
-            )}
-          </Stack>
-          <Stack spacing={1} sx={{ mt:0, justifyContent:'flex-start', flexWrap:'wrap' }} >
-            <h5 className='title4'>{t('detail.paymentsPolicies')}</h5>
-            {getaway.policies ? (
-              <p className='paragraph'> {getaway.policies} </p>
-            ):(
-              <Typography sx={{fontStyle:'italic', color:'text.secondary'}}>{t('detail.notIncluded')}</Typography>
-            )}
-          </Stack>
-          <Stack spacing={1} sx={{ mt: 2, justifyContent: 'flex-start', flexWrap: 'wrap' }} >
-            <h5 className='title4'>{t('detail.termsConditions')}</h5>
-            {getaway.terms ? (
-              <p className='paragraph'> {getaway.terms} </p>
-            ):(
-              <Typography sx={{fontStyle:'italic', color:'text.secondary'}}>{t('detail.notIncluded')}</Typography>
-            )}
-          </Stack>
-          <Stack direction="row" spacing={3}
-            sx={{
-              mt: 2, mb: 2, flexWrap: 'wrap',
-              justifyContent:{ xs:'center', md:'flex-start'},
-              alignItems: 'center', alignContent: 'center', gap:{ xs:'12px'}
-            }}
+                ))}
+            </Stack>
+          ) : (
+            <EmptyText>{t('detail.noAmenitiesYet')}</EmptyText>
+          )}
+        </Section>
+
+        <Section icon={<AddShoppingCartIcon />} title={t('detail.optionalAddOns')}>
+          {getaway.optionalAddOns && getaway.optionalAddOns.length > 0 ? (
+            <Stack divider={<Divider flexItem />}>
+              {getaway.optionalAddOns.map((option, index) => (
+                <Stack
+                  key={index}
+                  direction="row" spacing={2}
+                  sx={{ justifyContent: 'space-between', alignItems: 'center', py: 1 }}
+                >
+                  <Typography variant="body2">{option.name}</Typography>
+                  <Typography variant="body2" sx={{ fontWeight: 'bold', color: BRAND.primary }}>
+                    ${option.price}
+                  </Typography>
+                </Stack>
+              ))}
+            </Stack>
+          ) : (
+            <EmptyText>{t('detail.unavailableAddOns')}</EmptyText>
+          )}
+        </Section>
+
+        {/* Políticas y términos van juntos: son el mismo tipo de lectura legal. */}
+        <Section icon={<GavelIcon />} title={t('detail.paymentsPolicies')}>
+          {getaway.policies ? (
+            <p className='paragraph' style={{ marginTop: 0 }}>{getaway.policies}</p>
+          ) : (
+            <EmptyText>{t('detail.notIncluded')}</EmptyText>
+          )}
+
+          <Typography sx={{ mt: 3, mb: 1, fontSize: 15, fontWeight: 'bold', color: BRAND.primary }}>
+            {t('detail.termsConditions')}
+          </Typography>
+          {getaway.terms ? (
+            <p className='paragraph' style={{ marginTop: 0 }}>{getaway.terms}</p>
+          ) : (
+            <EmptyText>{t('detail.notIncluded')}</EmptyText>
+          )}
+        </Section>
+
+        <Section icon={<ContactSupportIcon />} title={t('detail.moreInfo')}>
+          <Stack
+            direction="row" spacing={1.5}
+            sx={{ flexWrap: 'wrap', justifyContent: { xs: 'center', sm: 'flex-start' } }}
+            useFlexGap
           >
-            <h5 className='title5'>{t('detail.moreInfo')}</h5>
             <Button target="_blank" component="a"
               startIcon={<MailIcon />} size="small" variant="contained"
-              href="https://racquetsappsuite.com/contact/general-support/"
+              href={owner?.email
+                ? `mailto:${owner.email}?subject=${encodeURIComponent(getaway.title || '')}`
+                : 'https://racquetsappsuite.com/contact/general-support/'}
               sx={{
-                mt: 1, mb: 2, borderRadius:'8px',
-                width: '12vw', minWidth:'125px',
+                borderRadius: '8px', minWidth: '125px', whiteSpace: 'nowrap', px: 2,
                 bgcolor: BRAND.primary, color: BRAND.white, fontWeight: 'bold', textTransform: 'none',
-                ':hover': { bgcolor: BRAND.white, color: BRAND.primary}
+                ':hover': { bgcolor: BRAND.white, color: BRAND.primary },
               }}
             > {t('detail.sendMail')} </Button>
             <Button startIcon={<WhatsAppIcon />} component="a"
-              href="https://wa.me/codeNumber"
+              href={owner?.phone
+                ? `https://wa.me/${owner.phone.replace(/\D/g, '')}`
+                : 'https://racquetsappsuite.com/'}
               size="small" target="_blank" variant="contained"
               sx={{
-                mt: 1, mb: 2, borderRadius:'8px',
-                width: '12vw', minWidth:'125px',
+                borderRadius: '8px', minWidth: '125px', whiteSpace: 'nowrap', px: 2,
                 bgcolor: BRAND.primary, color: BRAND.white, fontWeight: 'bold', textTransform: 'none',
-                ':hover': { bgcolor: BRAND.white, color: BRAND.primary }
+                ':hover': { bgcolor: BRAND.white, color: BRAND.primary },
               }}
             > {t('detail.whatsapp')} </Button>
             <Button startIcon={<HelpCenterIcon />}
               size="small" variant="contained" target="_blank"
               href="https://racquetsappsuite.com/"
               sx={{
-                mt: 1, mb: 4, borderRadius:'8px',
-                width: '12vw', minWidth:'125px',
+                borderRadius: '8px', minWidth: '125px', whiteSpace: 'nowrap', px: 2,
                 bgcolor: BRAND.primary, color: BRAND.white, fontWeight: 'bold', textTransform: 'none',
-                ':hover': { bgcolor: BRAND.white, color: BRAND.primary }
+                ':hover': { bgcolor: BRAND.white, color: BRAND.primary },
               }}
             > {t('detail.faqs')} </Button>
           </Stack>
-        </Stack>
+        </Section>
       </Container>
     </>
   )

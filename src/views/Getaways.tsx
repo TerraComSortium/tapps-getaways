@@ -2,10 +2,8 @@ import { useEffect, useMemo, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Box, Stack, Pagination, Typography, CircularProgress, Alert } from '@mui/material';
-import Grid from '@mui/material/Grid2';
 import { GetawayItem } from '../components/GetawayItem';
 import SearchBar from '../components/SearchBar';
-import AdminSideBar from '../components/AdminSidebar';
 
 import { useAuth } from '../contexts/AuthContext';
 import type { Getaway } from '../types/getaway';
@@ -179,65 +177,60 @@ export default function Getaways() {
   // console.log("structure getaway received API:", getaways[0]);
   return (
     <>
-      <Grid container columnSpacing={{ xs: 0, sm: 2, md: 3 }} >
-        <AdminSideBar />
-        <Grid size={{ xs:12, sm: 9, md: 10 }}
-          className="section blueBg">
-          <SearchBar onSearch={handleSearchFromBar} />
-          <Box>
-            <Box sx={{ mb: 3 }}>
-              {isOfflineMode && (
-                <Alert severity="warning" sx={{ mb: 2 }}>{t('getaways.offlineMode')}</Alert>
-              )}
-              {!loading && error && getaways.length === 0 ? (
-                <Alert severity="info" sx={{ mt: 2 }}>
-                  {t('getaways.emptyState')}
-                </Alert>
-              ) : !loading && (
-                <Typography variant="subtitle1" sx={{ mt: "20px" }}>
-                  {getaways.length > 0
-                    ? `${isOfflineMode ? t('getaways.localMatches') : t('getaways.offers')}: ${getaways.length}`
-                    : t('getaways.noMatches')
-                  }
-                </Typography>
-              )}
-            </Box>
-
-            {loading ? (
-              <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
-                <CircularProgress />
-              </Box>
-            ) : (
-              getaways.length > 0 && paginatedGetaways.map((getaway, index) => (
-                <GetawayItem
-                  key={getaway._id || `fallback-key-${index}`}
-                  name={getaway.title || t('common.untitledGetaway')}
-                  dates={`${getaway.startDate} - ${getaway.endDate}`}
-                  lodgingOptions={getaway.lodgingOptions || []}
-                  sport={getSportLabel(getaway.sport)}
-                  galleryPhotos={getValidImages(getaway.galleryPhotos)}
-                  coupon={couponsByGetawayId.get(getaway._id)}
-                  // isLoading={isLoading}
-                  onViewDetails={() => handleViewDetails(getaway)}
-                  onBookNow={role === Role.PLAYER && !isGetawayExpired(getaway) ? () => handleBooking(getaway, couponsByGetawayId.get(getaway._id)?.id) : undefined}
-                  // onEdit={role === 'admin' ? () => handleEdit(getaway.id) : undefined}
-                />
-              ))
-            )}
-          </Box>
-
-          {!loading && getaways.length > 0 && (
-            <Stack spacing={2} sx={{ mt: 4, alignItems: 'center' }}>
-              <Pagination
-                shape="rounded"
-                count={Math.ceil(getaways.length / ITEMS_PER_PAGE)}
-                page={page}
-                onChange={handleChange}
-              />
-            </Stack>
+            <SearchBar onSearch={handleSearchFromBar} />
+      <Box>
+        <Box sx={{ mb: 3 }}>
+          {isOfflineMode && (
+            <Alert severity="warning" sx={{ mb: 2 }}>{t('getaways.offlineMode')}</Alert>
           )}
-        </Grid>
-      </Grid>
+          {!loading && error && getaways.length === 0 ? (
+            <Alert severity="info" sx={{ mt: 2 }}>
+              {t('getaways.emptyState')}
+            </Alert>
+          ) : !loading && (
+            <Typography variant="subtitle1" sx={{ mt: "20px" }}>
+              {getaways.length > 0
+                ? `${isOfflineMode ? t('getaways.localMatches') : t('getaways.offers')}: ${getaways.length}`
+                : t('getaways.noMatches')
+              }
+            </Typography>
+          )}
+        </Box>
+
+        {loading ? (
+          <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
+            <CircularProgress />
+          </Box>
+        ) : (
+          getaways.length > 0 && paginatedGetaways.map((getaway, index) => (
+            <GetawayItem
+              key={getaway._id || `fallback-key-${index}`}
+              name={getaway.title || t('common.untitledGetaway')}
+              dates={`${getaway.startDate} - ${getaway.endDate}`}
+              lodgingOptions={getaway.lodgingOptions || []}
+              sport={getSportLabel(getaway.sport)}
+              galleryPhotos={getValidImages(getaway.galleryPhotos)}
+              coupon={couponsByGetawayId.get(getaway._id)}
+              // isLoading={isLoading}
+              onViewDetails={() => handleViewDetails(getaway)}
+              onBookNow={role === Role.PLAYER && !isGetawayExpired(getaway) ? () => handleBooking(getaway, couponsByGetawayId.get(getaway._id)?.id) : undefined}
+              // onEdit={role === 'admin' ? () => handleEdit(getaway.id) : undefined}
+            />
+          ))
+        )}
+      </Box>
+
+      {!loading && getaways.length > 0 && (
+        <Stack spacing={2} sx={{ mt: 4, alignItems: 'center' }}>
+          <Pagination
+            shape="rounded"
+            count={Math.ceil(getaways.length / ITEMS_PER_PAGE)}
+            page={page}
+            onChange={handleChange}
+          />
+        </Stack>
+      )}
+    
     </>
   );
 }

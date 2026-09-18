@@ -1,5 +1,7 @@
-import { Box, Button, IconButton, CircularProgress } from '@mui/material';
-import Grid from '@mui/material/Grid2';
+import { Link as RouterLink, useLocation } from 'react-router-dom';
+import {
+  Box, CircularProgress, List, ListItemButton, ListItemIcon, ListItemText, Tooltip,
+} from '@mui/material';
 import SportsTennisIcon from '@mui/icons-material/SportsTennis';
 import ShoppingBagIcon from '@mui/icons-material/ShoppingBag';
 import NoteAltIcon from '@mui/icons-material/NoteAlt';
@@ -11,133 +13,103 @@ import { ROUTES } from '../constants/routes';
 import { Role } from '../constants/roles';
 import { BRAND } from '../theme/colors';
 
-export default function AdminSideBar() {
+interface SidebarItem {
+  to: string;
+  labelKey: string;
+  icon: React.ReactNode;
+  /** null = visible para cualquier rol. */
+  roles: Role[] | null;
+  /**
+   * Rutas hijas que deben mantener la opción marcada. Sin esto, al entrar al
+   * detalle de un getaway o a las reservas no queda ninguna opción resaltada y
+   * pierdes la referencia de en qué sección estás.
+   */
+  childPaths?: string[];
+}
+
+const ITEMS: SidebarItem[] = [
+  {
+    to: ROUTES.GETAWAYS, labelKey: 'nav.getaways', icon: <SportsTennisIcon />, roles: null,
+    childPaths: [ROUTES.GETAWAY_DETAIL, ROUTES.BOOKING],
+  },
+  { to: ROUTES.MY_ORDERS, labelKey: 'sidebar.myGetaways', icon: <ShoppingBagIcon />, roles: [Role.PLAYER] },
+  {
+    to: ROUTES.MY_GETAWAYS, labelKey: 'sidebar.myGetaways', icon: <NoteAltIcon />, roles: [Role.ADMIN],
+    childPaths: [ROUTES.RESERVATIONS],
+  },
+  { to: ROUTES.CREATE_GETAWAY, labelKey: 'sidebar.newGetaway', icon: <AddIcon />, roles: [Role.ADMIN] },
+  {
+    to: ROUTES.COUPONS, labelKey: 'sidebar.coupons', icon: <LocalOfferIcon />, roles: [Role.ADMIN],
+    // el propio prefijo cubre /coupons/new y /coupons/:id/edit
+    childPaths: [ROUTES.COUPONS],
+  },
+];
+
+/** Marcada si es la ruta exacta o si estamos en una de sus rutas hijas. */
+const isItemActive = (item: SidebarItem, pathname: string): boolean =>
+  pathname === item.to ||
+  (item.childPaths ?? []).some((path) => pathname === path || pathname.startsWith(`${path}/`));
+
+interface AdminSidebarProps {
+  /** Modo icono: oculta las etiquetas y deja solo los iconos. */
+  collapsed?: boolean;
+  /** Se llama al navegar, para que el drawer móvil se cierre solo. */
+  onNavigate?: () => void;
+}
+
+export default function AdminSideBar({ collapsed = false, onNavigate }: AdminSidebarProps) {
   const { t } = useTranslation();
   const { role, isLoading } = useAuth();
-  if(isLoading){
-    return(
-      <Box display="flex" justifyContent="center" alignItems="center" height={400}>
-        <CircularProgress />
+  const { pathname } = useLocation();
+
+  if (isLoading) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" py={4}>
+        <CircularProgress size={28} />
       </Box>
     );
-    //(<Skeleton variant="rectangular" width={300} height={400} sx={{borderRadius:'15px'}}/>);
   }
+
+  const visible = ITEMS.filter((item) => !item.roles || (role && item.roles.includes(role as Role)));
+
   return (
-    <>
-      <Grid size={{ xs: 12, sm: 3, md: 2 }}>
-        <Box
-          sx={{
-            display: 'flex',
-            flexDirection: { xs: 'row', sm: 'row', md: 'column' },
-            flexWrap:'wrap',
-            alignItems:  { xs: 'center', sm: 'center' },
-            alignContent: 'start',
-            justifyContent: { xs: 'center', sm: 'center', md: 'center' },
-            gap: 1,
-            px: { xs: 2, sm: 2, md: 1.5 },
-            pt: { xs: 1.5, sm: 0 },
-            pb: { xs: 1.5, sm: 0 },
-            mt: { xs: 0, sm: 2.5 },
-            borderBottom: { xs: '1px solid rgba(50, 28, 28, 0.1)', sm: 'none' },
-          }}>
-          {/* {role === Role.PLAYER && ( */}
-            <Button
-              component="a"
-              disableElevation variant="contained" aria-label="getaways-offers"
-              href={ROUTES.GETAWAYS}
+    <List sx={{ py: 1, px: collapsed ? 0.5 : 1 }}>
+      {visible.map((item) => {
+        const label = t(item.labelKey);
+        const active = isItemActive(item, pathname);
+
+        return (
+          <Tooltip key={item.to} title={collapsed ? label : ''} placement="right">
+            <ListItemButton
+              component={RouterLink}
+              to={item.to}
+              onClick={onNavigate}
+              aria-current={active ? 'page' : undefined}
               sx={{
-                flex: { xs: 1, sm: 'unset' },
-                minWidth:'155px',
-                width: { xs:'auto', sm:'155px'},
-                mb: { xs: 0, sm: 1 },
-                padding: '5px 0px',
-                overflow: 'hidden',
-                bgcolor: BRAND.primary, color: BRAND.white, borderRadius: '8px', fontWeight: 'medium', textTransform: 'none', whiteSpace: 'nowrap'
+                mb: 1,
+                borderRadius: '8px',
+                justifyContent: collapsed ? 'center' : 'flex-start',
+                px: collapsed ? 1 : 1.5,
+                whiteSpace: 'nowrap',
+                bgcolor: active ? BRAND.green : BRAND.primary,
+                color: active ? BRAND.navy : BRAND.white,
+                '& .MuiListItemIcon-root': { color: active ? BRAND.navy : BRAND.lime },
+                ':hover': { bgcolor: active ? BRAND.green : BRAND.primaryDark },
               }}
             >
-              <IconButton aria-label="getaways-offers" sx={{ color: BRAND.lime }}><SportsTennisIcon /></IconButton>
-              {t('nav.getaways')} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-            </Button>
-          {/* )} */}
-          {role === Role.PLAYER && (
-          // {role === 'player' && (
-            <Button
-              component="a"
-              href={ROUTES.MY_ORDERS}
-              disableElevation variant="contained" aria-label="my-getaways-orders"
-              sx={{
-                flex: { xs: 1, sm: 'unset' },
-                minWidth:'155px',
-                width: { xs: 'auto', sm: '155px' },
-                mb: { xs: 0, sm: 1 },
-                padding: '5px 0px',
-                overflow: 'hidden',
-                bgcolor: BRAND.primary, color: BRAND.white, borderRadius: '8px', fontWeight: 'medium', textTransform: 'none', whiteSpace: 'nowrap',
-              }}
-            >
-              <IconButton aria-label="my-orders" sx={{ color:BRAND.lime, pl:'0' }}><ShoppingBagIcon /></IconButton>
-              {t('sidebar.myGetaways')}
-            </Button>
-          )}
-          {role === Role.ADMIN && (
-            <Button
-              component="a"
-              disableElevation variant="contained" aria-label="my-getaways-offers"
-              href={ROUTES.MY_GETAWAYS}
-              sx={{
-                flex: { xs: 1, sm: 'unset' },
-                minWidth:'155px',
-                width: { xs: 'auto', sm: '155px' },
-                mb: { xs: 0, sm: 1 },
-                padding: '5px 5px',
-                overflow: 'hidden',
-                bgcolor: BRAND.primary, color: BRAND.white, borderRadius: '8px', fontWeight: 'medium', textTransform: 'none', whiteSpace: 'nowrap'
-              }}
-            >
-              <IconButton aria-label="my-getaways-offers" sx={{ color: BRAND.lime, pl: '0' }}><NoteAltIcon /></IconButton>
-              {t('sidebar.myGetaways')}
-            </Button>
-          )}
-          {role === Role.ADMIN && (
-            <Button
-              // component="a"
-              href={ROUTES.CREATE_GETAWAY}
-              disableElevation variant="contained" aria-label="create-getaways"
-              sx={{
-                flex: { xs: 1, sm: 'unset' },
-                minWidth:'155px',
-                width: { xs: 'auto', sm: '155px' },
-                mb: { xs: 0, sm: 1 },
-                padding: '5px 0px',
-                overflow: 'hidden',
-                bgcolor: BRAND.primary, color: BRAND.white, borderRadius: '8px', fontWeight: 'medium', textTransform: 'none', whiteSpace: 'nowrap'
-              }}
-            >
-              <IconButton aria-label="create-getaway" sx={{ color: BRAND.lime, pl: '0' }}><AddIcon /></IconButton>
-              {t('sidebar.newGetaway')}
-            </Button>
-          )}
-          {role === Role.ADMIN && (
-            <Button
-              // component="a"
-              href={ROUTES.COUPONS}
-              disableElevation variant="contained" aria-label="create-getaways"
-              sx={{
-                flex: { xs: 1, sm: 'unset' },
-                minWidth:'155px',
-                width: { xs: 'auto', sm: '155px' },
-                mb: { xs: 0, sm: 1 },
-                padding: '5px 0px',
-                overflow: 'hidden',
-                bgcolor: BRAND.primary, color: BRAND.white, borderRadius: '8px', fontWeight: 'medium', textTransform: 'none', whiteSpace: 'nowrap'
-              }}
-            >
-              <IconButton aria-label="create-getaway" sx={{ color: BRAND.lime, pl: '0' }}><LocalOfferIcon/></IconButton>
-              {t('sidebar.coupons')}
-            </Button>
-          )}
-        </Box>
-      </Grid>
-    </>
+              <ListItemIcon sx={{ minWidth: collapsed ? 0 : 38, justifyContent: 'center' }}>
+                {item.icon}
+              </ListItemIcon>
+              {!collapsed && (
+                <ListItemText
+                  primary={label}
+                  slotProps={{ primary: { fontSize: 14, fontWeight: 500 } }}
+                />
+              )}
+            </ListItemButton>
+          </Tooltip>
+        );
+      })}
+    </List>
   );
 }

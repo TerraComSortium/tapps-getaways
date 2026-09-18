@@ -3,8 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { getawayDetailPath } from '../constants/routes';
 import { Box, Stack, Pagination, Typography, CircularProgress, Alert } from '@mui/material';
-import Grid from '@mui/material/Grid2';
-import AdminSideBar from '../components/AdminSidebar';
 import { GetawayItem } from '../components/GetawayItem';
 
 import { useAuth } from '../contexts/AuthContext';
@@ -44,51 +42,47 @@ export default function MyOrders() {
 
   return (
     <>
-      <Grid container columnSpacing={{ xs: 1, sm: 2, md: 3 }}>
-        <AdminSideBar />
-        <Grid size={{ xs: 12, sm: 10 }} className="section blueBg">
-          <Box sx={{ mb: 3 }}>
-            <Typography variant="h6" sx={{ mb: 1, fontWeight: 'bold' }}>{t('myOrders.title')}</Typography>
-            {displayError && <Alert severity="info" sx={{ mb: 2 }}>{displayError}</Alert>}
-            <Typography color="text.secondary">
-              {getaways.length > 0
-                ? t('myOrders.subscribed', { count: getaways.length })
-                : t('myOrders.none')}
-            </Typography>
-          </Box>
+            <Box sx={{ mb: 3 }}>
+        <Typography variant="h6" sx={{ mb: 1, fontWeight: 'bold' }}>{t('myOrders.title')}</Typography>
+        {displayError && <Alert severity="info" sx={{ mb: 2 }}>{displayError}</Alert>}
+        <Typography color="text.secondary">
+          {getaways.length > 0
+            ? t('myOrders.subscribed', { count: getaways.length })
+            : t('myOrders.none')}
+        </Typography>
+      </Box>
 
-          <Stack spacing={2}>
-            {paginatedGetaways.map((getaway: any, index) => (
-              <GetawayItem
-                key={getaway._id || getaway.id || index}
-                name={getaway.title || t('common.untitledGetaway')}
-                dates={formatGetawayDates(getaway.startDate, getaway.endDate)}
-                lodgingOptions={getaway.lodgingOptions || []}
-                sport={getSportLabel(getaway.sport)}
-                galleryPhotos={getValidImages(getaway.galleryPhotos)}
-                bookedDate={parseFirestoreDate(getaway.subscribedAt)}
-                onViewDetails={() => handleViewDetails(getaway)}
-                onOrderDetails={() =>
-                  navigate(getawayDetailPath(getaway._id || getaway.id), {
-                    state: { getawayData: getaway },
-                  })
-                }
-              />
-            ))}
-          </Stack>
+      <Stack spacing={2}>
+        {paginatedGetaways.map((getaway: any, index) => (
+          <GetawayItem
+            key={getaway._id || getaway.id || index}
+            name={getaway.title || t('common.untitledGetaway')}
+            dates={formatGetawayDates(getaway.startDate, getaway.endDate)}
+            lodgingOptions={getaway.lodgingOptions || []}
+            sport={getSportLabel(getaway.sport)}
+            galleryPhotos={getValidImages(getaway.galleryPhotos)}
+            bookedDate={parseFirestoreDate(getaway.subscribedAt)}
+            onViewDetails={() => handleViewDetails(getaway)}
+            onOrderDetails={() =>
+              navigate(getawayDetailPath(getaway._id || getaway.id), {
+                state: { getawayData: getaway },
+              })
+            }
+          />
+        ))}
+      </Stack>
 
-          {getaways.length > ITEMS_PER_PAGE && (
-            <Stack spacing={2} sx={{ mt: 4, alignItems: 'center' }}>
-              <Pagination
-                shape="rounded"
-                count={Math.ceil(getaways.length / ITEMS_PER_PAGE)}
-                page={page}
-                onChange={handlePageChange}
-              />
-            </Stack>
-          )}
-        </Grid>
-      </Grid>
+      {getaways.length > ITEMS_PER_PAGE && (
+        <Stack spacing={2} sx={{ mt: 4, alignItems: 'center' }}>
+          <Pagination
+            shape="rounded"
+            count={Math.ceil(getaways.length / ITEMS_PER_PAGE)}
+            page={page}
+            onChange={handlePageChange}
+          />
+        </Stack>
+      )}
+    
     </>
   );
 }

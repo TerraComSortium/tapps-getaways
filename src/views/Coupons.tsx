@@ -4,7 +4,6 @@ import { useNavigate } from 'react-router-dom';
 import { Box, Typography, Alert, Stack, Pagination,
   // Button,
   CircularProgress } from '@mui/material';
-import Grid from '@mui/material/Grid2';
 // import AddIcon from '@mui/icons-material/Add';
 import { BRAND } from '../theme/colors';
 import { useTranslation } from 'react-i18next';
@@ -14,7 +13,6 @@ import { useCoupons,
 import { couponEditPath,
   // couponNewPath
 } from '../constants/routes';
-import AdminSideBar from '../components/AdminSidebar';
 import { CouponItem } from '../components/CouponItem';
 import { firestoreToDate } from '../utils/dates';
 import { getCouponValue } from '../utils/couponHelpers';
@@ -60,83 +58,79 @@ export default function Coupons() {
   return (
     <>
       <Box sx={{ width: '100%', overflow: 'hidden' }}>
-        <Grid container columnSpacing={{ xs: 0, sm: 2, md: 3 }}>
-          <AdminSideBar />
-          <Grid size={{ xs: 12, sm: 9, md: 10 }} className="section blueBg" sx={{ minWidth: 0 }}>
-            {isDeleting && (
-              <Box sx={{ position: 'fixed', top:10, right:10, zIndex: 9999 }}>
-                <CircularProgress size={24}/>
-              </Box>
+        {isDeleting && (
+          <Box sx={{ position: 'fixed', top:10, right:10, zIndex: 9999 }}>
+            <CircularProgress size={24}/>
+          </Box>
+        )}
+        {loading ? (
+          <Box sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            alignItems: 'center',
+            minHeight: '250px',
+            bgcolor: 'background.paper',
+            borderRadius: '12px'
+          }}>
+            <CircularProgress size={36} sx={{ color: BRAND.primary, mb: 2 }}/>
+            <Typography variant="body2" color="text.secondary">{t('coupons.fetchingCoupons')}</Typography>
+          </Box>
+        ):(
+          <Box sx={{ padding: '7px 0' }}>
+            <Typography variant="h5">{t('coupons.title')}</Typography>
+            {successDeleteMsg && (
+              <Alert severity="success" sx={{ mb: 2 }}>
+                {successDeleteMsg}
+              </Alert>
             )}
-            {loading ? (
-              <Box sx={{
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'center',
-                alignItems: 'center',
-                minHeight: '250px',
-                bgcolor: 'background.paper',
-                borderRadius: '12px'
-              }}>
-                <CircularProgress size={36} sx={{ color: BRAND.primary, mb: 2 }}/>
-                <Typography variant="body2" color="text.secondary">{t('coupons.fetchingCoupons')}</Typography>
-              </Box>
-            ):(
-              <Box sx={{ padding: '7px 0' }}>
-                <Typography variant="h5">{t('coupons.title')}</Typography>
-                {successDeleteMsg && (
-                  <Alert severity="success" sx={{ mb: 2 }}>
-                    {successDeleteMsg}
-                  </Alert>
-                )}
-                <Typography sx={{ mt: 1, color: 'text.secondary' }}>
-                  {coupons.length} coupon{coupons.length !== 1 ? 's' : ''} created
-                  {/* {coupons.length > 0
-                  ? t('mygetaways.count', { count: coupons.length })
-                  : t('mygetaways.none')
-                  } */}
-                </Typography>
+            <Typography sx={{ mt: 1, color: 'text.secondary' }}>
+              {coupons.length} coupon{coupons.length !== 1 ? 's' : ''} created
+              {/* {coupons.length > 0
+              ? t('mygetaways.count', { count: coupons.length })
+              : t('mygetaways.none')
+              } */}
+            </Typography>
 
-                {/* <Button startIcon={<AddIcon />} variant="contained" disableElevation
-                  onClick={() => navigate(couponNewPath())}
-                >Add coupon
-                </Button> */}
+            {/* <Button startIcon={<AddIcon />} variant="contained" disableElevation
+              onClick={() => navigate(couponNewPath())}
+            >Add coupon
+            </Button> */}
 
-                <Box sx={{ mt: 2 }}>
-                  {paginatedCoupons.map((coupon) => (
-                  // {coupons.map((coupon) => (
-                    <CouponItem
-                      key={coupon.id}
-                      id={coupon.id}
-                      title={coupon.title}
-                      description={coupon.description ?? ''}
-                      dates={`${firestoreToDate(coupon.validFrom)} - ${firestoreToDate(coupon.validUntil)}`}
-                      discount={getCouponValue(coupon)}
-                      discountType={coupon.discountType}
-                      usersUsed={coupon.usersUsed ?? []}
-                      userLimit={coupon.userLimit}
-                      createdAt={firestoreToDate(coupon.createdAt)}
-                      updatedAt={firestoreToDate(coupon.updatedAt)}
-                      onEdit={() => navigate(couponEditPath(coupon.id))}
-                      onDelete={(couponId, couponTitle) => handleDeleteClick(couponId, couponTitle)}
-                      isDeleting={isDeleting}
-                    />
-                  ))}
-                </Box>
-                  {coupons.length > ITEMS_PER_PAGE && (
-                    <Stack spacing={2} sx={{ mt: 4, alignItems: 'center' }}>
-                      <Pagination
-                        shape="rounded"
-                        count={Math.ceil(coupons.length / ITEMS_PER_PAGE)}
-                        page={page}
-                        onChange={handlePageChange}
-                      />
-                    </Stack>
-                  )}
-              </Box>
-            )}
-          </Grid>
-        </Grid>
+            <Box sx={{ mt: 2 }}>
+              {paginatedCoupons.map((coupon) => (
+              // {coupons.map((coupon) => (
+                <CouponItem
+                  key={coupon.id}
+                  id={coupon.id}
+                  title={coupon.title}
+                  description={coupon.description ?? ''}
+                  dates={`${firestoreToDate(coupon.validFrom)} - ${firestoreToDate(coupon.validUntil)}`}
+                  discount={getCouponValue(coupon)}
+                  discountType={coupon.discountType}
+                  usersUsed={coupon.usersUsed ?? []}
+                  userLimit={coupon.userLimit}
+                  createdAt={firestoreToDate(coupon.createdAt)}
+                  updatedAt={firestoreToDate(coupon.updatedAt)}
+                  onEdit={() => navigate(couponEditPath(coupon.id))}
+                  onDelete={(couponId, couponTitle) => handleDeleteClick(couponId, couponTitle)}
+                  isDeleting={isDeleting}
+                />
+              ))}
+            </Box>
+              {coupons.length > ITEMS_PER_PAGE && (
+                <Stack spacing={2} sx={{ mt: 4, alignItems: 'center' }}>
+                  <Pagination
+                    shape="rounded"
+                    count={Math.ceil(coupons.length / ITEMS_PER_PAGE)}
+                    page={page}
+                    onChange={handlePageChange}
+                  />
+                </Stack>
+              )}
+          </Box>
+        )}
+      
       </Box>
     </>
   );

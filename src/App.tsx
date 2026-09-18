@@ -13,6 +13,8 @@ import {CreateGetaway} from './components/CreateGetaway';
 
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import ProtectedRoute from './components/ProtectedRoute';
+import AdminLayout from './components/AdminLayout';
+import ScrollToTop from './components/ScrollToTop';
 
 import Landing from './views/Landing';
 import Login from './views/Login';
@@ -32,6 +34,7 @@ import { FormDataProvider, useFormData } from './contexts/FormDataContext';
 import { useWatchLocation } from './hooks/useWatchLocation';
 import { useUserStore } from './store/useUserStore';
 import { AuthProvider } from './contexts/AuthContext';
+import { SidebarProvider } from './contexts/SidebarContext';
 import TestApi from './views/TestApi';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
@@ -159,34 +162,40 @@ function App() {
                 <APIProvider apiKey={API_KEY} version="quarterly" libraries={GOOGLE_MAPS_LIBRARIES}>
                   <AppLocationInitializer />
                   <Router>
+                    <SidebarProvider>
+                    <ScrollToTop />
                     <div className="mainContainer">
                     <Navbar/>
                     <Routes>
+                      {/* Sin sidebar */}
                       <Route path={ROUTES.LANDING} element={<Landing />} />
                       <Route path={ROUTES.LOGIN} element={<Login />} />
-                      <Route path={ROUTES.GETAWAYS} element={<Getaways/>} />
-                      <Route path={ROUTES.MY_GETAWAYS} element={<ProtectedRoute><Mygetaways/></ProtectedRoute>}/>
-                      <Route path={ROUTE_PATTERNS.GETAWAY_DETAIL} element={<ProtectedRoute><GetawayDetail /></ProtectedRoute>} />
-                      <Route path={ROUTE_PATTERNS.BOOKING} element={<ProtectedRoute><BookGetaway2 /></ProtectedRoute>} />
-                      <Route path={ROUTES.MY_ORDERS} element={<ProtectedRoute><MyOrders /></ProtectedRoute>} />
-                      <Route path={ROUTE_PATTERNS.PAYMENT} element={ <ProtectedRoute><Payment /></ProtectedRoute> } />
+                      <Route path={ROUTE_PATTERNS.PAYMENT} element={<ProtectedRoute><Payment /></ProtectedRoute>} />
                       <Route path={ROUTES.PAID} element={<Paid />} />
-                      {/* <Route path={ROUTES.RESERVATIONS} element={<ProtectedRoute requiredRole={Role.ADMIN}><Reservations /></ProtectedRoute>} /> */}
-                      <Route path={ROUTE_PATTERNS.RESERVATIONS} element={
-                        <ProtectedRoute requiredRole={Role.ADMIN}>
-                        <Reservations />
-                      </ProtectedRoute>} />
-
-                      <Route path={ROUTES.CREATE_GETAWAY} element={<ProtectedRoute><CreateGetaway/></ProtectedRoute>} />
-                      <Route path={ROUTES.COUPONS} element={<ProtectedRoute><Coupons/></ProtectedRoute>} />
-                      <Route path={ROUTES.COUPON_NEW} element={<ProtectedRoute><CouponForm/></ProtectedRoute>} />
-                      <Route path={ROUTE_PATTERNS.COUPON_EDIT} element={<CouponForm />} />
-
                       <Route path={ROUTES.DATA_VIEW} element={<DataViewWrapper />} />
                       <Route path={ROUTES.TEST_API} element={<TestApi/>} />
+
+                      {/* Con sidebar: cuelgan de AdminLayout para que se monte una
+                          sola vez y no se remonte en cada navegación. */}
+                      <Route element={<AdminLayout />}>
+                        <Route path={ROUTES.GETAWAYS} element={<Getaways/>} />
+                        <Route path={ROUTE_PATTERNS.GETAWAY_DETAIL} element={<ProtectedRoute><GetawayDetail /></ProtectedRoute>} />
+                        <Route path={ROUTES.MY_GETAWAYS} element={<ProtectedRoute><Mygetaways/></ProtectedRoute>} />
+                        <Route path={ROUTE_PATTERNS.BOOKING} element={<ProtectedRoute><BookGetaway2 /></ProtectedRoute>} />
+                        <Route path={ROUTES.MY_ORDERS} element={<ProtectedRoute><MyOrders /></ProtectedRoute>} />
+                        <Route path={ROUTE_PATTERNS.RESERVATIONS} element={
+                          <ProtectedRoute requiredRole={Role.ADMIN}>
+                            <Reservations />
+                          </ProtectedRoute>} />
+                        <Route path={ROUTES.CREATE_GETAWAY} element={<ProtectedRoute><CreateGetaway/></ProtectedRoute>} />
+                        <Route path={ROUTES.COUPONS} element={<ProtectedRoute><Coupons/></ProtectedRoute>} />
+                        <Route path={ROUTES.COUPON_NEW} element={<ProtectedRoute><CouponForm/></ProtectedRoute>} />
+                        <Route path={ROUTE_PATTERNS.COUPON_EDIT} element={<CouponForm />} />
+                      </Route>
                     </Routes>
                     <Footer/>
                     </div>
+                    </SidebarProvider>
                   </Router>
                 </APIProvider>
               </AppConfigProvider>

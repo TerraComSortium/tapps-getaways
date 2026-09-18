@@ -9,12 +9,10 @@ import { Box, TextField, Button, Typography, Divider, RadioGroup,
   FormControlLabel,
   // FormLabel, FormHelperText,
   Radio, Checkbox, CircularProgress, Alert } from '@mui/material';
-import Grid from '@mui/material/Grid2';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import LocalOfferIcon from '@mui/icons-material/LocalOffer';
 
-import AdminSideBar from '../components/AdminSidebar';
 import { useAuth } from '../contexts/AuthContext';
 import { useGetawayById } from '../hooks/useGetawayById';
 import { useCouponById } from '../hooks/useCoupon';
@@ -31,6 +29,17 @@ import type { Tournament } from '../services/tournament';
 import type { Ladder } from '../services/ladder';
 
 const TAX_RATE = 0.0654;
+
+interface LodgingOption {
+  name: string;
+  price: number;
+  occupancy?: string;
+}
+interface AddOnOption {
+  name: string;
+  price: number;
+}
+
 interface FormData {
   // payment user info....?
   lodgingOption: string;
@@ -43,6 +52,9 @@ interface FormData {
   // };
   agreePolicies: boolean;
   agreeTerms: boolean;
+  /** Firebase no guarda estos datos, así que se piden aquí. */
+  cellphone: string;
+  address: string;
 }
 
 export default function BookGetaway() {
@@ -59,13 +71,16 @@ export default function BookGetaway() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const { handleSubmit, control, formState: { errors }, watch, reset } = useForm<FormData>({
     defaultValues: {
       lodgingOption: '',
       selectedAddOns: [],
       agreePolicies: false,
-      agreeTerms: false
+      agreeTerms: false,
+      cellphone: '',
+      address: '',
     }
   });
 
@@ -78,7 +93,9 @@ export default function BookGetaway() {
         lodgingOption: '',
         selectedAddOns: [],
         agreePolicies: false,
-        agreeTerms: false
+        agreeTerms: false,
+        cellphone: '',
+        address: '',
       });
     }
   }, [id, getaway, reset]);
@@ -87,10 +104,10 @@ export default function BookGetaway() {
     let sub = 0;
     if (!getaway) return { subtotal: 0, taxes: 0, total: 0 };
 
-    const selectedLodging = getaway.lodgingOptions?.find((opt: any) => opt.name === watchLodging);
+    const selectedLodging = getaway.lodgingOptions?.find((opt: LodgingOption) => opt.name === watchLodging);
     if (selectedLodging) sub += Number(selectedLodging.price) || 0;
 
-    getaway.optionalAddOns?.forEach((addon: any) => {
+    getaway.optionalAddOns?.forEach((addon: AddOnOption) => {
       if (watchAddOns?.includes(addon.name)) {
         sub += Number(addon.price) || 0;
       }
@@ -118,10 +135,11 @@ export default function BookGetaway() {
   const onSubmit = async (formData: FormData) => {
     if (!getaway || !user) return;
     setIsSubmitting(true);
+    setSubmitError(null);
 
     try {
-      const originalLodging = getaway.lodgingOptions?.find((opt: any) => opt.name === formData.lodgingOption);
-      const originalAddOns = getaway.optionalAddOns?.filter((addon: any) => formData.selectedAddOns.includes(addon.name));
+      const originalLodging = getaway.lodgingOptions?.find((opt: LodgingOption) => opt.name === formData.lodgingOption);
+      const originalAddOns = getaway.optionalAddOns?.filter((addon: AddOnOption) => formData.selectedAddOns.includes(addon.name));
 
       //payload to POST
       const reservationPayload: Reservation = {
@@ -132,7 +150,8 @@ export default function BookGetaway() {
           id: user.uid,
           name: user.displayName || '',
           email: user.email || '',
-          cellphone: (user as any).cellphone || '', //Firebase User no expone cellphone
+          cellphone: formData.cellphone,
+          ...(formData.address ? { address: { street: formData.address } } : {}),
           // address: {
           //   street: "string" || '',
           //   city: "string" || '',
@@ -148,10 +167,10 @@ export default function BookGetaway() {
         //   "occupancy": "string || '',
             option: originalLodging.name,
             price: originalLodging.price,
-            occupancy: (originalLodging as any).occupancy,
+            occupancy: (originalLodging as LodgingOption).occupancy,
         } : undefined,
 
-        optionalAddOns: originalAddOns?.map((addon:any) => ({
+        optionalAddOns: originalAddOns?.map((addon: AddOnOption) => ({
           addonName: addon.name,
           price: addon.price
         })) || [],
@@ -179,7 +198,10 @@ export default function BookGetaway() {
       localStorage.setItem('selectedData', JSON.stringify(dataForPayment));
       navigate(paymentPath(fetchedOrderId), { state: { dataForPayment } });
     } catch (err) {
-      console.error("Error at Booking getaway, try again later", err);
+      // Antes solo se logueaba: el botón se rehabilitaba y el usuario no sabía
+      // por qué no avanzaba al pago.
+      console.error('[BOOKING] Error al crear la reserva:', err);
+      setSubmitError(err instanceof Error ? err.message : t('book.submitError'));
     } finally {
       setIsSubmitting(false);
     }
@@ -189,180 +211,195 @@ export default function BookGetaway() {
   if (loading) return <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}><CircularProgress /></Box>;
   if (error) return <Alert severity="error">{error}</Alert>;
   if (!getaway) return <Alert severity="info">{t('book.unavailable')}</Alert>;
-  console.log("Valores actuales del form:", watchLodging);
-  console.log("Opciones disponibles:", getaway.lodgingOptions);
   return (
     <>
-      <Grid container rowSpacing={1} columnSpacing={{ xs: 1, sm: 2, md: 3 }}>
-        <AdminSideBar />
-        <Grid size={{ xs: 12, sm: 9, md: 10 }} className='section blueBg'>
-          <Typography variant="h5" className='title'>{t('book.title')}</Typography>
-          <Typography variant="h6" className='title'>{getaway.title || t('book.title')}</Typography>
-          {/* <Typography variant="h6" className='title'><span>{getaway.startDate} to {getaway.endDate}</span></Typography> */}
+            <Typography variant="h5" className='title'>{t('book.title')}</Typography>
+      <Typography variant="h6" className='title'>{getaway.title || t('book.title')}</Typography>
+      {/* <Typography variant="h6" className='title'><span>{getaway.startDate} to {getaway.endDate}</span></Typography> */}
 
-          <Box sx={{ width: 1000, maxWidth: '100%', padding: { xs: 1, sm: '7px' }, boxSizing: 'border-box' }}>
-            <form onSubmit={handleSubmit(onSubmit, scrollToFirstError)} noValidate>
-              <Typography variant="h6" className='purpleLabel' sx={{ mt: 2, mb: 1, fontSize: '14px', fontWeight: 'bold' }}>{t('book.paymentContactInfo')}</Typography>
-              <TextField label={t('book.playerName')} margin="dense" fullWidth disabled defaultValue={user?.displayName || ''} />
+      <Box sx={{ width: 1000, maxWidth: '100%', padding: { xs: 1, sm: '7px' }, boxSizing: 'border-box' }}>
+        <form onSubmit={handleSubmit(onSubmit, scrollToFirstError)} noValidate>
+          <Typography variant="h6" className='purpleLabel' sx={{ mt: 2, mb: 1, fontSize: '14px', fontWeight: 'bold' }}>{t('book.paymentContactInfo')}</Typography>
+          <TextField label={t('book.playerName')} margin="dense" fullWidth disabled defaultValue={user?.displayName || ''} />
 
-              <TextField label={t('book.email')} fullWidth margin="dense" disabled
-                defaultValue={user?.email || ''}
+          <TextField label={t('book.email')} fullWidth margin="dense" disabled
+            defaultValue={user?.email || ''}
+          />
+          {/* Firebase no expone teléfono ni dirección: se piden aquí. Antes eran
+              campos deshabilitados y la orden se guardaba siempre vacía, así que
+              el organizador no tenía forma de contactar al jugador. */}
+          <Controller
+            name="cellphone" control={control}
+            rules={{
+              required: t('book.cellphoneRequired'),
+              validate: (value) =>
+                value.replace(/\D/g, '').length >= 7 || t('book.cellphoneInvalid'),
+            }}
+            render={({ field, fieldState: { error } }) => (
+              <TextField
+                {...field}
+                label={t('book.cellphone')} type="tel"
+                fullWidth margin="dense" required
+                error={!!error}
+                helperText={error?.message ?? ''}
               />
-              <TextField label={t('book.cellphone')}
-                fullWidth margin="dense"
-                defaultValue=""
-                // defaultValue={user?.cellphone || ''}
-                disabled
-              />
-              <TextField label={t('book.address')}
-                fullWidth margin="dense"
-                defaultValue=""
-                disabled
-              />
-              <Typography variant="h6" className='purpleLabel' sx={{ mt: 2, mb: 0.5, fontSize: '14px', fontWeight: 'bold' }}>{t('book.lodgingOptions')}</Typography>
-              <Divider aria-hidden="true" sx={{ bgcolor: BRAND.green }} />
-              <Controller name="lodgingOption"
-                control={control}
-                defaultValue=""
-                rules={{ required: t('book.selectLodging') }}
-                render={({ field }) => (
-                  <RadioGroup {...field} aria-labelledby="demo-radio-buttons-group-label" name="radio-buttons-group"
-                  value={field.value || ''}
-                  onChange={(e) => field.onChange(e.target.value)}
-                  >
-                    {getaway.lodgingOptions?.map((option: any) => (
-                      <FormControlLabel
-                        key={option.name}
-                        value={option.name}
-                        control={<Radio />}
-                        label={t('book.lodgingLabel', {
-                          price: option.price,
-                          occupancy: option.occupancy || '',
-                          name: option.name,
-                        })}
-                      />
-                    ))}
-                  </RadioGroup>
-                )}
-              />
-              {errors.lodgingOption && <Typography variant="caption" color="error">{errors.lodgingOption.message}</Typography>}
-
-              <Typography variant="h6" className='purpleLabel' sx={{ mt: 2, mb: 0.5, fontSize: '14px', fontWeight: 'bold' }}>{t('book.addOns')}</Typography>
-              <Divider aria-hidden="true" sx={{ bgcolor: BRAND.green }} />
-              <Controller name="selectedAddOns" control={control} render={({ field }) => (
-                <FormControl component="fieldset" variant="standard"
-                  sx={{ mt: 1, display: 'flex', flexDirection: 'column' }}
-                >
-                  <FormGroup>
-                    {getaway.optionalAddOns?.map((addon: any) => (
-                      <FormControlLabel
-                        key={addon.name}
-                        label={`${addon.name}:  $${addon.price}`}
-                        control={
-                          <Checkbox
-                            // name="addOns"
-                            checked={field.value.includes(addon.name)}
-                            onChange={(e) => {
-                              const newValue = e.target.checked
-                              ? [...field.value, addon.name]
-                              : field.value.filter((val: string) => val !== addon.name);
-                              field.onChange(newValue);
-                            }}
-                          />
-                        }
-                      />
-                    ))}
-                  </FormGroup>
-                </FormControl>
-              )}
-            />
-              <AcademySchedule
-                mode="readonly"
-                schedules={(getaway.academyClasses as AcademyClass[] | undefined) ?? []}
-                loading={false}
-                selectedIds={getaway.academyIds || []}
-              />
-              <TournamentsSchedule
-                mode="readonly"
-                selectedIds={getaway.tournamentIds || []}
-                items={(getaway.tournaments as Tournament[] | undefined) ?? []}
-              />
-              <LaddersSchedule
-                mode="readonly"
-                selectedIds={getaway.ladderIds || []}
-                items={(getaway.ladders as Ladder[] | undefined) ?? []}
-              />
-              <Typography variant="h6" className='purpleLabel' sx={{ mt: 2, mb: 0.5, fontSize: '14px', fontWeight: 'bold' }}>{t('book.paymentDetails')}</Typography>
-              <Divider aria-hidden="true" sx={{ bgcolor: BRAND.green }} />
-              {coupon && (
-                <Box sx={{ mt: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <LocalOfferIcon sx={{ color: BRAND.primary }} />
-                  <Typography variant="body2" sx={{ fontWeight: 'bold', color: BRAND.primary }}>
-                    Coupon: {coupon.title} - {couponLabel}
-                  </Typography>
-                </Box>
-              )}
-              <Typography variant="body2" sx={{ mt: 1 }}>{t('book.subtotal')}: ${(totals.subtotal || 0).toFixed(2)} USD</Typography>
-              {coupon && (
-                <Typography variant="body2">Discount: -${(totals.discount || 0).toFixed(2)} USD</Typography>
-              )}
-              <Typography variant="body2">{t('book.taxes')}: ${(totals.taxes || 0).toFixed(2)} USD</Typography>
-              <Typography variant="body2" sx={{ fontWeight: 'bold' }}>{t('book.total')}: ${ (totals.total || 0).toFixed(2)} USD</Typography>
-              <Typography variant="body2">{t('book.totalNote')}</Typography>
-
-              <Typography variant="h6" className='purpleLabel' sx={{ mt: 2, mb: 0.5, fontSize: '16px', fontWeight: 'bold' }}>{t('book.policies')}</Typography>
-              <Typography variant="body2" sx={{ mt: 1 }}>{getaway.policies || t('book.noPolicies')}</Typography>
-              <Controller name="agreePolicies" control={control} rules={{ required: t('book.mustAgreePolicy') }}
-              render={({ field }) => <FormControlLabel control={<Checkbox {...field} checked={field.value} />} label={t('book.agreePolicy')} />}
-              />
-
-              {errors.agreePolicies && (
-                <Typography variant="caption" color="error" sx={{ display: 'block' }}>{errors.agreePolicies.message}</Typography>
-              )}
-
-              <Typography variant="h6" className='purpleLabel' sx={{ mt: 2, mb: 0.5, fontSize: '16px', fontWeight: 'bold' }}>{t('book.terms')}</Typography>
-              <Box sx={{ backgroundColor: 'white', borderRadius: '8px', padding: '1px 15px', mt: 1, mr: 2 }}>
-                <Typography variant="body2" sx={{ py: 1 }}>{getaway.terms || t('book.noTerms')}</Typography>
-              </Box>
-              <Controller name="agreeTerms"
-                control={control}
-                defaultValue={false}
-                rules={{ required: t('book.mustAgreeTerms') }}
-                render={({ field }) => (
+            )}
+          />
+          <Controller
+            name="address" control={control}
+            render={({ field }) => (
+              <TextField {...field} label={t('book.address')} fullWidth margin="dense" />
+            )}
+          />
+          <Typography variant="h6" className='purpleLabel' sx={{ mt: 2, mb: 0.5, fontSize: '14px', fontWeight: 'bold' }}>{t('book.lodgingOptions')}</Typography>
+          <Divider aria-hidden="true" sx={{ bgcolor: BRAND.green }} />
+          <Controller name="lodgingOption"
+            control={control}
+            defaultValue=""
+            rules={{ required: t('book.selectLodging') }}
+            render={({ field }) => (
+              <RadioGroup {...field} aria-labelledby="demo-radio-buttons-group-label" name="radio-buttons-group"
+              value={field.value || ''}
+              onChange={(e) => field.onChange(e.target.value)}
+              >
+                {getaway.lodgingOptions?.map((option: LodgingOption) => (
                   <FormControlLabel
-                    control={<Checkbox {...field} checked={field.value} />}
-                    label={t('book.agreeTerms')}
+                    key={option.name}
+                    value={option.name}
+                    control={<Radio />}
+                    label={t('book.lodgingLabel', {
+                      price: option.price,
+                      occupancy: option.occupancy || '',
+                      name: option.name,
+                    })}
                   />
-                )}
-              />
-              {errors.agreeTerms && (
-                <Typography variant="caption" color="error" sx={{ display: 'block' }}>{errors.agreeTerms.message}</Typography>
-              )}
+                ))}
+              </RadioGroup>
+            )}
+          />
+          {errors.lodgingOption && <Typography variant="caption" color="error">{errors.lodgingOption.message}</Typography>}
 
-              <Box sx={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 2, my: '20px' }}>
-              <Button type="button" startIcon={<ArrowBackIcon />} variant="outlined" disableElevation
-                onClick={() => navigate(-1)}
-                sx={{ minWidth: '135px', whiteSpace: 'nowrap', px: 2, borderRadius: '8px', borderColor: BRAND.primary,
-                //bgcolor: BRAND.white, color: BRAND.primary,
-                fontWeight: 'medium', textTransform: 'none',
-                ':hover': { bgcolor: BRAND.primary, color: 'white' } }}
-              >{t('book.back')}</Button>
-
-              <Button
-                type="submit" startIcon={isSubmitting ? <CircularProgress size={20} /> : <ShoppingCartIcon />}
-                variant="outlined" disableElevation disabled={isSubmitting}
-                sx={{ borderRadius: '8px', bgcolor: BRAND.primary, color: BRAND.white,
-                  borderColor: BRAND.primary,
-                  fontWeight: 'medium', textTransform: 'none',
-                  ':hover': { bgcolor: 'white', color: BRAND.primary }
-                }}
-              > {isSubmitting ? t('book.processing') : t('book.submit')}
-              </Button>
+          <Typography variant="h6" className='purpleLabel' sx={{ mt: 2, mb: 0.5, fontSize: '14px', fontWeight: 'bold' }}>{t('book.addOns')}</Typography>
+          <Divider aria-hidden="true" sx={{ bgcolor: BRAND.green }} />
+          <Controller name="selectedAddOns" control={control} render={({ field }) => (
+            <FormControl component="fieldset" variant="standard"
+              sx={{ mt: 1, display: 'flex', flexDirection: 'column' }}
+            >
+              <FormGroup>
+                {getaway.optionalAddOns?.map((addon: AddOnOption) => (
+                  <FormControlLabel
+                    key={addon.name}
+                    label={`${addon.name}:  $${addon.price}`}
+                    control={
+                      <Checkbox
+                        // name="addOns"
+                        checked={field.value.includes(addon.name)}
+                        onChange={(e) => {
+                          const newValue = e.target.checked
+                          ? [...field.value, addon.name]
+                          : field.value.filter((val: string) => val !== addon.name);
+                          field.onChange(newValue);
+                        }}
+                      />
+                    }
+                  />
+                ))}
+              </FormGroup>
+            </FormControl>
+          )}
+        />
+          <AcademySchedule
+            mode="readonly"
+            schedules={(getaway.academyClasses as AcademyClass[] | undefined) ?? []}
+            loading={false}
+            selectedIds={getaway.academyIds || []}
+          />
+          <TournamentsSchedule
+            mode="readonly"
+            selectedIds={getaway.tournamentIds || []}
+            items={(getaway.tournaments as Tournament[] | undefined) ?? []}
+          />
+          <LaddersSchedule
+            mode="readonly"
+            selectedIds={getaway.ladderIds || []}
+            items={(getaway.ladders as Ladder[] | undefined) ?? []}
+          />
+          <Typography variant="h6" className='purpleLabel' sx={{ mt: 2, mb: 0.5, fontSize: '14px', fontWeight: 'bold' }}>{t('book.paymentDetails')}</Typography>
+          <Divider aria-hidden="true" sx={{ bgcolor: BRAND.green }} />
+          {coupon && (
+            <Box sx={{ mt: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
+              <LocalOfferIcon sx={{ color: BRAND.primary }} />
+              <Typography variant="body2" sx={{ fontWeight: 'bold', color: BRAND.primary }}>
+                Coupon: {coupon.title} - {couponLabel}
+              </Typography>
             </Box>
-            </form>
+          )}
+          <Typography variant="body2" sx={{ mt: 1 }}>{t('book.subtotal')}: ${(totals.subtotal || 0).toFixed(2)} USD</Typography>
+          {coupon && (
+            <Typography variant="body2">Discount: -${(totals.discount || 0).toFixed(2)} USD</Typography>
+          )}
+          <Typography variant="body2">{t('book.taxes')}: ${(totals.taxes || 0).toFixed(2)} USD</Typography>
+          <Typography variant="body2" sx={{ fontWeight: 'bold' }}>{t('book.total')}: ${ (totals.total || 0).toFixed(2)} USD</Typography>
+          <Typography variant="body2">{t('book.totalNote')}</Typography>
+
+          <Typography variant="h6" className='purpleLabel' sx={{ mt: 2, mb: 0.5, fontSize: '16px', fontWeight: 'bold' }}>{t('book.policies')}</Typography>
+          <Typography variant="body2" sx={{ mt: 1 }}>{getaway.policies || t('book.noPolicies')}</Typography>
+          <Controller name="agreePolicies" control={control} rules={{ required: t('book.mustAgreePolicy') }}
+          render={({ field }) => <FormControlLabel control={<Checkbox {...field} checked={field.value} />} label={t('book.agreePolicy')} />}
+          />
+
+          {errors.agreePolicies && (
+            <Typography variant="caption" color="error" sx={{ display: 'block' }}>{errors.agreePolicies.message}</Typography>
+          )}
+
+          <Typography variant="h6" className='purpleLabel' sx={{ mt: 2, mb: 0.5, fontSize: '16px', fontWeight: 'bold' }}>{t('book.terms')}</Typography>
+          <Box sx={{ backgroundColor: 'white', borderRadius: '8px', padding: '1px 15px', mt: 1, mr: 2 }}>
+            <Typography variant="body2" sx={{ py: 1 }}>{getaway.terms || t('book.noTerms')}</Typography>
           </Box>
-        </Grid>
-      </Grid>
+          <Controller name="agreeTerms"
+            control={control}
+            defaultValue={false}
+            rules={{ required: t('book.mustAgreeTerms') }}
+            render={({ field }) => (
+              <FormControlLabel
+                control={<Checkbox {...field} checked={field.value} />}
+                label={t('book.agreeTerms')}
+              />
+            )}
+          />
+          {errors.agreeTerms && (
+            <Typography variant="caption" color="error" sx={{ display: 'block' }}>{errors.agreeTerms.message}</Typography>
+          )}
+
+          {submitError && (
+            <Alert severity="error" sx={{ mt: 2 }} onClose={() => setSubmitError(null)}>
+              {submitError}
+            </Alert>
+          )}
+
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 2, my: '20px' }}>
+          <Button type="button" startIcon={<ArrowBackIcon />} variant="outlined" disableElevation
+            onClick={() => navigate(-1)}
+            sx={{ minWidth: '135px', whiteSpace: 'nowrap', px: 2, borderRadius: '8px', borderColor: BRAND.primary,
+            //bgcolor: BRAND.white, color: BRAND.primary,
+            fontWeight: 'medium', textTransform: 'none',
+            ':hover': { bgcolor: BRAND.primary, color: 'white' } }}
+          >{t('book.back')}</Button>
+
+          <Button
+            type="submit" startIcon={isSubmitting ? <CircularProgress size={20} /> : <ShoppingCartIcon />}
+            variant="outlined" disableElevation disabled={isSubmitting}
+            sx={{ borderRadius: '8px', bgcolor: BRAND.primary, color: BRAND.white,
+              borderColor: BRAND.primary,
+              fontWeight: 'medium', textTransform: 'none',
+              ':hover': { bgcolor: 'white', color: BRAND.primary }
+            }}
+          > {isSubmitting ? t('book.processing') : t('book.submit')}
+          </Button>
+        </Box>
+        </form>
+      </Box>
+    
     </>
   );
 }

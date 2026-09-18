@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, Link as RouterLink } from 'react-router-dom';
 import { ROUTES } from '../constants/routes';
 import { BRAND } from '../theme/colors';
 import { Container, Divider, Stack, Box, Typography, Button } from '@mui/material';
@@ -112,7 +112,7 @@ function Paid() {
               alignItems: 'center', justifyContent: 'center'
             }}>
               <Button startIcon={<ArrowBackIcon />} type="button" variant="contained"
-                href={ROUTES.GETAWAYS}
+                component={RouterLink} to={ROUTES.GETAWAYS}
                 sx={{
                   mt: 1, mb: 3, borderRadius:'8px',
                   minWidth: { xs: '200px', sm: '220px' },

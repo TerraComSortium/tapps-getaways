@@ -1,6 +1,6 @@
 // import * as React from 'react';
 import{ useEffect, useState, useRef } from 'react';
-import { useNavigate, useLocation, useParams } from 'react-router-dom';
+import { useNavigate, useLocation, useParams, Link as RouterLink } from 'react-router-dom';
 import {
   Container, Box, Stack, Modal, Paper, Chip,
   Typography, Divider, Button, IconButton,
@@ -36,9 +36,7 @@ import { useAuth } from '../contexts/AuthContext';
 import type { Getaway } from '../types/getaway';
 import { useGetawayById } from '../hooks/useGetawayById';
 import { getSportLabel, isGetawayExpired } from '../utils/getawayHelpers';
-import {
-  // ROUTES,
-  bookingPath } from '../constants/routes';
+import { ROUTES, bookingPath } from '../constants/routes';
 import { Role } from '../constants/roles';
 import GetawaySchedule from './GetawaySchedule';
 import AcademySchedule from './AcademySchedule';
@@ -226,7 +224,7 @@ function GetawayDetail() {
         <Typography variant="h4">{t('detail.notFound')}</Typography>
         <Typography sx={{ mb: 2 }}>{t('detail.notFoundDetail')}</Typography>
         <Button size="medium" variant="contained" startIcon={<ArrowBackIcon />}
-          onClick={() => navigate(-1)}
+          component={RouterLink} to={ROUTES.GETAWAYS}
           sx={{
             m: '1em 0', p: '8px 0.8em', minWidth: '220px', whiteSpace: 'nowrap',
             borderRadius:'8px', color:BRAND.white, bgcolor: BRAND.primary, textTransform: 'none',
@@ -252,17 +250,6 @@ function GetawayDetail() {
   return (
     <>
       <Container sx={{ display:"flex", flexDirection:'column' }}>
-        <Stack>
-          <Button 
-            startIcon={<ArrowBackIcon />} variant="text" size="medium"
-            onClick={() => navigate(-1)}
-            sx={{
-              m: '1em 0', p: '8px 0.8em', minWidth: '220px', whiteSpace: 'nowrap',
-              borderRadius:'8px', color:BRAND.black,  textTransform: 'none',
-            }}
-          > {t('detail.searchMoreBang')} </Button>
-        </Stack>
-
         <Grid container spacing={4} sx={{ width: '100%', alignItems: 'flex-start' }}>
           <Grid size={{ xs: 12, md: 5 }} >
             <Stack direction="column" onMouseLeave={revert}>

@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { useForm, Controller, SubmitHandler, SubmitErrorHandler } from 'react-hook-form';
 import {
   Box, Button, Typography, TextField, Divider,
@@ -56,6 +56,7 @@ export default function CouponForm(
   const error = createError || editError;
 
   // const getawayId = searchParams.get('getawayId') ?? undefined;
+  const redirectTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [snackbar, setSnackbar] = useState<{
     open: boolean;
     message: string;
@@ -110,13 +111,26 @@ export default function CouponForm(
    * mostraba su propio mensaje en el idioma del navegador, ignorando i18n.
    * Ahora valida solo RHF y aquí se lleva al usuario al primer campo que falla.
    */
+  /**
+   * Vuelve al listado tras guardar, con una pausa para que dé tiempo a leer el
+   * mensaje de confirmación: si se navega en el acto, el formulario se desmonta
+   * y el Snackbar desaparece antes de verse.
+   */
+  const redirectToList = useCallback(() => {
+    redirectTimer.current = setTimeout(() => onSuccess?.(ROUTES.COUPONS), 1200);
+  }, [onSuccess]);
+
+  // Si el usuario sale antes, se cancela para no navegar sobre un componente muerto.
+  useEffect(() => () => {
+    if (redirectTimer.current) clearTimeout(redirectTimer.current);
+  }, []);
+
   const onInvalid: SubmitErrorHandler<CouponFormValues> = (validationErrors) => {
     scrollToFirstError(validationErrors);
     showSnackbar(t('common.missingFields'), 'error');
   };
 
   const onSubmit: SubmitHandler<CouponFormValues> = async (values) => {
-    console.log('payload:', 'values:', values);
     const payload: CouponPayload = {
     //...values,
       title: values.couponCode,
@@ -131,12 +145,11 @@ export default function CouponForm(
       discountType: values.discountType,
       //  usersUsed: [],
     };
-    console.log('Payload to POST:', payload);
     if (mode === 'edit') {
       editCoupon(couponId!, payload, {
         onSuccess: () => {
           showSnackbar(t('coupon.edited'), 'success');
-          onSuccess?.();
+          redirectToList();
         },
         onError: () => {
           showSnackbar(t('common.update.failed'), 'error');
@@ -147,7 +160,7 @@ export default function CouponForm(
       const result = await create(payload);
       if (result) {
         showSnackbar(t('coupon.created'), 'success');
-        onSuccess?.(ROUTES.COUPONS);
+        redirectToList();
       } else if (error) {
         const errorMsg = error instanceof Error ? error.message : String(error);
         showSnackbar(errorMsg, 'error');
@@ -417,6 +430,10 @@ export default function CouponForm(
           // className={`className ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
           sx={{
             my: 2, minWidth: '160px', whiteSpace: 'nowrap', px: 2, borderRadius: '8px',
+            // El contenedor es flex en columna: por defecto estira a sus hijos al
+            // 100%. Se deja así solo en móvil y en web vuelve a su ancho natural.
+            width: { xs: '100%', sm: 'auto' },
+            alignSelf: { xs: 'stretch', sm: 'flex-start' },
             bgcolor: BRAND.primary, color: BRAND.white, fontWeight: 'medium', textTransform: 'none',
             ':hover': { bgcolor: 'white', color: BRAND.primary }
           }}

@@ -5,8 +5,6 @@ import {
   // ROUTES,
   reservationsPath, couponNewPath } from '../constants/routes';
 import { Box, Stack, Pagination, Typography, CircularProgress, Alert } from '@mui/material';
-import Grid from '@mui/material/Grid2';
-import AdminSideBar from '../components/AdminSidebar';
 import { GetawayItem } from '../components/GetawayItem';
 
 import { useAuth } from '../contexts/AuthContext';
@@ -97,79 +95,75 @@ export default function Mygetaways() {
           <CircularProgress size={24}/>
         </Box>
       )}
-      <Grid container columnSpacing={{ xs: 0, sm: 2, md: 3 }}>
-        <AdminSideBar />
-        <Grid size={{ xs: 12, sm: 9, md:10 }} className="section blueBg">
-          <Box>
-            <Box sx={{ mb: 3 }}>
-              {/* <Typography variant="h6" sx={{ mb: 1, fontWeight: 'bold' }}>{t('mygetaways.title')}</Typography> */}
-              <h3>{t('mygetaways.title')}</h3>
-              {displayError && (
-                <Alert severity="info" sx={{ mb: 2 }}> {displayError} </Alert>
-              )}
-              {successDeleteMsg && (
-                <Alert severity="success" sx={{ mb: 2 }}>
-                  {successDeleteMsg}
-                </Alert>
-              )}
-              <Typography color="text.secondary">
-                {getaways.length > 0
-                  ? t('mygetaways.count', { count: getaways.length })
-                  : t('mygetaways.none')
-                }
-                {/* {filteredGetaways.length > 0
-                  ? `Nearest getaways offers at: ${filteredGetaways.length}`
-                  : 'No offers match your search'
-                } */}
-              </Typography>
-            </Box>
-
-          </Box>
-          <Stack spacing={2}>
-            {paginatedGetaways.map((getaway) => (
-              console.log(`Getaway: ${getaway.title}`, {
-                startRawDate: getaway.startDate,
-                typeStart: typeof getaway.startDate,
-                resultHelper: formatGetawayDates(getaway.startDate, getaway.endDate)
-              }),
-              <GetawayItem
-                key={getaway._id || `fallback-key-${getaway._id}`}
-                name={getaway.title || t('common.untitledGetaway')}
-                // dates={`${getaway.startDate} - ${getaway.endDate}`}
-                dates={formatGetawayDates(getaway.startDate, getaway.endDate)}
-                lodgingOptions={getaway.lodgingOptions || []}
-                sport={getSportLabel(getaway.sport)}
-                galleryPhotos={getValidImages(getaway.galleryPhotos)}
-                onViewDetails={() => handleViewDetails(getaway)}
-                onAddCoupon={role === Role.ADMIN && !isGetawayExpired(getaway)
-                  ? () => handleViewCouponNew(getaway._id
-                    // , getaway.title
-                  )
-                  : undefined
-                }
-                isDeleting={isDeleting}
-                onDelete={() => handleDeleteClick(getaway._id, getaway.title)}
-                // onEdit={role === 'admin' ? () => handleEdit(getaway.id) : undefined}
-                // onViewBookings ={role === 'admin' ? () =>
-                onViewBookings ={role === Role.ADMIN ? () =>
-                  handleViewReservations(getaway._id) : undefined}
-                // badgeCount={getaway.subscribersCount || 0} //toDo
-              />
-            ))}
-          </Stack>
-
-          {getaways.length > ITEMS_PER_PAGE && (
-            <Stack spacing={2} sx={{ mt: 4, alignItems: 'center' }}>
-              <Pagination
-                shape="rounded"
-                count={Math.ceil(getaways.length / ITEMS_PER_PAGE)}
-                page={page}
-                onChange={handlePageChange}
-              />
-            </Stack>
+            <Box>
+        <Box sx={{ mb: 3 }}>
+          {/* <Typography variant="h6" sx={{ mb: 1, fontWeight: 'bold' }}>{t('mygetaways.title')}</Typography> */}
+          <h3>{t('mygetaways.title')}</h3>
+          {displayError && (
+            <Alert severity="info" sx={{ mb: 2 }}> {displayError} </Alert>
           )}
-        </Grid>
-      </Grid>
+          {successDeleteMsg && (
+            <Alert severity="success" sx={{ mb: 2 }}>
+              {successDeleteMsg}
+            </Alert>
+          )}
+          <Typography color="text.secondary">
+            {getaways.length > 0
+              ? t('mygetaways.count', { count: getaways.length })
+              : t('mygetaways.none')
+            }
+            {/* {filteredGetaways.length > 0
+              ? `Nearest getaways offers at: ${filteredGetaways.length}`
+              : 'No offers match your search'
+            } */}
+          </Typography>
+        </Box>
+
+      </Box>
+      <Stack spacing={2}>
+        {paginatedGetaways.map((getaway) => (
+          console.log(`Getaway: ${getaway.title}`, {
+            startRawDate: getaway.startDate,
+            typeStart: typeof getaway.startDate,
+            resultHelper: formatGetawayDates(getaway.startDate, getaway.endDate)
+          }),
+          <GetawayItem
+            key={getaway._id || `fallback-key-${getaway._id}`}
+            name={getaway.title || t('common.untitledGetaway')}
+            // dates={`${getaway.startDate} - ${getaway.endDate}`}
+            dates={formatGetawayDates(getaway.startDate, getaway.endDate)}
+            lodgingOptions={getaway.lodgingOptions || []}
+            sport={getSportLabel(getaway.sport)}
+            galleryPhotos={getValidImages(getaway.galleryPhotos)}
+            onViewDetails={() => handleViewDetails(getaway)}
+            onAddCoupon={role === Role.ADMIN && !isGetawayExpired(getaway)
+              ? () => handleViewCouponNew(getaway._id
+                // , getaway.title
+              )
+              : undefined
+            }
+            isDeleting={isDeleting}
+            onDelete={() => handleDeleteClick(getaway._id, getaway.title)}
+            // onEdit={role === 'admin' ? () => handleEdit(getaway.id) : undefined}
+            // onViewBookings ={role === 'admin' ? () =>
+            onViewBookings ={role === Role.ADMIN ? () =>
+              handleViewReservations(getaway._id) : undefined}
+            // badgeCount={getaway.subscribersCount || 0} //toDo
+          />
+        ))}
+      </Stack>
+
+      {getaways.length > ITEMS_PER_PAGE && (
+        <Stack spacing={2} sx={{ mt: 4, alignItems: 'center' }}>
+          <Pagination
+            shape="rounded"
+            count={Math.ceil(getaways.length / ITEMS_PER_PAGE)}
+            page={page}
+            onChange={handlePageChange}
+          />
+        </Stack>
+      )}
+    
     </>
   );
 }

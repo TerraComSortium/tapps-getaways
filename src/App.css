@@ -3,7 +3,11 @@ body, html, #root {
   margin: 0;
   padding: 0;
   max-width: 100%;
+  /* `hidden` convierte al elemento en contenedor de scroll y rompe el
+     `position: sticky` del sidebar. `clip` recorta igual SIN crear ese
+     contenedor; se deja `hidden` antes como respaldo para navegadores viejos. */
   overflow-x: hidden;
+  overflow-x: clip;
 }
 
 .ItemCenter {

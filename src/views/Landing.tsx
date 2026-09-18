@@ -1,3 +1,4 @@
+import { Link as RouterLink } from 'react-router-dom';
 import { Box, Button, Typography, Card, CardContent, CardMedia, List, ListItemText} from '@mui/material';
 import Grid from '@mui/material/Grid2';
 import { ROUTES } from '../constants/routes';
@@ -157,7 +158,7 @@ const LandingPage = () => {
             <Typography variant="body1" className='label' sx={{ mt: 2, fontWeight: 'semibold' }}>
               {t('landing.signInExplore')}
             </Typography>
-            <Button href={ROUTES.LOGIN} type="submit" variant="contained" disableElevation
+            <Button component={RouterLink} to={ROUTES.LOGIN} variant="contained" disableElevation
               sx={{ mt: 2, mb: 5, bgcolor: BRAND.lime, color: BRAND.navy, fontWeight: 'bold', borderRadius: '30px' }}
             >{t('landing.exploreGetaways')}</Button>
           </Grid>
@@ -184,7 +185,7 @@ const LandingPage = () => {
                   <ListItemText primary={t('landing.appSuiteBenefit')}/>
                 </List>
                 <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-                  <Button  href={ROUTES.GETAWAYS}
+                  <Button component={RouterLink} to={ROUTES.GETAWAYS}
                     sx={{ m:2, padding: '5px 20px', bgcolor: BRAND.lime, color: BRAND.navy, fontWeight: 'semibold', borderRadius: '12px', textTransform: 'none' }}
                   >{t('landing.discoverGetawaysBtn')}</Button>
                 </Box>
@@ -202,7 +203,7 @@ const LandingPage = () => {
                   <ListItemText primary={t('landing.appSuiteBenefit')}/>
                 </List>
                 <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-                  <Button  href={ROUTES.LOGIN}
+                  <Button component={RouterLink} to={ROUTES.LOGIN}
                     sx={{ m:2, padding: '5px 20px', bgcolor: BRAND.green, color: BRAND.navy, fontWeight: 'semibold', borderRadius: '12px', textTransform: 'none' }}
                   >{t('landing.offerGetawaysBtn')}</Button>
                 </Box>

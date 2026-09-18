@@ -6,7 +6,6 @@ import {
   Divider, Stack, CircularProgress, Link, Chip, TextField, InputAdornment,
   ToggleButton, ToggleButtonGroup, Alert
 } from '@mui/material';
-import Grid from '@mui/material/Grid2';
 import Table from '@mui/material/Table';
 import TableRow from '@mui/material/TableRow';
 import TableHead from '@mui/material/TableHead';
@@ -21,7 +20,6 @@ import SearchIcon from '@mui/icons-material/Search';
 import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
 import { styled } from '@mui/material/styles';
 import { BRAND } from '../theme/colors';
-import AdminSideBar from '../components/AdminSidebar';
 import { useGetawaySubscribers } from '../hooks/useGetawaySubscribers';
 import { useInvoice } from '../hooks/useInvoice';
 import type { GetawayOrder } from '../types/getaway';
@@ -145,178 +143,174 @@ export const Reservations = () => {
 
   return (
     <>
-      <Grid container columnSpacing={{ xs: 0, sm: 2, md: 3 }}>
-        <AdminSideBar />
-        <Grid size={{ xs: 12, sm: 9, md: 10 }} className="section blueBg">
-          <Box>
-            <Typography variant="h6">{t('reservations.assistantsList')}</Typography>
+            <Box>
+        <Typography variant="h6">{t('reservations.assistantsList')}</Typography>
 
-            {orders.length > 0 && (
-              <Typography sx={{ mt: 1, mb: 3, color: 'text.secondary' }}>
-                {t('reservations.ordersCount', { count: orders.length, paid: paidCount })}
-              </Typography>
-            )}
+        {orders.length > 0 && (
+          <Typography sx={{ mt: 1, mb: 3, color: 'text.secondary' }}>
+            {t('reservations.ordersCount', { count: orders.length, paid: paidCount })}
+          </Typography>
+        )}
 
-            {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+        {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
 
-            {/* Filtro por estado de pago + buscador */}
-            <Stack
-              direction={{ xs: 'column', sm: 'row' }}
-              spacing={1.5}
-              sx={{ mb: 2, alignItems: { xs: 'stretch', sm: 'center' } }}
-            >
-              <ToggleButtonGroup
-                exclusive size="small" value={paymentFilter}
-                onChange={(_, value: PaymentFilter | null) => value && setPaymentFilter(value)}
-                sx={{
-                  bgcolor: 'background.paper',
-                  '& .MuiToggleButton-root.Mui-selected': {
-                    bgcolor: BRAND.primary, color: BRAND.white,
-                    '&:hover': { bgcolor: BRAND.primaryDark },
-                  },
-                }}
-              >
-                <ToggleButton value="all" sx={{ textTransform: 'none', px: 2 }}>
-                  {t('reservations.filterAll')}
-                </ToggleButton>
-                <ToggleButton value="paid" sx={{ textTransform: 'none', px: 2 }}>
-                  {t('reservations.filterPaid')}
-                </ToggleButton>
-                <ToggleButton value="unpaid" sx={{ textTransform: 'none', px: 2 }}>
-                  {t('reservations.filterUnpaid')}
-                </ToggleButton>
-              </ToggleButtonGroup>
+        {/* Filtro por estado de pago + buscador */}
+        <Stack
+          direction={{ xs: 'column', sm: 'row' }}
+          spacing={1.5}
+          sx={{ mb: 2, alignItems: { xs: 'stretch', sm: 'center' } }}
+        >
+          <ToggleButtonGroup
+            exclusive size="small" value={paymentFilter}
+            onChange={(_, value: PaymentFilter | null) => value && setPaymentFilter(value)}
+            sx={{
+              bgcolor: 'background.paper',
+              '& .MuiToggleButton-root.Mui-selected': {
+                bgcolor: BRAND.primary, color: BRAND.white,
+                '&:hover': { bgcolor: BRAND.primaryDark },
+              },
+            }}
+          >
+            <ToggleButton value="all" sx={{ textTransform: 'none', px: 2 }}>
+              {t('reservations.filterAll')}
+            </ToggleButton>
+            <ToggleButton value="paid" sx={{ textTransform: 'none', px: 2 }}>
+              {t('reservations.filterPaid')}
+            </ToggleButton>
+            <ToggleButton value="unpaid" sx={{ textTransform: 'none', px: 2 }}>
+              {t('reservations.filterUnpaid')}
+            </ToggleButton>
+          </ToggleButtonGroup>
 
-              <TextField
-                size="small" value={search}
-                onChange={(event) => setSearch(event.target.value)}
-                placeholder={t('reservations.searchPlaceholder')}
-                sx={{ bgcolor: 'background.paper', borderRadius: 1, minWidth: { sm: 280 } }}
-                slotProps={{
-                  input: {
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <SearchIcon fontSize="small" />
-                      </InputAdornment>
-                    ),
-                  },
-                }}
-              />
+          <TextField
+            size="small" value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            placeholder={t('reservations.searchPlaceholder')}
+            sx={{ bgcolor: 'background.paper', borderRadius: 1, minWidth: { sm: 280 } }}
+            slotProps={{
+              input: {
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon fontSize="small" />
+                  </InputAdornment>
+                ),
+              },
+            }}
+          />
 
-              {/* Empuja el refresh al extremo derecho de la barra */}
-              <Box sx={{ flexGrow: 1 }} />
+          {/* Empuja el refresh al extremo derecho de la barra */}
+          <Box sx={{ flexGrow: 1 }} />
 
-              <Button disableElevation size="small"
-                startIcon={loading ? <CircularProgress size={16} color="inherit" /> : <RefreshIcon />}
-                onClick={refetch}
-                sx={{
-                  minWidth: 115, whiteSpace: 'nowrap', px: 2, alignSelf: { xs: 'flex-end', sm: 'center' }, flexShrink: 0,
-                  borderRadius: '18px',
-                  bgcolor: BRAND.primary, color: BRAND.white, fontVariantCaps: 'normal', textTransform: 'none',
-                  '&.Mui-disabled': { bgcolor: 'action.disabledBackground' }
-                }}
-              > {loading ? t('reservations.refreshing') : t('reservations.refresh')} </Button>
-            </Stack>
+          <Button disableElevation size="small"
+            startIcon={loading ? <CircularProgress size={16} color="inherit" /> : <RefreshIcon />}
+            onClick={refetch}
+            sx={{
+              minWidth: 115, whiteSpace: 'nowrap', px: 2, alignSelf: { xs: 'flex-end', sm: 'center' }, flexShrink: 0,
+              borderRadius: '18px',
+              bgcolor: BRAND.primary, color: BRAND.white, fontVariantCaps: 'normal', textTransform: 'none',
+              '&.Mui-disabled': { bgcolor: 'action.disabledBackground' }
+            }}
+          > {loading ? t('reservations.refreshing') : t('reservations.refresh')} </Button>
+        </Stack>
 
-            {loading ? (
-              <Box sx={{
-                display: 'flex', flexDirection: 'column', justifyContent: 'center',
-                alignItems: 'center', minHeight: '250px',
-                bgcolor: 'background.paper', borderRadius: '12px'
-              }}>
-                <CircularProgress size={36} sx={{ color: BRAND.primary, mb: 2 }} />
-                <Typography variant="body2" color="text.secondary">{t('reservations.fetchingBookings')}</Typography>
-              </Box>
-            ) : visibleOrders.length === 0 ? (
-              <Box sx={{
-                display: 'flex', justifyContent: 'center', alignItems: 'center',
-                minHeight: '200px', bgcolor: 'background.paper', borderRadius: '12px'
-              }}>
-                <Typography variant="body2" color="text.secondary">
-                  {orders.length === 0 ? t('reservations.noSubscribers') : t('reservations.noMatches')}
-                </Typography>
-              </Box>
-            ) : (
-              <TableContainer component={Paper} sx={{ overflowX: 'auto', width: '100%' }}>
-                <Table sx={{ minWidth: 820 }} aria-label="orders table">
-                  <TableHead>
-                    <TableRow>
-                      <StyledTableCell align="left">{t('reservations.reference')}</StyledTableCell>
-                      <StyledTableCell>{t('reservations.playerName')}</StyledTableCell>
-                      <StyledTableCell align="left">{t('reservations.date')}</StyledTableCell>
-                      <StyledTableCell align="left">{t('reservations.paymentState')}</StyledTableCell>
-                      <StyledTableCell align="right">{t('reservations.amount')}</StyledTableCell>
-                      <StyledTableCell align="left">{t('reservations.contact')}</StyledTableCell>
-                      <StyledTableCell align="center">{t('reservations.saleDetail')}</StyledTableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {visibleOrders.map((order) => {
-                      const user = order.reservation?.user;
-                      const paid = isPaid(order);
-                      const waLink = whatsappHref(user?.cellphone);
-
-                      return (
-                        <StyledTableRow key={order.id || order.orderId}>
-                          <StyledTableCell align="left">{orderReference(order)}</StyledTableCell>
-
-                          <StyledTableCell component="th" scope="row">
-                            <Stack direction="column" spacing={0.3}>
-                              <strong>{user?.name || t('common.noData')}</strong>
-                              {user?.email && (
-                                <Link href={`mailto:${user.email}`} variant="caption" underline="hover">
-                                  {user.email}
-                                </Link>
-                              )}
-                            </Stack>
-                          </StyledTableCell>
-
-                          <StyledTableCell align="left">{formatDate(order.createdAt)}</StyledTableCell>
-
-                          <StyledTableCell align="left">
-                            <Chip size="small"
-                              label={paid ? t('reservations.paid') : t('reservations.unpaid')}
-                              sx={{
-                                fontWeight: 'bold',
-                                bgcolor: paid ? BRAND.green : 'warning.light',
-                                color: paid ? BRAND.navy : 'warning.contrastText',
-                              }}
-                            />
-                          </StyledTableCell>
-
-                          <StyledTableCell align="right">
-                            {order.reservation?.paymentDetails?.Total ?? '—'}
-                          </StyledTableCell>
-
-                          <StyledTableCell align="left">
-                            {waLink ? (
-                              <Link target="_blank" rel="noopener" href={waLink}>
-                                {user?.cellphone}
-                              </Link>
-                            ) : (
-                              <Typography variant="body2" color="text.secondary">—</Typography>
-                            )}
-                          </StyledTableCell>
-
-                          <StyledTableCell align="center">
-                            <Button startIcon={<CreditCardIcon />}
-                              onClick={() => handleOpenDialog(order)}
-                              sx={{
-                                minWidth: 136, whiteSpace: 'nowrap', px: 2, bgcolor: BRAND.primary, color: BRAND.white,
-                                fontWeight: 'medium', textTransform: 'none', borderRadius: '8px',
-                              }}
-                            > {t('reservations.saleDetails')} </Button>
-                          </StyledTableCell>
-                        </StyledTableRow>
-                      );
-                    })}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-            )}
+        {loading ? (
+          <Box sx={{
+            display: 'flex', flexDirection: 'column', justifyContent: 'center',
+            alignItems: 'center', minHeight: '250px',
+            bgcolor: 'background.paper', borderRadius: '12px'
+          }}>
+            <CircularProgress size={36} sx={{ color: BRAND.primary, mb: 2 }} />
+            <Typography variant="body2" color="text.secondary">{t('reservations.fetchingBookings')}</Typography>
           </Box>
-        </Grid>
-      </Grid>
+        ) : visibleOrders.length === 0 ? (
+          <Box sx={{
+            display: 'flex', justifyContent: 'center', alignItems: 'center',
+            minHeight: '200px', bgcolor: 'background.paper', borderRadius: '12px'
+          }}>
+            <Typography variant="body2" color="text.secondary">
+              {orders.length === 0 ? t('reservations.noSubscribers') : t('reservations.noMatches')}
+            </Typography>
+          </Box>
+        ) : (
+          <TableContainer component={Paper} sx={{ overflowX: 'auto', width: '100%' }}>
+            <Table sx={{ minWidth: 820 }} aria-label="orders table">
+              <TableHead>
+                <TableRow>
+                  <StyledTableCell align="left">{t('reservations.reference')}</StyledTableCell>
+                  <StyledTableCell>{t('reservations.playerName')}</StyledTableCell>
+                  <StyledTableCell align="left">{t('reservations.date')}</StyledTableCell>
+                  <StyledTableCell align="left">{t('reservations.paymentState')}</StyledTableCell>
+                  <StyledTableCell align="right">{t('reservations.amount')}</StyledTableCell>
+                  <StyledTableCell align="left">{t('reservations.contact')}</StyledTableCell>
+                  <StyledTableCell align="center">{t('reservations.saleDetail')}</StyledTableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {visibleOrders.map((order) => {
+                  const user = order.reservation?.user;
+                  const paid = isPaid(order);
+                  const waLink = whatsappHref(user?.cellphone);
+
+                  return (
+                    <StyledTableRow key={order.id || order.orderId}>
+                      <StyledTableCell align="left">{orderReference(order)}</StyledTableCell>
+
+                      <StyledTableCell component="th" scope="row">
+                        <Stack direction="column" spacing={0.3}>
+                          <strong>{user?.name || t('common.noData')}</strong>
+                          {user?.email && (
+                            <Link href={`mailto:${user.email}`} variant="caption" underline="hover">
+                              {user.email}
+                            </Link>
+                          )}
+                        </Stack>
+                      </StyledTableCell>
+
+                      <StyledTableCell align="left">{formatDate(order.createdAt)}</StyledTableCell>
+
+                      <StyledTableCell align="left">
+                        <Chip size="small"
+                          label={paid ? t('reservations.paid') : t('reservations.unpaid')}
+                          sx={{
+                            fontWeight: 'bold',
+                            bgcolor: paid ? BRAND.green : 'warning.light',
+                            color: paid ? BRAND.navy : 'warning.contrastText',
+                          }}
+                        />
+                      </StyledTableCell>
+
+                      <StyledTableCell align="right">
+                        {order.reservation?.paymentDetails?.Total ?? '—'}
+                      </StyledTableCell>
+
+                      <StyledTableCell align="left">
+                        {waLink ? (
+                          <Link target="_blank" rel="noopener" href={waLink}>
+                            {user?.cellphone}
+                          </Link>
+                        ) : (
+                          <Typography variant="body2" color="text.secondary">—</Typography>
+                        )}
+                      </StyledTableCell>
+
+                      <StyledTableCell align="center">
+                        <Button startIcon={<CreditCardIcon />}
+                          onClick={() => handleOpenDialog(order)}
+                          sx={{
+                            minWidth: 136, whiteSpace: 'nowrap', px: 2, bgcolor: BRAND.primary, color: BRAND.white,
+                            fontWeight: 'medium', textTransform: 'none', borderRadius: '8px',
+                          }}
+                        > {t('reservations.saleDetails')} </Button>
+                      </StyledTableCell>
+                    </StyledTableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        )}
+      </Box>
+    
 
       {/* Detalle de la orden: todo sale de la fila seleccionada */}
       <Dialog open={open} onClose={handleCloseDialog} maxWidth="sm" fullWidth>

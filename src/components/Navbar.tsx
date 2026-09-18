@@ -23,12 +23,15 @@ import MenuIcon from '@mui/icons-material/Menu';
 // import { useColorMode } from '../theme/ColorModeContext';
 import { BRAND } from '../theme/colors';
 import { useAuth } from '../contexts/AuthContext';
+import { useSidebar } from '../contexts/SidebarContext';
 import { signOut } from 'firebase/auth';
 import { auth } from '../lib/firebase';
 import { useTranslation } from 'react-i18next';
 import LanguageSwitcher from './LanguageSwitcher';
-const pages = ['Login',
-  // 'Sign up'
+/** Enlaces del navbar. Usar ROUTES, nunca rutas escritas a mano. */
+const pages: { key: string; to: string }[] = [
+  { key: 'Login', to: ROUTES.LOGIN },
+  // { key: 'Sign up', to: ROUTES.SIGN_UP },
 ];
 const settings = [
   // 'Profile', 'Account', 'Dashboard',
@@ -37,13 +40,14 @@ const settings = [
 function NavBar() {
   // const { mode, toggleColorMode } = useColorMode(); // toggle de tema deshabilitado temporalmente
   const { user, role } = useAuth();
+  // Botón del sidebar: solo en móvil y solo si la ruta actual tiene sidebar.
+  const { hasSidebar, openMobile } = useSidebar();
   const { t } = useTranslation();
   const navigate = useNavigate();
   // Etiqueta traducida por página de navegación
-  const pageLabel = (page: string) =>
-    page === 'Login' ? t('nav.login') : page;
+  const pageLabel = (key: string) => (key === 'Login' ? t('nav.login') : key);
   // Con sesión iniciada no se muestra "Login" en la navegación.
-  const visiblePages = user ? pages.filter((p) => p !== 'Login') : pages;
+  const visiblePages = user ? pages.filter((p) => p.key !== 'Login') : pages;
   const [anchorElNav, setAnchorElNav] = React.useState<null | HTMLElement>(
     null
   );
@@ -83,7 +87,7 @@ function NavBar() {
         <Toolbar disableGutters>
           {/* logo large */}
           <Typography
-            variant="h6" component="a" noWrap href={ROUTES.LANDING}
+            variant="h6" component={RouterLink} to={ROUTES.LANDING} noWrap
             sx={{
               mr: 2, flexGrow: 8,
               display: { xs: 'none', md: 'flex' },
@@ -92,9 +96,22 @@ function NavBar() {
             <img src={GetawaysLogo} style={{height:'36px'}} className="logo" alt="Getaways logo" />
           </Typography>
 
+          {/* Menú del sidebar, pegado al logo en móvil */}
+          {hasSidebar && (
+            <Tooltip title={t('sidebar.menu')}>
+              <IconButton
+                onClick={openMobile}
+                aria-label={t('sidebar.menu')}
+                sx={{ display: { xs: 'inline-flex', md: 'none' }, mr: 0.5, color: BRAND.white }}
+              >
+                <MenuIcon />
+              </IconButton>
+            </Tooltip>
+          )}
+
           {/* logo xs */}
           <Typography
-            variant="h5" component="a" noWrap  href={ROUTES.LANDING}
+            variant="h5" component={RouterLink} to={ROUTES.LANDING} noWrap
             sx={{
               mr: 2,
               flexGrow: 8,
@@ -104,8 +121,13 @@ function NavBar() {
             <img src={GetawaysLogo} style={{height:'32px'}} className="logo" alt="Getaways logo" />
           </Typography>
 
+          {/* Con sesión iniciada esta lista queda vacía, así que el botón no se
+              pinta: en móvil la única hamburguesa es la del sidebar (AdminLayout). */}
           <Box
-            sx={{ flexGrow: 1, display: { xs: 'flex', md: 'none' } }}>
+            sx={{
+              flexGrow: 1,
+              display: { xs: visiblePages.length > 0 ? 'flex' : 'none', md: 'none' },
+            }}>
             <IconButton
               size="large"
               aria-label="account of current user"
@@ -139,13 +161,13 @@ function NavBar() {
               }}
             >
               {visiblePages.map((page) => (
-                <MenuItem key={page} onClick={handleCloseNavMenu}>
-                  <Button to={`/${page}`}
+                <MenuItem key={page.key} onClick={handleCloseNavMenu}>
+                  <Button to={page.to}
                     component={RouterLink}
                     aria-current="page"
                     sx={{ textTransform: 'none' }}
                   >
-                    {pageLabel(page)}
+                    {pageLabel(page.key)}
                   </Button>
                 </MenuItem>
               ))}
@@ -156,11 +178,11 @@ function NavBar() {
               <Button
                 component={RouterLink}
                 onClick={handleCloseNavMenu}
-                key={page} to={`/${page}`}
+                key={page.key} to={page.to}
                 aria-current="page" size="large"
                 sx={{ my: 2, color: 'white', display: 'block', fontWeight: 'bold', textTransform: 'none' }}
               >
-                {pageLabel(page)}
+                {pageLabel(page.key)}
               </Button>
             ))}
           </Box>

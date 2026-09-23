@@ -69,7 +69,7 @@ function Footer() {
           justifyContent="space-between"
         >
           <Typography sx={{ pt: { xs: 2, mt: 1, color: "#ffff" } }} variant="subtitle1">
-            <Link href="https://racquetsappsuite" target="_blank" rel="noopener noreferrer">
+            <Link href="https://racquetsappsuite.com" target="_blank" rel="noopener noreferrer">
               <img src={RacquetsLogo} style={{height:'70px'}} alt="RacquetsApp Suite logo" />
             </Link>
           </Typography>

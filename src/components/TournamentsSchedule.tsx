@@ -14,7 +14,7 @@ import TableRow from "@mui/material/TableRow";
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { useTranslation } from 'react-i18next';
-import tournamentsLogo from '../assets/RappsIcons/tournamentsLogo.svg';
+import tournamentsLogo from '../assets/RappsIcons/tournamentsLogo.png';
 import type { Tournament } from '../services/tournament';
 import { useTournaments } from '../hooks/useTournaments';
 import { matchesScheduleFilters, type ScheduleFilters } from '../utils/scheduleFilters';

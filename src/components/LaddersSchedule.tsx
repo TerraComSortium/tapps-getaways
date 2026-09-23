@@ -14,7 +14,7 @@ import TableRow from "@mui/material/TableRow";
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { useTranslation } from 'react-i18next';
-import laddersLogo from '../assets/RappsIcons/laddersLogo.svg';
+import laddersLogo from '../assets/RappsIcons/laddersLogo.png';
 
 import type { Ladder } from '../services/ladder';
 import { useLadders } from '../hooks/useLadders';
@@ -198,7 +198,7 @@ export default function LaddersTable(
   return (
     <Box sx={{ width:'100%', margin:'25px 0' }}>
       <Divider textAlign="center" aria-hidden="true">
-        <img src={laddersLogo} style={{height:'36px'}} className="logo" alt="Racquets Ladders Logo" />
+        <img src={laddersLogo} style={{height:'34px'}} className="logo" alt="Racquets Ladders Logo" />
       </Divider>
       {showTable ? (
         <>

@@ -1,8 +1,9 @@
 import { useMemo } from 'react';
-import { Box, Link, Paper, Stack, Typography } from '@mui/material';
+import { Box, Chip, Link, Paper, Stack, Typography } from '@mui/material';
 import PlaceIcon from '@mui/icons-material/Place';
 import { useTranslation } from 'react-i18next';
 import { BRAND } from '../theme/colors';
+import type { ScheduleService } from '../types/getaway';
 import '../App.css';
 
 interface ScheduleItem {
@@ -11,6 +12,8 @@ interface ScheduleItem {
   endTime: string;
   activity: string;
   location: string;
+  /** Lodging/add-on/amenity enlazados a la actividad. Getaways viejos no lo traen. */
+  services?: ScheduleService[];
 }
 
 interface GetawayScheduleProps {
@@ -34,12 +37,13 @@ const toDate = (value: unknown): Date | null => {
   return Number.isNaN(parsed.getTime()) ? null : parsed;
 };
 
-/** Clave del día en horario LOCAL. Con toISOString() (UTC) una actividad de las
-    23:00 se agrupaba en el día siguiente según la zona horaria del navegador. */
+/** Clave del día en UTC. El backend guarda la fecha "YYYY-MM-DD" como
+    medianoche UTC (`new Date(dateStr)`), así que leerla en hora local la movía
+    al día anterior en zonas horarias negativas (p.ej. -04: el 5 salía como 4). */
 const dayKey = (date: Date): string => {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
+  const year = date.getUTCFullYear();
+  const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+  const day = String(date.getUTCDate()).padStart(2, '0');
   return `${year}-${month}-${day}`;
 };
 
@@ -88,11 +92,11 @@ export default function GetawaySchedule({ schedule, address }: GetawaySchedulePr
   }
 
   const weekdayOf = (date: Date | null) =>
-    date ? new Intl.DateTimeFormat(i18n.language, { weekday: 'long' }).format(date) : '';
+    date ? new Intl.DateTimeFormat(i18n.language, { weekday: 'long', timeZone: 'UTC' }).format(date) : '';
 
   const dateLabelOf = (date: Date | null, fallback: string) =>
     date
-      ? new Intl.DateTimeFormat(i18n.language, { day: 'numeric', month: 'long' }).format(date)
+      ? new Intl.DateTimeFormat(i18n.language, { day: 'numeric', month: 'long', timeZone: 'UTC' }).format(date)
       : fallback;
 
   // Con agendas largas se limita la altura y se hace scroll dentro del bloque,
@@ -198,6 +202,19 @@ export default function GetawaySchedule({ schedule, address }: GetawaySchedulePr
                         {asText(item.location)}
                       </Typography>
                     </Link>
+                  )}
+                  {item.services?.some((service) => service.type !== 'amenity') && (
+                    <Stack direction="row" spacing={0.5} useFlexGap sx={{ mt: 0.75, flexWrap: 'wrap' }}>
+                      {/* la amenity ya es el título de la actividad: solo lodging/add-ons */}
+                      {item.services.filter((service) => service.type !== 'amenity').map((service) => (
+                        <Chip
+                          key={`${service.type}:${service.name}`}
+                          size="small" variant="outlined"
+                          label={`${service.name} · ${t(`sched.serviceType.${service.type}`)}`}
+                          sx={{ borderColor: BRAND.primary, color: BRAND.primary }}
+                        />
+                      ))}
+                    </Stack>
                   )}
                 </Box>
               </Stack>

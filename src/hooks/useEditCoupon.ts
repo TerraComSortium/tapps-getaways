@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { updateCoupon } from '../services/coupons/coupons';
 import type { CouponPayload } from '../types/getaway';
+import { isCouponQuery } from './useCoupon';
 
 export const useEditCoupon = () => {
   const queryClient = useQueryClient();
@@ -9,7 +10,7 @@ export const useEditCoupon = () => {
     mutationFn: (payload: { id: string; data: Partial<CouponPayload> }) =>
       updateCoupon(payload.id, payload.data),
     onSuccess: () => {
-      return queryClient.invalidateQueries({ queryKey: ['coupons'] });
+      return queryClient.invalidateQueries({ predicate: isCouponQuery });
     },
     onError: (error) => {
       console.error('Update failed:', error);

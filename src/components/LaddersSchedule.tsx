@@ -134,6 +134,8 @@ const toLadderRows = (ladders: Ladder[], t: (key: string) => string): LadderRow[
 
 interface LadderTableProps {
   mode?: 'select' | 'readonly';
+  /** false oculta la columna de precio (p.ej. en el detalle público del getaway). */
+  showPrice?: boolean;
   selectedIds?: string[];
   setSelectedIds?: React.Dispatch<React.SetStateAction<string[]>>;
   /** Deporte y fechas del formulario de getaway; filtran la tabla. */
@@ -143,7 +145,7 @@ interface LadderTableProps {
 }
 
 export default function LaddersTable(
-  { mode = 'readonly', selectedIds = [], setSelectedIds, searchParams, items }: LadderTableProps
+  { mode = 'readonly', showPrice = true, selectedIds = [], setSelectedIds, searchParams, items }: LadderTableProps
 ) {
   const { t } = useTranslation();
   const { ladders, loading, error, fetchLadders } = useLadders();
@@ -222,7 +224,7 @@ export default function LaddersTable(
                     <StyledTableCell align="left">{t('sched.dates')}</StyledTableCell>
                     <StyledTableCell align="left">{t('sched.location')}</StyledTableCell>
                     <StyledTableCell align="left">{t('sched.rankingType')}</StyledTableCell>
-                    <StyledTableCell align="left">{t('academy.price')}</StyledTableCell>
+                    {showPrice && <StyledTableCell align="left">{t('academy.price')}</StyledTableCell>}
                     {mode === 'select' && (
                       <StyledTableCell align="center">{t('academy.include')}</StyledTableCell>
                     )}
@@ -267,7 +269,7 @@ export default function LaddersTable(
                           </Stack>
                         </StyledTableCell>
 
-                        <StyledTableCell align="left">{row.price}</StyledTableCell>
+                        {showPrice && <StyledTableCell align="left">{row.price}</StyledTableCell>}
 
                         {mode === 'select' && (
                           <StyledTableCell align="center">

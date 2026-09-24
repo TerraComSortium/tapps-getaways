@@ -72,7 +72,7 @@ export function useCreateGetaway(
       if (result.status === 'SUCCESS' && result.getawayId) {
         showSnackbar('Getaway created successfully!', 'success');
         setSubmissionData(result);
-        navigate(ROUTES.DATA_VIEW);
+        navigate(ROUTES.GETAWAYS);
       } else {
         showSnackbar(
           'Connection error. Check your internet connection and try again.',

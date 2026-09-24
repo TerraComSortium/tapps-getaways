@@ -135,6 +135,8 @@ const StyledTableCell = styled(TableCell)(({ theme }) => ({
 
 interface TournamentTableProps {
   mode?: 'select' | 'readonly';
+  /** false oculta la columna de precio (p.ej. en el detalle público del getaway). */
+  showPrice?: boolean;
   selectedIds?: string[];
   setSelectedIds?: React.Dispatch<React.SetStateAction<string[]>>;
   /** Deporte y fechas del formulario de getaway; filtran la tabla. */
@@ -151,7 +153,7 @@ const StyledTableRow = styled(TableRow)(({ theme }) => ({
 }));
 
 export default function TournamentTable(
-  { mode = 'readonly', selectedIds = [], setSelectedIds, searchParams, items }: TournamentTableProps
+  { mode = 'readonly', showPrice = true, selectedIds = [], setSelectedIds, searchParams, items }: TournamentTableProps
 ) {
   const { t } = useTranslation();
   const { tournaments, loading, error, fetchTournaments } = useTournaments();
@@ -233,7 +235,7 @@ export default function TournamentTable(
                   <StyledTableCell align="left">{t('sched.dates')}</StyledTableCell>
                   <StyledTableCell align="left">{t('sched.location')}</StyledTableCell>
                   <StyledTableCell align="left">{t('sched.type')}</StyledTableCell>
-                  <StyledTableCell align="left">{t('academy.price')}</StyledTableCell>
+                  {showPrice && <StyledTableCell align="left">{t('academy.price')}</StyledTableCell>}
                   {mode === 'select' && (
                     <StyledTableCell align="center">{t('academy.include')}</StyledTableCell>
                   )}
@@ -284,7 +286,7 @@ export default function TournamentTable(
                         </Stack>
                       </StyledTableCell>
 
-                      <StyledTableCell align="left">{row.price}</StyledTableCell>
+                      {showPrice && <StyledTableCell align="left">{row.price}</StyledTableCell>}
 
                       {mode === 'select' && (
                         <StyledTableCell align="center">

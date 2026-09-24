@@ -132,8 +132,8 @@ export default function Mygetaways() {
             name={getaway.title || t('common.untitledGetaway')}
             // dates={`${getaway.startDate} - ${getaway.endDate}`}
             dates={formatGetawayDates(getaway.startDate, getaway.endDate)}
-            lodgingOptions={getaway.lodgingOptions || []}
             sport={getSportLabel(getaway.sport)}
+            price={Number(getaway.price) || 0}
             galleryPhotos={getValidImages(getaway.galleryPhotos)}
             onViewDetails={() => handleViewDetails(getaway)}
             onAddCoupon={role === Role.ADMIN && !isGetawayExpired(getaway)

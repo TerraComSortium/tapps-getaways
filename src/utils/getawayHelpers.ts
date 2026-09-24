@@ -44,8 +44,9 @@ export const normalizeGetawayData = (raw: any): Getaway => {
 export const getStartingPrice = (
   lodgingOptions: { name: string; price: number }[]
 ): number => {
-  if (!lodgingOptions?.length) return 0;
-  return Math.min(...lodgingOptions.map((o) => o.price));
+  // price puede venir como string desde Firestore ("250"): se normaliza a número.
+  const prices = (lodgingOptions ?? []).map((o) => Number(o.price)).filter((p) => Number.isFinite(p) && p >= 0);
+  return prices.length > 0 ? Math.min(...prices) : 0;
 };
 
 export const performFallbackLocalSearch = (

@@ -222,8 +222,8 @@ function CheckoutForm({ orderId, amount, user }: { orderId: string; amount: numb
               width: 44, height: 32, borderRadius: '6px',
               background: 'linear-gradient(135deg, #f7d774, #d4af37)',
             }} />
-            <Typography sx={{ fontWeight: 'bold', fontStyle: 'italic', letterSpacing: 1 }}>
-              Racquets!™
+            <Typography sx={{ fontWeight: 'bold', letterSpacing: 1 }}>
+              {t('payment.cardTitle')}
             </Typography>
           </Box>
           <Typography sx={{
@@ -349,6 +349,17 @@ function CheckoutForm({ orderId, amount, user }: { orderId: string; amount: numb
   );
 }
 
+/** Mismo formato que Subtotal/Taxes/Total ("304.85 USD"), que vienen ya formateados de BookGetaway2. */
+const formatUSD = (value: unknown) => `${(Number(value) || 0).toFixed(2)} USD`;
+
+/** Fila "concepto ···· importe", alineada igual que el desglose de precios. */
+const PriceLine = ({ label, amount }: { label: string; amount: unknown }) => (
+  <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2, mt: 0.5 }}>
+    <Typography variant="body2" sx={{ opacity: 0.85, minWidth: 0, textTransform: 'capitalize' }}>{label}</Typography>
+    <Typography variant="body2" sx={{ flexShrink: 0 }}>{formatUSD(amount)}</Typography>
+  </Box>
+);
+
 function Payment() {
   const { t } = useTranslation();
   const { orderId } = useParams<{ orderId: string }>();
@@ -407,7 +418,6 @@ function Payment() {
   const optionalAddOns = orderData?.optionalAddOns || [];
   // Actividades incluidas (academia, torneos, ladders): el backend guarda el
   // desglose en la orden para que aquí se vea lo mismo que en la reserva.
-  const scheduleItems = orderData?.scheduleItems || [];
   // Cupón aplicado por el backend (no el que pidió el cliente).
   const appliedCoupon = orderData?.coupon as
     | { title?: string; discountType?: string; value?: number }
@@ -519,9 +529,11 @@ function Payment() {
                 <Typography variant="caption" sx={{ color: BRAND.green, fontWeight: 'bold', letterSpacing: 0.5 }}>
                   {t('payment.lodging')}
                 </Typography>
-                <Typography variant="body2">
-                  {lodgingOption.option ? `${lodgingOption.option} - $${lodgingOption.price}` : '—'}
-                </Typography>
+                {lodgingOption.option ? (
+                  <PriceLine label={lodgingOption.option} amount={lodgingOption.price} />
+                ) : (
+                  <Typography variant="body2" sx={{ opacity: 0.7 }}>—</Typography>
+                )}
               </Box>
 
               <Box sx={{ mb: 1.5 }}>
@@ -530,25 +542,14 @@ function Payment() {
                 </Typography>
                 {optionalAddOns.length > 0 ? (
                   optionalAddOns.map((addon: any, index: number) => (
-                    <Typography key={index} variant="body2">• {addon.addonName} - ${addon.price} USD</Typography>
+                    <PriceLine key={index} label={addon.addonName} amount={addon.price} />
                   ))
                 ) : (
                   <Typography variant="body2" sx={{ opacity: 0.7 }}>{t('payment.none')}</Typography>
                 )}
               </Box>
 
-              {scheduleItems.length > 0 && (
-                <Box sx={{ mb: 1.5 }}>
-                  <Typography variant="caption" sx={{ color: BRAND.green, fontWeight: 'bold', letterSpacing: 0.5 }}>
-                    {t('payment.activities')}
-                  </Typography>
-                  {scheduleItems.map((item: { id: string; name: string; price: number }, index: number) => (
-                    <Typography key={item.id || index} variant="body2">
-                      • {item.name} - ${item.price} USD
-                    </Typography>
-                  ))}
-                </Box>
-              )}
+              {/* Academia/torneos/ladders no se listan: su valor ya va sumado en el subtotal. */}
 
               <Divider sx={{ borderColor: 'rgba(255,255,255,0.25)', my: 1.5 }} />
 

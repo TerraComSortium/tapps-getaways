@@ -211,8 +211,8 @@ export default function Getaways() {
               key={getaway._id || `fallback-key-${index}`}
               name={getaway.title || t('common.untitledGetaway')}
               dates={`${getaway.startDate} - ${getaway.endDate}`}
-              lodgingOptions={getaway.lodgingOptions || []}
               sport={getSportLabel(getaway.sport)}
+              price={Number(getaway.price) || 0}
               galleryPhotos={getValidImages(getaway.galleryPhotos)}
               coupon={couponsByGetawayId.get(getaway._id)}
               // isLoading={isLoading}

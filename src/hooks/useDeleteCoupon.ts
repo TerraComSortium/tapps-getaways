@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { deleteCoupon } from '../services/coupons/coupons';
+import { isCouponQuery } from './useCoupon';
 
 export const useDeleteCoupon = () => {
   const queryClient = useQueryClient();
@@ -8,7 +9,7 @@ export const useDeleteCoupon = () => {
     mutationFn: (id: string) => deleteCoupon(id),
     // onSuccess: () => queryClient.invalidateQueries({ queryKey: ['coupons'] }),
     onSuccess: () => {
-      return queryClient.invalidateQueries({ queryKey: ['coupons'] })
+      return queryClient.invalidateQueries({ predicate: isCouponQuery })
     },
     onError: (error) => console.error('Delete failed:', error),
   });

@@ -4,7 +4,6 @@ import { useNavigate, useLocation, useParams, Link as RouterLink } from 'react-r
 import {
   Container, Box, Stack, Modal, Paper, Chip,
   Typography, Divider, Button, IconButton,
-  Radio, RadioGroup, FormControlLabel, FormControl,
   CircularProgress, Alert
 } from '@mui/material';
 import Grid from '@mui/material/Grid2';
@@ -115,7 +114,7 @@ const EmptyText = ({ children }: { children: React.ReactNode }) => (
 );
 
 function GetawayDetail() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   // const { role, isLoading: isAuthLoading } = useAuth();
@@ -135,6 +134,11 @@ function GetawayDetail() {
   const academyClasses = (getaway?.academyClasses as AcademyClass[] | undefined) ?? [];
   const tournaments = (getaway?.tournaments as Tournament[] | undefined) ?? [];
   const ladders = (getaway?.ladders as Ladder[] | undefined) ?? [];
+
+  // Precio "desde" que el backend guardó al crear el getaway (alojamiento más
+  // barato + actividades incluidas). Viene también en el listado, así que se ve
+  // al instante. Los getaways creados antes no lo tienen: no se muestra.
+  const storedPrice = Number(getaway?.price) || 0;
   const owner = getaway?.owner ?? null;
   // El enlace se guarda tal cual lo pega el admin (watch?v=…, youtu.be/…), que
   // YouTube no permite embeber. Se normaliza a /embed/ antes de usarlo.
@@ -154,7 +158,6 @@ function GetawayDetail() {
 
   const [mainImage, setMainImage] = useState<string | "video">(prevPhoto);
   const [galleryImages, setGalleryImages] = useState<(string | "video")[]>([]);
-  const [selectedLodging, setSelectedLodging] = useState<string>("");
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [copied, setCopied] = useState(false);
@@ -180,9 +183,6 @@ function GetawayDetail() {
       setGalleryImages(allMedia);
       setMainImage(allMedia[0] || prevPhoto);
 
-      if (getaway.lodgingOptions && getaway.lodgingOptions.length > 0) {
-        setSelectedLodging(getaway.lodgingOptions[0].name);
-      }
       // console.log('july', JSON.stringify(getaway, null, 2));
     }
   }, [getaway]);
@@ -456,29 +456,20 @@ function GetawayDetail() {
 
               {getaway.overview && <p className='paragraph' style={{ marginTop: 0 }}>{getaway.overview}</p>}
 
-              <FormControl>
-                <h4 className='title4'>{t('detail.ratesStartAt')}</h4>
-                <RadioGroup
-                  aria-labelledby="demo-controlled-radio-buttons-group"
-                  name="controlled-radio-buttons-group"
-                  value={selectedLodging}
-                  onChange={(e) => setSelectedLodging(e.target.value)}
-                >
-                  {getaway.lodgingOptions && getaway.lodgingOptions.length > 0 ? (
-                    getaway.lodgingOptions.map((option, index) => (
-                      <FormControlLabel
-                        sx={{mt:0}}
-                        key={index}
-                        value={option.name}
-                        control={<Radio />}
-                        label={`${option.name} - $${option.price} ` }
-                      />
-                    ))
-                  ) : (
-                    <Typography variant="subtitle2" sx={{ fontStyle: 'italic', color: 'text.secondary' }}>{t('detail.unavailableLodging')}</Typography>
-                  )}
-                </RadioGroup>
-              </FormControl>
+              {storedPrice > 0 && (
+                <Box>
+                  <h4 className='title4'>{t('detail.ratesStartAt')}</h4>
+                  <Typography sx={{ fontSize: 28, fontWeight: 'bold', color: BRAND.primary, lineHeight: 1.2 }}>
+                    ${storedPrice.toLocaleString(i18n.language, { maximumFractionDigits: 2 })}
+                    <Typography component="span" variant="body2" color="text.secondary" sx={{ ml: 0.75 }}>
+                      {t('detail.plusTax')}
+                    </Typography>
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5, mb: 1 }}>
+                    {t('detail.priceNote')}
+                  </Typography>
+                </Box>
+              )}
 
               {expired ? (
                 <Typography sx={{ mt: 1, mb: 3, fontStyle: 'italic', color: 'text.secondary' }}>
@@ -604,17 +595,20 @@ function GetawayDetail() {
           <GetawaySchedule schedule={getaway.schedule || []} address={getaway.getawayAddress?.address} />
           <AcademySchedule
             mode="readonly"
+            showPrice={false}
             schedules={academyClasses}
             loading={false}
             selectedIds={getaway.academyIds || []}
           />
           <TournamentsSchedule
             mode="readonly"
+            showPrice={false}
             selectedIds={getaway.tournamentIds || []}
             items={tournaments}
           />
           <LaddersSchedule
             mode="readonly"
+            showPrice={false}
             selectedIds={getaway.ladderIds || []}
             items={ladders}
           />

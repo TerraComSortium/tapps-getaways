@@ -23,6 +23,7 @@ import { BRAND } from '../theme/colors';
 import { useGetawaySubscribers } from '../hooks/useGetawaySubscribers';
 import { useInvoice } from '../hooks/useInvoice';
 import type { GetawayOrder } from '../types/getaway';
+import { maskId } from '../utils/mask';
 
 const StyledTableCell = styled(TableCell)(({ theme }) => ({
   [`&.${tableCellClasses.head}`]: {
@@ -442,7 +443,7 @@ export const Reservations = () => {
                 {selectedRow.paidAt && (
                   <DetailRow label={t('reservations.paidOn')} value={formatDate(selectedRow.paidAt)} />
                 )}
-                <DetailRow label={t('paid.orderId')} value={selectedRow.orderId || selectedRow.id} />
+                <DetailRow label={t('paid.orderId')} value={maskId(selectedRow.orderId || selectedRow.id)} />
                 {selectedRow.invoiceNumber && (
                   <DetailRow label={t('reservations.invoice')} value={selectedRow.invoiceNumber} />
                 )}

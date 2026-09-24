@@ -1,9 +1,18 @@
 import { useQuery } from '@tanstack/react-query';
 import { getCouponById, getCouponForGetaway, getCoupons, getCouponsForGetaways } from '../services/coupons/coupons';
 
+/**
+ * Todas las queries de cupones ('coupon', 'coupons', 'coupons-for-getaways').
+ * Tras crear/editar/borrar hay que invalidarlas TODAS: invalidar solo ['coupons']
+ * dejaba al formulario de edición y a las tarjetas de getaways con la copia vieja
+ * (p.ej. seguían en "$X Off" después de cambiar el cupón a porcentaje).
+ */
+export const isCouponQuery = (query: { queryKey: readonly unknown[] }) =>
+  typeof query.queryKey[0] === 'string' && query.queryKey[0].startsWith('coupon');
+
 // Hook (modo edit)
 export function useCouponById(id?: string) { 
-  const { data, isLoading, error } = useQuery({
+  const { data, isLoading, isFetching, isFetchedAfterMount, error } = useQuery({
     queryKey: ['coupon', id],
     queryFn: async () => {
       if (!id) return null;
@@ -13,7 +22,12 @@ export function useCouponById(id?: string) {
     enabled: !!id,
   });
 
-  return { data, loading: isLoading, error };
+  // Se espera la PRIMERA respuesta tras montar, no solo `isLoading`: con una copia
+  // en caché isLoading es false y el formulario se montaba con los valores VIEJOS
+  // (useForm los toma una sola vez). Solo la primera: si se esperaran también los
+  // refetch, el que dispara el propio guardado desmontaría el formulario y
+  // cancelaría la redirección a /coupons.
+  return { data, loading: isLoading || (isFetching && !isFetchedAfterMount), error };
 }
 
 export function useCouponForGetaway(couponId?: string, getawayId?: string) {

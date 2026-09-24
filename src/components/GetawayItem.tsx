@@ -40,7 +40,6 @@ const isPhotoUrl = (url: string): boolean => {
 interface GetawayItemProps {
   name: string;
   dates: string;
-  lodgingOptions: { name: string, price: number }[];
   sport: string;
   galleryPhotos: string[];
   bookedDate?: string;
@@ -63,14 +62,16 @@ interface GetawayItemProps {
    */
   totalPaid?: string;
   lodgingName?: string;
+  /** Precio "desde" guardado en el getaway. Si es 0 o no viene, no se muestra. */
+  price?: number;
   onDelete?: () => void;
   isDeleting?: boolean;
 }
 
 export const GetawayItem = memo(
   ({
-    name, dates, lodgingOptions, sport, galleryPhotos, bookedDate, paymentStatus,
-    address, totalPaid, lodgingName,
+    name, dates, sport, galleryPhotos, bookedDate, paymentStatus,
+    address, totalPaid, lodgingName, price,
     isLoading = false, onViewDetails, onBookNow, onOrderDetails, onViewBookings,
     // badgeCount = 0,
     onAddCoupon, onEdit, coupon,
@@ -78,7 +79,7 @@ export const GetawayItem = memo(
     isDeleting
   }: GetawayItemProps ) =>
   {
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
     // const { role, isLoading } = useAuth();
     // console.log("Estado de carga:", isLoading, "Rol recibido:", role);
 
@@ -180,7 +181,7 @@ export const GetawayItem = memo(
 
               <Box sx={{ display: 'flex', alignItems: 'flex-start', mb:1 }}>
                 <Box>
-                  {totalPaid ? (
+                  {totalPaid && (
                     // Orden ya cerrada: el precio no es un "desde", es lo pagado.
                     <>
                       <Typography variant="subtitle2" sx={{ color: 'text.secondary', fontWeight: 'normal' }}>
@@ -195,22 +196,18 @@ export const GetawayItem = memo(
                         </Typography>
                       )}
                     </>
-                  ) : (
+                  )}
+                  {!totalPaid && !!price && price > 0 && (
                     <>
-                      <Typography variant="subtitle2" sx={{ color: 'text.secondary', fontWeight: 'normal', alignItems: 'center' }}>
+                      <Typography variant="subtitle2" sx={{ color: 'text.secondary', fontWeight: 'normal' }}>
                         {t('getawayItem.pricingStartsAt')}
                       </Typography>
-                      {lodgingOptions && lodgingOptions.length > 0 ? (
-                        lodgingOptions.map((option, index) => (
-                          <Typography key={index} variant="body2" sx={{ color: 'text.primary' }}>
-                            {option.name} ${option.price}
-                          </Typography>
-                        ))
-                      ) : (
-                        <Typography variant="body2" sx={{ color: 'text.secondary', fontStyle: 'italic' }}>
-                          {t('getawayItem.unavailablePricing')}
+                      <Typography variant="body1" sx={{ color: 'text.primary', fontWeight: 'bold' }}>
+                        ${price.toLocaleString(i18n.language, { maximumFractionDigits: 2 })}
+                        <Typography component="span" variant="caption" color="text.secondary" sx={{ ml: 0.5 }}>
+                          {t('detail.plusTax')}
                         </Typography>
-                      )}
+                      </Typography>
                     </>
                   )}
                 </Box>

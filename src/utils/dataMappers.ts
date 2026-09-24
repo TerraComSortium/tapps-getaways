@@ -1,37 +1,45 @@
-import { ScheduleRow } from '../types/getaway';
+import { ApiScheduleEntry, ScheduleRow } from '../types/getaway';
 
-// timeHelper converter: 12h to 24h
-export function to24h(hour: string, minute: string, period: string): string {
-  let h = parseInt(hour, 10);
-  if (period === "PM" && h !== 12) h += 12;
-  if (period === "AM" && h === 12) h = 0;
-  return `${h.toString().padStart(2, "0")}:${minute}`;
+/** Junta hora (00-23) y minuto en un "HH:mm" de 24h, con cero a la izquierda. */
+export function formatTime24(hour: string, minute: string): string {
+  return `${hour.padStart(2, "0")}:${minute}`;
 }
 
+/** true si el rango start→end es válido (end estrictamente después de start).
+    Comparación de texto: funciona porque "HH:mm" siempre va con cero a la izquierda. */
 export function compareTimes(
-  sHour: string, sMin: string, sPer: string,
-  eHour: string, eMin: string, ePer: string
+  sHour: string, sMin: string,
+  eHour: string, eMin: string
 ): boolean {
-  const start = to24h(sHour, sMin, sPer);
-  const end = to24h(eHour, eMin, ePer);
+  const start = formatTime24(sHour, sMin);
+  const end = formatTime24(eHour, eMin);
   return start < end;
 }
 
 export function mapScheduleRowsToApiFormat(
   rows: ScheduleRow[]
-): { date: string; startTime: string; endTime: string; activity: string; location: string; }[] {
+): ApiScheduleEntry[] {
   return rows.map(row => {
     const formattedDate = row.date;
 
-    const startTime = to24h(row.startHour, row.startMinute, row.startPeriod);
-    const endTime = to24h(row.endHour, row.endMinute, row.endPeriod);
+    const startTime = formatTime24(row.startHour, row.startMinute);
+    const endTime = formatTime24(row.endHour, row.endMinute);
 
     return {
       date: formattedDate,
       startTime: startTime,
       endTime: endTime,
       activity: row.activity,
-      location: row.location
+      location: row.location,
+      services: row.services ?? []
     };
   });
+}
+
+/** Filas cuya fecha quedó fuera de [startDate, endDate], p.ej. porque el dueño
+    acortó el rango después de cargarlas: el calendario ya no las pinta, pero
+    seguirían viajando en el payload. */
+export function rowsOutsideRange(rows: ScheduleRow[], startDate?: string, endDate?: string): ScheduleRow[] {
+  if (!startDate || !endDate) return [];
+  return rows.filter((row) => row.date < startDate || row.date > endDate);
 }

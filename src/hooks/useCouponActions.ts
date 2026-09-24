@@ -4,7 +4,9 @@ import {
   createCoupon,
   updateCoupon,
 } from '../services/coupons/coupons';
+import { useQueryClient } from '@tanstack/react-query';
 import type { CouponPayload, Discount } from '../types/getaway';
+import { isCouponQuery } from './useCoupon';
 
 type CouponsResponse =
   | Discount[]
@@ -80,6 +82,7 @@ export function useCoupons(enabled = true) {
  * Hook: manage coupons(post, edit), with loading and error state.
  */
 export function useCouponActions(): UseCouponActionsReturn {
+  const queryClient = useQueryClient();
   const [state, setState] = useState<UseCouponActionsState>({
     isLoading: false,
     error: null,
@@ -111,16 +114,24 @@ export function useCouponActions(): UseCouponActionsReturn {
     []
   );
 
+  // Tras guardar se refrescan todas las queries de cupones (listado, tarjetas de
+  // getaways, formulario), igual que en useEditCoupon/useDeleteCoupon.
   const create = useCallback(
-    (data: CouponPayload) =>
-      withLoading(() => createCoupon(data), null),
-    [withLoading]
+    async (data: CouponPayload) => {
+      const result = await withLoading(() => createCoupon(data), null);
+      if (result) await queryClient.invalidateQueries({ predicate: isCouponQuery });
+      return result;
+    },
+    [withLoading, queryClient]
   );
 
   const update = useCallback(
-    (id: string, data: Partial<CouponPayload>) =>
-      withLoading(() => updateCoupon(id, data), null),
-    [withLoading]
+    async (id: string, data: Partial<CouponPayload>) => {
+      const result = await withLoading(() => updateCoupon(id, data), null);
+      if (result) await queryClient.invalidateQueries({ predicate: isCouponQuery });
+      return result;
+    },
+    [withLoading, queryClient]
   );
 
   return {

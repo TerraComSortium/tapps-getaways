@@ -81,7 +81,6 @@ export default function MyOrders() {
             key={getaway.order?.orderId || getaway._id || getaway.id || index}
             name={getaway.title || t('common.untitledGetaway')}
             dates={formatGetawayDates(getaway.startDate, getaway.endDate)}
-            lodgingOptions={getaway.lodgingOptions || []}
             sport={getSportLabel(getaway.sport)}
             galleryPhotos={getValidImages(getaway.galleryPhotos)}
             bookedDate={parseFirestoreDate(getaway.subscribedAt)}

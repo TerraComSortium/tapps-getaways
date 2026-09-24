@@ -15,7 +15,8 @@ import LightbulbIcon from '@mui/icons-material/Lightbulb';
 
 import { AddressAutocompleteField } from '../components/AddressAutocompleteField';
 import { GalleryPhotoItem } from '../components/GalleryPhotoItem';
-import { ScheduleForm } from '../components/ScheduleForm';
+import { ScheduleCalendar } from '../components/ScheduleCalendar';
+import { rowsOutsideRange } from '../utils/dataMappers';
 import AcademySchedule from '../components/AcademySchedule';
 // import AcademySchedule1 from '../components/AcademySchedule1';
 
@@ -69,15 +70,18 @@ export const CreateGetaway =() => {
   });
 
   // 1. Hook de consulta a la academia
-  const { academyData, loading: loadingAcademy, fetchAcademy } = useGetAcademy();
-  console.log('//////')
-  console.log(academyData)
+  const { academyData, loading: loadingAcademy, error: academyError, fetchAcademy } = useGetAcademy();
   const [selectedAcademyIds, setSelectedAcademyIds] = useState<string[]>([]);
 
   // 2. Escuchar los inputs clave del formulario
   const watchedStartDate = useWatch({ control, name: 'startDate' });
   const watchedEndDate = useWatch({ control, name: 'endDate' });
   const watchedSport = useWatch({ control, name: 'sport' });
+  // Valores en vivo de estas 3 secciones, para poder enlazarlas a una actividad
+  // del schedule (useFieldArray.fields no refleja lo que el usuario va tipeando).
+  const watchedLodgingOptions = useWatch({ control, name: 'lodgingOptions' });
+  const watchedAddOns = useWatch({ control, name: 'optionalAddOns' });
+  const watchedAmenities = useWatch({ control, name: 'amenities' });
 
   const [selectedTournamentIds, setSelectedTournamentIds] = useState<string[]>([]);
   const [selectedLadderIds, setSelectedLadderIds] = useState<string[]>([]);
@@ -133,6 +137,12 @@ export const CreateGetaway =() => {
       showSnackbar(t('create.scheduleRequired'), 'warning');
       return;
     }
+    if (rowsOutsideRange(scheduleRows, data.startDate, data.endDate).length > 0) {
+      setScheduleError(t('sched.outOfRangeBlocking'));
+      document.getElementById('schedule-section')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      showSnackbar(t('sched.outOfRangeBlocking'), 'warning');
+      return;
+    }
     const cleanedAddOns= data.optionalAddOns
       .filter(addon => {
         const isNameEmpty = !addon.name || addon.name.trim() === "";
@@ -173,10 +183,13 @@ export const CreateGetaway =() => {
   };
 
   useEffect(() => {
-    if (scheduleRows.length > 0 && scheduleError) {
+    // Solo se limpia cuando el schedule ya es válido: con filas y ninguna fuera de rango.
+    const isValid = scheduleRows.length > 0 &&
+      rowsOutsideRange(scheduleRows, watchedStartDate, watchedEndDate).length === 0;
+    if (isValid && scheduleError) {
       setScheduleError(null);
     }
-  }, [scheduleRows, scheduleError]);
+  }, [scheduleRows, scheduleError, watchedStartDate, watchedEndDate]);
   // Disparar la consulta al cambiar las fechas o el deporte
   useEffect(() => {
     if (watchedStartDate && watchedEndDate && watchedSport) {
@@ -187,6 +200,15 @@ export const CreateGetaway =() => {
       });
     }
   }, [watchedStartDate, watchedEndDate, watchedSport, fetchAcademy]);
+
+  // Antes este error se tragaba en silencio: `academyData` quedaba en [] y
+  // AcademySchedule mostraba "no hay sesiones", como si la búsqueda hubiera
+  // dado vacío de verdad en vez de haber fallado.
+  useEffect(() => {
+    if (academyError) {
+      showSnackbar(t('academy.loadError'), 'warning');
+    }
+  }, [academyError, showSnackbar, t]);
   return (
     <>
     <Box sx={{ width: '100%', overflow: 'hidden' }}>
@@ -579,13 +601,22 @@ export const CreateGetaway =() => {
             <div style={{ color: "red", fontWeight: "bold", marginBottom: 8 }}> {scheduleError} </div>
           )}
           <Box id="schedule-section">
-            <ScheduleForm rows={scheduleRows} setRows={setScheduleRows} />
+            <ScheduleCalendar
+              rows={scheduleRows}
+              setRows={setScheduleRows}
+              startDate={watchedStartDate}
+              endDate={watchedEndDate}
+              lodgingOptions={watchedLodgingOptions}
+              addOns={watchedAddOns}
+              amenities={watchedAmenities}
+            />
           </Box>
 
           {/* <AcademySchedule1/> */}
           <AcademySchedule
             schedules={academyData}
             loading={loadingAcademy}
+            error={academyError}
             selectedIds={selectedAcademyIds}
             setSelectedIds={setSelectedAcademyIds}
             fetchAcademy={fetchAcademy}

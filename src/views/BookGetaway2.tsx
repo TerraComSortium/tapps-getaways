@@ -52,6 +52,9 @@ interface LodgingOption {
   price: number;
   occupancy?: string;
 }
+/** Concepto del subtotal. `hidden`: suma al total pero no se lista en el desglose. */
+type SummaryLine = { id: string; label: string; price: number; hidden?: boolean };
+
 interface AddOnOption {
   name: string;
   price: number;
@@ -177,9 +180,9 @@ export default function BookGetaway() {
    * Se incluyen los de precio 0 (servicios sin coste que el usuario seleccionó).
    */
   const summaryLines = useMemo(() => {
-    if (!getaway) return [] as { id: string; label: string; price: number }[];
+    if (!getaway) return [] as SummaryLine[];
 
-    const lines: { id: string; label: string; price: number }[] = [];
+    const lines: SummaryLine[] = [];
 
     const selectedLodging = getaway.lodgingOptions?.find(
       (opt: LodgingOption) => opt.name === watchLodging
@@ -203,11 +206,17 @@ export default function BookGetaway() {
 
     // Actividades incluidas: no son opcionales, vienen con el getaway.
     scheduleLines.forEach((line) => {
-      lines.push({ id: line.id, label: line.name, price: line.price });
+      lines.push({ id: line.id, label: line.name, price: line.price, hidden: true });
     });
 
     return lines;
   }, [getaway, watchLodging, watchAddOns, scheduleLines]);
+
+  // Academia/torneos/ladders suman al subtotal pero no se listan en el desglose.
+  const visibleSummaryLines = useMemo(
+    () => summaryLines.filter((line) => !line.hidden),
+    [summaryLines]
+  );
 
   const totals = useMemo(() => {
     const sub = summaryLines.reduce((total, line) => total + line.price, 0);
@@ -386,10 +395,10 @@ export default function BookGetaway() {
                     key={option.name}
                     value={option.name}
                     control={<Radio />}
+                    // Mismo orden y formato que los add-ons: "nombre: precio".
                     label={t('book.lodgingLabel', {
-                      price: option.price,
-                      occupancy: option.occupancy || '',
                       name: option.name,
+                      price: displayAmount(Number(option.price)),
                     })}
                   />
                 ))}
@@ -429,17 +438,20 @@ export default function BookGetaway() {
         />
           <AcademySchedule
             mode="readonly"
+            showPrice={false}
             schedules={(getaway.academyClasses as AcademyClass[] | undefined) ?? []}
             loading={false}
             selectedIds={getaway.academyIds || []}
           />
           <TournamentsSchedule
             mode="readonly"
+            showPrice={false}
             selectedIds={getaway.tournamentIds || []}
             items={(getaway.tournaments as Tournament[] | undefined) ?? []}
           />
           <LaddersSchedule
             mode="readonly"
+            showPrice={false}
             selectedIds={getaway.ladderIds || []}
             items={(getaway.ladders as Ladder[] | undefined) ?? []}
           />
@@ -495,12 +507,12 @@ export default function BookGetaway() {
               </Alert>
             )}
 
-            {summaryLines.length === 0 ? (
+            {visibleSummaryLines.length === 0 ? (
               <Typography variant="body2" color="text.secondary" sx={{ py: 1 }}>
                 {t('book.nothingSelected')}
               </Typography>
             ) : (
-              summaryLines.map((line) => (
+              visibleSummaryLines.map((line) => (
                 <SummaryRow key={line.id} label={line.label} amount={displayAmount(line.price)} />
               ))
             )}

@@ -4,17 +4,22 @@ export interface LocationEntry {
   lng: number | null;
 }
 
+/** Lodging option / add-on / amenity que el dueño enlaza a una actividad del schedule. */
+export type ScheduleService = {
+  type: 'lodging' | 'addOn' | 'amenity';
+  name: string;
+};
+
 export type ScheduleRow = {
   id?: string;
   date: string;
-  startHour: string; // 1 to 12
+  startHour: string; // 00 to 23 (24h)
   startMinute: string; // 00,15,30,45
-  startPeriod: string; // AM/PM
-  endHour: string;
+  endHour: string; // 00 to 23 (24h)
   endMinute: string;
-  endPeriod: string;
   activity: string;
   location: string;
+  services?: ScheduleService[];
 };
 
 export interface ApiScheduleEntry {
@@ -23,6 +28,7 @@ export interface ApiScheduleEntry {
   endTime: string;
   activity: string;
   location: string;
+  services?: ScheduleService[];
 }
 
 export interface GetawayBase {
@@ -31,7 +37,8 @@ export interface GetawayBase {
   startDate: string;
   endDate: string;
   sport: string;
-  // price: number;
+  /** Precio "desde" que guarda el backend al crear el getaway. 0/ausente en los creados antes. */
+  price?: number;
   getawayAddress: LocationEntry;
   caption?: string;
   galleryVideo: string;

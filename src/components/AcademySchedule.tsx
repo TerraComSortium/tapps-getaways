@@ -4,7 +4,7 @@ import { BRAND } from "../theme/colors";
 import { useTranslation } from 'react-i18next';
 import {
   Box, Chip, Divider, Paper, Stack, Button, Typography, CircularProgress,
-  Card, CardContent, CardActions
+  Card, CardContent, CardActions, Alert
 } from '@mui/material';
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
@@ -14,7 +14,8 @@ import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import DeleteIcon from '@mui/icons-material/Delete';
-import academy from '../assets/RappsIcons/academyLogo.png';
+import RefreshIcon from '@mui/icons-material/Refresh';
+import academy from '../assets/RappsIcons/academyLogo.svg';
 // import { AcademyClass } from '../services/academyService';
 import { AcademyClass, AcademyHour, AcademyParams, AcademySession } from '../hooks/useGetAcademy';
 
@@ -22,8 +23,12 @@ import { AcademyClass, AcademyHour, AcademyParams, AcademySession } from '../hoo
 interface AcademyScheduleProps {
   /** 'select' deja elegir sesiones; 'readonly' solo muestra las ya incluidas. */
   mode?: 'select' | 'readonly';
+  /** false oculta la columna de precio (p.ej. en el detalle público del getaway). */
+  showPrice?: boolean;
   schedules: AcademyClass[];
   loading: boolean;
+  /** Error de la última búsqueda (de useGetAcademy). Si viene, NO es "sin resultados". */
+  error?: string | null;
   selectedIds: string[];
   setSelectedIds?: React.Dispatch<React.SetStateAction<string[]>>;
   /** Solo se usan en modo 'select': el readonly pinta lo que recibe en `schedules`. */
@@ -170,8 +175,10 @@ const StyledTableRow = styled(TableRow)(({ theme }) => ({
 
 export default function AcademySchedule({
   mode = 'select',
+  showPrice = true,
   schedules,
   loading,
+  error,
   selectedIds,
   setSelectedIds,
   fetchAcademy, searchParams
@@ -254,6 +261,18 @@ export default function AcademySchedule({
             <CircularProgress color="primary" />
             {/* <Typography sx={{ my: 2 }}>{t('common.loading')}...</Typography> */}
           </Box>
+        ) : error ? (
+          // Distinto de "sin resultados": la búsqueda falló, no vino vacía.
+          <Alert
+            severity="error" sx={{ my: 2 }}
+            action={
+              isSelectable && searchParams ? (
+                <Button color="inherit" size="small" startIcon={<RefreshIcon />}
+                  onClick={() => fetchAcademy?.(searchParams)}
+                > {t('common.retry')} </Button>
+              ) : undefined
+            }
+          > {t('academy.loadError')} </Alert>
         ) : visibleRows.length === 0 ? (
           <Typography variant="body2" color="text.secondary" align="center" sx={{ my: 2 }}>
             {t('academy.noSchedules')}
@@ -274,7 +293,7 @@ export default function AcademySchedule({
                     <StyledTableCell align="left">{t('academy.weekday')}</StyledTableCell>
                     <StyledTableCell align="left">{t('academy.location')}</StyledTableCell>
                     <StyledTableCell align="left">{t('academy.trainer')}</StyledTableCell>
-                    <StyledTableCell align="left">{t('academy.price')}</StyledTableCell>
+                    {showPrice && <StyledTableCell align="left">{t('academy.price')}</StyledTableCell>}
                     {isSelectable && (
                       <StyledTableCell align="center">{t('academy.include')}</StyledTableCell>
                     )}
@@ -328,6 +347,7 @@ export default function AcademySchedule({
                           <span>{row.trainers || '-'}</span>
                         </StyledTableCell>
 
+                        {showPrice && (
                         <StyledTableCell align="left" scope="row">
                           <Stack direction="column" spacing={0.5}>
                             <span>{row.price || '-'}</span>
@@ -338,6 +358,7 @@ export default function AcademySchedule({
                             )}
                           </Stack>
                         </StyledTableCell>
+                        )}
 
                         {isSelectable && (
                           <StyledTableCell align="center">

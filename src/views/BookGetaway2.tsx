@@ -28,7 +28,7 @@ import AcademySchedule from '../components/AcademySchedule';
 import LaddersSchedule from '../components/LaddersSchedule';
 import TournamentsSchedule from '../components/TournamentsSchedule';
 import { getCouponLabel, getCouponValue } from '../utils/couponHelpers';
-import { getScheduleFeeLines } from '../utils/scheduleFees';
+import { getScheduleFeeLines, sumAmenities } from '../utils/scheduleFees';
 import type { AcademyClass } from '../hooks/useGetAcademy';
 import type { Tournament } from '../services/tournament';
 import type { Ladder } from '../services/ladder';
@@ -208,6 +208,13 @@ export default function BookGetaway() {
     scheduleLines.forEach((line) => {
       lines.push({ id: line.id, label: line.name, price: line.price, hidden: true });
     });
+
+    // Servicios/amenities incluidos (precio unitario × días): parte del valor del
+    // getaway. Suman al subtotal pero no se listan, igual que las actividades.
+    const amenitiesFee = sumAmenities(getaway.amenities);
+    if (amenitiesFee > 0) {
+      lines.push({ id: 'amenities', label: 'amenities', price: amenitiesFee, hidden: true });
+    }
 
     return lines;
   }, [getaway, watchLodging, watchAddOns, scheduleLines]);

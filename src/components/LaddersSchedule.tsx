@@ -142,10 +142,12 @@ interface LadderTableProps {
   searchParams?: ScheduleFilters;
   /** Datos ya cargados (el getaway los trae embebidos); evita volver a pedirlos. */
   items?: Ladder[];
+  /** Avisa al padre cuando llegan los datos (p.ej. para calcular tarifas en el resumen). */
+  onItemsLoaded?: (items: Ladder[]) => void;
 }
 
 export default function LaddersTable(
-  { mode = 'readonly', showPrice = true, selectedIds = [], setSelectedIds, searchParams, items }: LadderTableProps
+  { mode = 'readonly', showPrice = true, selectedIds = [], setSelectedIds, searchParams, items, onItemsLoaded }: LadderTableProps
 ) {
   const { t } = useTranslation();
   const { ladders, loading, error, fetchLadders } = useLadders();
@@ -159,6 +161,9 @@ export default function LaddersTable(
   const [showTable, setShowTable] = React.useState(mode === 'readonly');
 
   const source = items ?? ladders;
+  React.useEffect(() => {
+    if (!items) onItemsLoaded?.(ladders);
+  }, [items, ladders, onItemsLoaded]);
   const rows = React.useMemo(() => toLadderRows(source, t), [source, t]);
 
 

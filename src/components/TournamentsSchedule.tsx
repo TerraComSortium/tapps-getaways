@@ -143,6 +143,8 @@ interface TournamentTableProps {
   searchParams?: ScheduleFilters;
   /** Datos ya cargados (el getaway los trae embebidos); evita volver a pedirlos. */
   items?: Tournament[];
+  /** Avisa al padre cuando llegan los datos (p.ej. para calcular tarifas en el resumen). */
+  onItemsLoaded?: (items: Tournament[]) => void;
 }
 
 const StyledTableRow = styled(TableRow)(({ theme }) => ({
@@ -153,7 +155,7 @@ const StyledTableRow = styled(TableRow)(({ theme }) => ({
 }));
 
 export default function TournamentTable(
-  { mode = 'readonly', showPrice = true, selectedIds = [], setSelectedIds, searchParams, items }: TournamentTableProps
+  { mode = 'readonly', showPrice = true, selectedIds = [], setSelectedIds, searchParams, items, onItemsLoaded }: TournamentTableProps
 ) {
   const { t } = useTranslation();
   const { tournaments, loading, error, fetchTournaments } = useTournaments();
@@ -169,6 +171,9 @@ export default function TournamentTable(
   // En readonly la tabla nace abierta: no hay tarjeta de "cargar" que mostrar.
   const [showTable, setShowTable] = React.useState(mode === 'readonly');
   const source = items ?? tournaments;
+  React.useEffect(() => {
+    if (!items) onItemsLoaded?.(tournaments);
+  }, [items, tournaments, onItemsLoaded]);
   const rows = React.useMemo(() => toTournamentRows(source, t), [source, t]);
 
 

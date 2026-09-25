@@ -83,3 +83,30 @@ export const getScheduleFeeLines = (getaway: {
 /** Suma de todas las actividades incluidas en el getaway. */
 export const sumScheduleFees = (getaway: Parameters<typeof getScheduleFeeLines>[0]): number =>
   getScheduleFeeLines(getaway).reduce((total, line) => total + line.price, 0);
+
+/**
+ * Servicios/amenities incluidos: suma de precio unitario × días de cada uno.
+ * Forma parte del valor del getaway (se cobra siempre y no se lista aparte).
+ * Getaways viejos (solo `name`) suman 0.
+ *
+ * IMPORTANTE: el backend repite este cálculo en `src/getaways/libs/pricing.ts`
+ * (`amenitiesTotal`). Si divergen, el pago se rechaza por amount_mismatch.
+ */
+export const sumAmenities = (amenities: unknown): number => {
+  const items = Array.isArray(amenities) ? amenities : [];
+  const total = items.reduce(
+    (sum: number, item: { unitPrice?: unknown; days?: unknown }) => sum + lineTotal(item?.unitPrice, item?.days),
+    0
+  );
+  return Math.round(total * 100) / 100;
+};
+
+/**
+ * Total de una línea con precio por día (alojamiento o amenity): precio unitario
+ * × días, redondeado a centavos. Mismo cálculo que el backend (`libs/pricing.ts`).
+ */
+export const lineTotal = (unitPrice: unknown, days: unknown): number => {
+  const price = toAmount(unitPrice);
+  const wholeDays = Math.max(Math.floor(Number(days) || 0), 0);
+  return Math.round(price * wholeDays * 100) / 100;
+};

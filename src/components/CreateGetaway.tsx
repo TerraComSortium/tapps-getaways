@@ -17,6 +17,12 @@ import { AddressAutocompleteField } from '../components/AddressAutocompleteField
 import { GalleryPhotoItem } from '../components/GalleryPhotoItem';
 import { ScheduleCalendar } from '../components/ScheduleCalendar';
 import { rowsOutsideRange } from '../utils/dataMappers';
+import { countGetawayDays } from '../utils/getawayHelpers';
+import { getScheduleFeeLines, lineTotal, sumAmenities } from '../utils/scheduleFees';
+import { GetawaySummaryDialog, type GetawaySummary } from '../components/GetawaySummaryDialog';
+import type { Tournament } from '../services/tournament';
+import type { Ladder } from '../services/ladder';
+import { PricedItemRow } from '../components/PricedItemRow';
 import AcademySchedule from '../components/AcademySchedule';
 // import AcademySchedule1 from '../components/AcademySchedule1';
 
@@ -35,7 +41,7 @@ import {
 import { useSnackbar } from '../hooks/useSnackbar';
 import { scrollToFirstError } from '../utils/formErrors';
 import { useCreateGetaway } from '../hooks/useCreateGetaway';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 // import { useScheduleValidation } from '../hooks/useScheduleValidation';
 
 const ALPHANUMERIC_I18N_REGEX : RegExp = /^[\p{L}0-9\s,._'";:()!/|&—’-]*$/u;
@@ -48,22 +54,22 @@ const sports = [
 ];
 
 export const CreateGetaway =() => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { snackbar, showSnackbar, closeSnackbar } = useSnackbar();
   const { isLoading, submitGetaway } = useCreateGetaway(showSnackbar);
 
   const [scheduleRows, setScheduleRows] = useState<ScheduleRow[]>([]);
   const [scheduleError, setScheduleError] = useState<string | null>(null);
 
-  const { control, handleSubmit, formState: { errors } } = useForm<GetawayFormData>({
+  const { control, handleSubmit, setValue, getValues, formState: { errors } } = useForm<GetawayFormData>({
     defaultValues: {
       title: "",
       overview: "",
       getawayAddress: { address: "", lat: null, lng: null },
       galleryPhotos: [],
-      lodgingOptions: [{ name: "", price: 0 }],
+      lodgingOptions: [{ name: "", unitPrice: 0, days: 1, price: 0 }],
       optionalAddOns: [{ name: "", price: 0 }],
-      amenities: [{ name: "" }],
+      amenities: [{ name: "", unitPrice: 0, days: 1 }],
       schedule: [],
       discounts: []
     }
@@ -84,6 +90,17 @@ export const CreateGetaway =() => {
   const watchedAmenities = useWatch({ control, name: 'amenities' });
 
   const [selectedTournamentIds, setSelectedTournamentIds] = useState<string[]>([]);
+  // Datos que cargan las tablas de torneos/ladders: se usan para sus tarifas en el resumen.
+  const [tournamentsData, setTournamentsData] = useState<Tournament[]>([]);
+  const [laddersData, setLaddersData] = useState<Ladder[]>([]);
+  // Datos validados a la espera de que el usuario confirme el resumen.
+  const [pendingSubmit, setPendingSubmit] = useState<{
+    data: GetawayFormData;
+    cleanedAddOns: { name: string; price: number }[];
+    validPhotos: File[];
+    validCaptions: string[];
+    summary: GetawaySummary;
+  } | null>(null);
   const [selectedLadderIds, setSelectedLadderIds] = useState<string[]>([]);
 
   const { fields: photoFields, append: appendPhoto, remove: removePhoto } = useFieldArray({
@@ -103,6 +120,34 @@ export const CreateGetaway =() => {
     name: 'amenities'
   });
 
+  // Días del getaway: valor por defecto de "días" en alojamiento y amenities.
+  const getawayDays = countGetawayDays(watchedStartDate, watchedEndDate);
+  const lastGetawayDays = useRef(1);
+  // Al cambiar las fechas se actualizan los días de las filas que seguían con el
+  // valor automático; las que el usuario editó a mano se respetan.
+  useEffect(() => {
+    if (!getawayDays) return;
+    const previous = lastGetawayDays.current;
+    (['lodgingOptions', 'amenities'] as const).forEach((section) => {
+      (getValues(section) || []).forEach((item, index) => {
+        const days = Number(item?.days);
+        if (!days || days === previous) {
+          setValue(`${section}.${index}.days`, getawayDays);
+        }
+      });
+    });
+    lastGetawayDays.current = getawayDays;
+  }, [getawayDays, getValues, setValue]);
+
+  // Totales en vivo (precio unitario × días), con el mismo cálculo que el backend.
+  const lodgingTotal = (index: number) =>
+    lineTotal(watchedLodgingOptions?.[index]?.unitPrice, watchedLodgingOptions?.[index]?.days);
+  const amenityTotal = (index: number) =>
+    lineTotal(watchedAmenities?.[index]?.unitPrice, watchedAmenities?.[index]?.days);
+  const amenitiesSum = sumAmenities(watchedAmenities);
+  const formatMoney = (value: number) =>
+    value.toLocaleString(i18n.language, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
   const { fields: addOnFields, append: appendAddOn, remove: removeAddOn } = useFieldArray({
     control,
     name: 'optionalAddOns'
@@ -114,8 +159,6 @@ export const CreateGetaway =() => {
   // });
 
   const onSubmit: SubmitHandler<GetawayFormData> = async (data) => {
-    console.log("prueba de datos")
-    console.log(data)
     if (!data.getawayAddress.lat || !data.getawayAddress.lng) {
       showSnackbar(t('create.selectValidLocation'), "warning");
       return;
@@ -155,16 +198,68 @@ export const CreateGetaway =() => {
       }));
 
     setScheduleError(null);
-    await submitGetaway(
-      data,
-      scheduleRows,
+
+    // El precio de cada habitación es su total: precio unitario × días.
+    const normalizeLine = <T extends { unitPrice?: number; days?: number }>(item: T) => ({
+      ...item,
+      unitPrice: Number(item.unitPrice) || 0,
+      days: Number(item.days) || 1,
+    });
+    const lodgingOptions = (data.lodgingOptions || []).map((option) => {
+      const line = normalizeLine(option);
+      return { ...line, price: lineTotal(line.unitPrice, line.days) };
+    });
+    const amenities = (data.amenities || [])
+      .filter((amenity) => amenity.name?.trim())
+      .map((amenity) => {
+        const line = normalizeLine(amenity);
+        return { ...line, total: lineTotal(line.unitPrice, line.days) };
+      });
+    const normalizedData: GetawayFormData = { ...data, lodgingOptions, amenities };
+
+    // Actividades seleccionadas con su tarifa (misma función que la reserva y el cobro).
+    const pick = <T extends { id?: string }>(items: T[], ids: string[]) => items.filter((item) => item.id && ids.includes(item.id));
+    const activityLines = getScheduleFeeLines({
+      academyClasses: pick(academyData as { id?: string }[], selectedAcademyIds),
+      tournaments: pick(tournamentsData, selectedTournamentIds),
+      ladders: pick(laddersData, selectedLadderIds),
+    });
+
+    setPendingSubmit({
+      data: normalizedData,
       cleanedAddOns,
       validPhotos,
       validCaptions,
+      summary: {
+        title: data.title,
+        startDate: data.startDate,
+        endDate: data.endDate,
+        days: countGetawayDays(data.startDate, data.endDate),
+        sport: data.sport,
+        address: data.getawayAddress?.address || '',
+        lodging: lodgingOptions.map(({ name, unitPrice, days, price }) => ({ name, unitPrice, days, total: price })),
+        amenities: amenities.map(({ name, unitPrice, days, total }) => ({ name, unitPrice, days, total })),
+        addOns: cleanedAddOns,
+        activities: activityLines.map(({ name, kind, price }) => ({ name, kind, price })),
+        scheduleCount: scheduleRows.length,
+      },
+    });
+  };
+
+  /** "Confirmar y guardar" en el resumen: recién aquí se envía al backend. */
+  const confirmSubmit = async () => {
+    if (!pendingSubmit) return;
+    await submitGetaway(
+      pendingSubmit.data,
+      scheduleRows,
+      pendingSubmit.cleanedAddOns,
+      pendingSubmit.validPhotos,
+      pendingSubmit.validCaptions,
       selectedTournamentIds,
       selectedLadderIds,
       selectedAcademyIds
     );
+    setPendingSubmit(null);
   };
 
   /**
@@ -405,75 +500,26 @@ export const CreateGetaway =() => {
           <Typography variant="h6" color={BRAND.primary} sx={{ m: '1 0', fontSize: '14px', fontWeight:"bold"  }}> {t('create.lodgingOptionsSection')}</Typography>
           <Divider aria-hidden="true"/>
           {lodgingFields.map((field, index) => (
-            <Box key={field.id} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'start', flexWrap: 'wrap', gap: 0 }}>
-              <Controller name={`lodgingOptions.${index}.name`}
-                control={control}
-                defaultValue={field.name}
-                rules={{
-                  required: t('create.lodgingRequired'),
-                  validate: (value?: string) =>
-                    !value || ALPHANUMERIC_I18N_REGEX.test(value)
-                      ? true
-                      : t('create.onlyAlphanumeric'),
-                }}
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    label={t('create.lodgingOptionN', { n: index + 1 })}
-                    fullWidth margin="normal"
-                    sx={{ maxWidth:{ xs:'70%', sm:'225px', md:'300px' }, mr:{ xs:0, sm:'12px'}, mb:'1' }}
-                    error={!!errors.lodgingOptions?.[index]?.name}
-                    helperText={errors.lodgingOptions?.[index]?.name ? errors.lodgingOptions?.[index]?.name.message : ''}
-                  />
-                )}
-              />
-
-              <Controller
-                name={`lodgingOptions.${index}.price`}
-                control={control}
-                // defaultValue={field.price}
-                defaultValue={Number(field.price) || 0}
-                rules={{
-                  required: t('create.lodgingPriceRequired'),
-                  validate: {
-                    isNumber: (value) => {
-                      const numberValue = parseFloat(String(value));
-                      return !isNaN(numberValue) || t('create.priceNumber');
-                    },
-                    isPositive: (value) => {
-                      const numberValue = parseFloat(String(value));
-                      return numberValue >= 0 || t('create.pricePositive');
-                    }
-                  }
-                }}
-                render={({ field }) => (
-                  <TextField
-                    sx={{ maxWidth:{ xs:'45%', sm:'180px', md:'220px' }, mr:{ xs: 0, sm:'9px' }, mt:2 }}
-                    {...field}
-                    label={t('create.lodgingPriceN', { n: index + 1 })}
-                    type="number" margin="normal"
-                    error={!!errors.lodgingOptions?.[index]?.price}
-                    helperText={errors.lodgingOptions?.[index]?.price ? errors.lodgingOptions?.[index]?.price.message : ''}
-                  />
-                )}
-              />
-
-              <Button variant="outlined" disableElevation size="medium" aria-label="delete"
-                sx={{
-                  p: '10px 16px',
-                  minWidth: '48px', height: '56px',
-                  mt:'8px', ml:{ xs:'3px', sm:'2px'}, borderRadius: "10px", textTransform: "none", bgcolor: BRAND.primary, color: BRAND.white, fontWeight: 'bold',
-                  ':hover': { color: BRAND.primary, bgcolor: BRAND.white  }
-                }}
-                onClick={() => removeLodging(index)}
-                // disabled={activeForms.length === 1}
-              ><DeleteIcon/></Button>
-              <Divider aria-hidden="true" />
-            </Box>
+            <PricedItemRow
+              key={field.id}
+              control={control}
+              errors={errors}
+              section="lodgingOptions"
+              index={index}
+              nameLabel={t('create.lodgingOptionN', { n: index + 1 })}
+              nameRules={{
+                required: t('create.lodgingRequired'),
+                validate: (value) =>
+                  !value || ALPHANUMERIC_I18N_REGEX.test(String(value)) ? true : t('create.onlyAlphanumeric'),
+              }}
+              defaultDays={getawayDays}
+              total={formatMoney(lodgingTotal(index))}
+              onRemove={() => removeLodging(index)}
+            />
           ))}
           <Button
             startIcon={<AddIcon />} variant="contained" aria-label="Add lodging option" disableElevation
-            onClick={() => appendLodging({ name: "", price: 0})}
+            onClick={() => appendLodging({ name: "", unitPrice: 0, days: getawayDays || 1, price: 0 })}
             sx={{
               mt:0, mb: 3, bgcolor: BRAND.green, color: BRAND.navy, fontWeight: 'bold', borderRadius: '30px', textTransform: 'none',
               ':hover': { bgcolor: BRAND.primary, color: 'white' }
@@ -560,37 +606,25 @@ export const CreateGetaway =() => {
           <Divider aria-hidden="true" sx={{ pt:0, mt: 0 }} />
           
           {amenityFields.map((field, index) => (
-            <Box key={field.id} sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'start', gap: 1 }}>
-              <Controller
-                name={`amenities.${index}.name`}
-                control={control}
-                defaultValue={field.name}
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    fullWidth margin="normal"
-                    sx={{ maxWidth: { xs:'90%', sm:'80%', md:'390px' }, mr: { xs:0, sm:0 }}}
-                    label={t('create.amenityN', { n: index + 1 })}
-                    error={!!errors.amenities?.[index]?.name}
-                    helperText={errors.amenities?.[index]?.name ? errors.amenities?.[index]?.name.message : ''}
-                  />
-                )}
-              />
-              <Button variant="outlined" disableElevation size="medium"
-                sx={{
-                  p: '10px 16px',
-                  minWidth: '48px', height: '56px',
-                  mt:'8px', ml:{ xs:'2px', sm:'2px'},
-                  borderRadius: "10px", textTransform: "none",
-                  bgcolor: BRAND.primary, color: BRAND.white, fontWeight: 'bold',
-                  ':hover': { color: BRAND.primary, bgcolor: BRAND.white  }
-                }}
-                onClick={() => removeAmenity(index)} aria-label="delete"
-              ><DeleteIcon/></Button>
-            </Box>
+            <PricedItemRow
+              key={field.id}
+              control={control}
+              errors={errors}
+              section="amenities"
+              index={index}
+              nameLabel={t('create.amenityN', { n: index + 1 })}
+              defaultDays={getawayDays}
+              total={formatMoney(amenityTotal(index))}
+              onRemove={() => removeAmenity(index)}
+            />
           ))}
+          {amenitiesSum > 0 && (
+            <Typography variant="body2" sx={{ fontWeight: 'bold', color: BRAND.primary, mt: 1, mb: 1 }}>
+              {t('create.amenitiesTotal', { total: formatMoney(amenitiesSum) })}
+            </Typography>
+          )}
           <Button startIcon={<AddIcon />} variant="contained" aria-label="Add amenity" disableElevation
-            onClick={() => appendAmenity({ name: "" })}
+            onClick={() => appendAmenity({ name: "", unitPrice: 0, days: getawayDays || 1 })}
             sx={{
               mb: 3, bgcolor: BRAND.green, color: BRAND.navy, borderRadius: '30px', fontWeight: 'bold', textTransform: 'none',
               ':hover': { bgcolor: BRAND.primary, color: 'white' }
@@ -629,6 +663,7 @@ export const CreateGetaway =() => {
           {/* <TournamentsSchedule/> */}
           <TournamentsSchedule
             mode="select"
+            onItemsLoaded={setTournamentsData}
             selectedIds={selectedTournamentIds}
             setSelectedIds={setSelectedTournamentIds}
             searchParams={{
@@ -644,6 +679,7 @@ export const CreateGetaway =() => {
 
           <LaddersSchedule
             mode="select"
+            onItemsLoaded={setLaddersData}
             selectedIds={selectedLadderIds}
             setSelectedIds={setSelectedLadderIds}
             searchParams={{
@@ -700,6 +736,13 @@ export const CreateGetaway =() => {
       </Box>
     
     </Box>
+      <GetawaySummaryDialog
+        open={!!pendingSubmit}
+        summary={pendingSubmit?.summary ?? null}
+        saving={isLoading}
+        onClose={() => setPendingSubmit(null)}
+        onConfirm={confirmSubmit}
+      />
       <Snackbar open={snackbar.open} autoHideDuration={4000} onClose={closeSnackbar}>
         <Alert severity={snackbar.severity} onClose={closeSnackbar} sx={{ width: '100%' }}>
           {snackbar.message}

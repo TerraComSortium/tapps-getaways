@@ -31,6 +31,30 @@ export interface ApiScheduleEntry {
   services?: ScheduleService[];
 }
 
+/**
+ * Opción de alojamiento. `price` es el TOTAL de la habitación (lo que se cobra);
+ * sale de `unitPrice × days`. Los getaways creados antes solo tienen `price`.
+ */
+export interface LodgingOptionItem {
+  name: string;
+  price: number;
+  unitPrice?: number;
+  days?: number;
+  occupancy?: string;
+}
+
+/**
+ * Servicio/amenity incluido en el getaway. `days` arranca con los días del
+ * getaway pero se puede editar; `total` = unitPrice × days (lo recalcula el backend).
+ * Los getaways creados antes solo tienen `name`.
+ */
+export interface AmenityItem {
+  name: string;
+  unitPrice?: number;
+  days?: number;
+  total?: number;
+}
+
 export interface GetawayBase {
   title: string;
   overview: string;
@@ -43,9 +67,9 @@ export interface GetawayBase {
   caption?: string;
   galleryVideo: string;
   mainDescription: string;
-  lodgingOptions: { name: string, price: number }[];
+  lodgingOptions: LodgingOptionItem[];
   optionalAddOns: { name: string, price: number }[];
-  amenities: { name: string }[];
+  amenities: AmenityItem[];
   schedule: ApiScheduleEntry[];
   discounts?: Discount[];
   tournamentIds?: string[];

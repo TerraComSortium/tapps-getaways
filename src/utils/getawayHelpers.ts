@@ -139,3 +139,16 @@ function formatDate(date: Date): string {
     day: 'numeric',
   });
 }
+
+/**
+ * Días del getaway entre dos fechas "YYYY-MM-DD", contando inicio y fin
+ * (del 21 al 25 = 5 días). 0 si falta alguna o el rango es inválido.
+ * Se calcula en UTC para que la zona horaria no reste o sume un día.
+ */
+export const countGetawayDays = (startDate?: string, endDate?: string): number => {
+  if (!startDate || !endDate) return 0;
+  const start = Date.parse(`${startDate.slice(0, 10)}T00:00:00Z`);
+  const end = Date.parse(`${endDate.slice(0, 10)}T00:00:00Z`);
+  if (Number.isNaN(start) || Number.isNaN(end) || end < start) return 0;
+  return Math.round((end - start) / 86_400_000) + 1;
+};

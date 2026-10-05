@@ -15,7 +15,7 @@ import TableRow from "@mui/material/TableRow";
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import DeleteIcon from '@mui/icons-material/Delete';
 import RefreshIcon from '@mui/icons-material/Refresh';
-import academy from '../assets/RappsIcons/academyLogo.svg';
+import academy from '../assets/RappsIcons/academyLogo.png';
 // import { AcademyClass } from '../services/academyService';
 import { AcademyClass, AcademyHour, AcademyParams, AcademySession } from '../hooks/useGetAcademy';
 

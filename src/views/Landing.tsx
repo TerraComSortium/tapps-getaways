@@ -30,13 +30,46 @@ const LandingPage = () => {
         <Box
           sx={{
             display: 'flex', justifyContent: 'center', position: 'absolute',
-            top: 0, left: 0, right: 0, zIndex: 10, pt: 3,
-            px: { xs: 1, sm: 2, md: 4 },
+            top: 0, left: 0, right: 0,
+            pt: 2, px: { xs: 1, sm: 2, md: 4 },
             boxSizing: 'border-box',
             background: 'linear-gradient(to bottom, rgba(0,0,0,0.3), transparent)'
           }}
         >
-          <SearchBar />
+          <Box
+            sx={{
+              width: '100%', maxWidth: '1200px',
+              display: 'flex', flexDirection: 'column',
+              alignItems: 'stretch',
+              m: 0, p: 0, gap: 0.5,
+              boxSizing: 'border-box',
+            }}
+          >
+            <SearchBar />
+            <Box
+              className="cards"
+              sx={{
+                display: { xs: 'none', sm: 'flex' }, //hidden at xs
+                width: '100%', m: 0,
+                borderRadius: '0 0 14px 14px',
+                bgcolor: 'white',
+                py: 1.4,
+                boxSizing: 'border-box',
+                // boxShadow: '0px 4px 12px rgba(0,0,0,0.1)',
+                justifyContent: 'center', alignItems: 'center'
+              }}
+            >
+              <Typography variant="body2"
+                sx={{
+                  color: 'text.primary',
+                  textAlign: 'center',
+                  fontSize: { sm: '0.85rem', md: '0.86rem' },
+                  m: 0, p: 0
+                }}
+              > {t('search.ad')}
+              </Typography>
+            </Box>
+          </Box>
         </Box>
       </Box>
 

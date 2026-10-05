@@ -98,7 +98,6 @@ export default function SearchBar({ onSearch }: SearchBarProps) {
 
     try {
       const safeQuery = sanitizeInput(searchLocation?.address || '');
-
       const lat = searchLocation?.lat;
       const lng = searchLocation?.lng;
 
@@ -147,17 +146,20 @@ export default function SearchBar({ onSearch }: SearchBarProps) {
     <Box
       sx={{
         display: 'flex', flexDirection: 'column',
-        bgcolor: BRAND.primary, color: BRAND.white, borderRadius: '8px',
-        p: { xs: 2, md: 4 },
-        gap: { xs: 0.5, md: 1 },
-        width: '100%',
+        bgcolor: BRAND.primary, color: BRAND.white,
+        borderRadius: { xs: '14px', sm: '14px 14px 0 0' },
+        px: { xs: 2, md: 3 },
+        py: { xs: 1.5, md: 2.5 },
+        gap: { xs: 0.5, md: 0.5 },
+        height: 'auto',
+        width: '100%', m: 0,
         boxSizing: 'border-box',
       }}
     >
       <Typography variant="h6" component="h6" sx={{ margin:0, padding:0, fontSize: { xs: '0.9rem', md: '1rem' }, fontWeight: 'medium' }} > {t('search.title')}
       </Typography>
 
-      <Grid container spacing={2} alignItems="flex-end" size={12} >
+      <Grid container spacing={2} alignItems="flex-end">
         <Grid size={{ xs:12, md:4 }} >
           <AddressAutocomplete
             onChange={handleMapsSearch}
@@ -180,9 +182,10 @@ export default function SearchBar({ onSearch }: SearchBarProps) {
             gap: { xs: 1, sm: 2 },
             bgcolor: BRAND.white,
             borderRadius: '8px',
-            p: '4px',
+            px: '1px',
+            py: '2px',
             width: '100%',
-            alignItems: 'center',
+            alignItems: 'center', boxSizing: 'border-box'
           }}>
             <TextField type="date" label={t('search.arrival')} value={arrival} variant="standard" fullWidth
               InputLabelProps={{ shrink: true }}
@@ -198,7 +201,7 @@ export default function SearchBar({ onSearch }: SearchBarProps) {
                 '& .MuiInput-underline:hover:not(.Mui-disabled):before': { borderBottom: 'none' },
                 '& .MuiOutlinedInput-root': {
                   borderRadius: '8px',
-                  height:{ xs: '38px', sm: '48px' },
+                  height:{ xs: '37px', sm: '47px' },
                   bgcolor: BRAND.white,
                   '&:hover fieldset': { borderColor: 'transparent' },
                   '&.Mui-focused fieldset': { borderColor: 'transparent' },
@@ -212,7 +215,7 @@ export default function SearchBar({ onSearch }: SearchBarProps) {
               inputProps={{ min: arrival || today }}
               sx={{
                 flex: 1,
-                mx: '4px',
+                mx: '3px',
                 color: BRAND.primary,
                 '& .MuiInputBase-input': { p: 0.5, color: BRAND.black, fontSize: { xs: '0.75rem', sm: '0.875rem' }, },
                 '& .MuiInput-underline:before': { borderBottom: 'none' },
@@ -220,7 +223,7 @@ export default function SearchBar({ onSearch }: SearchBarProps) {
                 '& .MuiInput-underline:hover:not(.Mui-disabled):before': { borderBottom: 'none' },
                 '& .MuiOutlinedInput-root': {
                   borderRadius: '8px',
-                  height:{ xs: '38px', sm: '48px' },
+                  height:{ xs: '37px', sm: '47px' },
                   color: BRAND.black, bgcolor: BRAND.white,
                 },
               }}

@@ -109,7 +109,7 @@ export function AddressAutocomplete({
       // Evita duplicar la coma si la dirección ya viene formateada o limpia
       const cleanAddress = globalAddress.endsWith(', ') ? globalAddress : `${globalAddress}`;
       inputRef.current.value = cleanAddress;
-      
+
       const isDesktop = window.innerWidth > 768;
       if (isDesktop) {
         inputRef.current.focus();
@@ -153,7 +153,7 @@ export function AddressAutocomplete({
       async (pos) => {
         const { latitude: lat, longitude: lng } = pos.coords;
 
-        // Si la librería de Google Geocoding no ha cargado aún, usamos un fallback numérico rápido
+        // Si librería GoogleGeocoding no ha cargado aún, usa fallback numérico rápido
         if (!geocodingLib) {
           console.log('la libreria no esta cargada aun')
           const fallbackAddress = `Lat: ${lat.toFixed(4)}, Lng: ${lng.toFixed(4)}`;
@@ -166,14 +166,15 @@ export function AddressAutocomplete({
         try {
           // Instanciamos el codificador nativo de Google (No consume requests fetch manuales)
           const geocoder = new geocodingLib.Geocoder();
-          
+
           geocoder.geocode({ location: { lat, lng } }, (results, status) => {
             let address = `Lat: ${lat.toFixed(4)}, Lng: ${lng.toFixed(4)}`;
-            
+
             if (status === "OK" && results?.[0]) {
               address = results[0].formatted_address;
             }
             
+
             onChangeRef.current({ address, lat, lng });
             if (inputRef.current) inputRef.current.value = address;
             setIsLoadingGeo(false);
@@ -203,7 +204,9 @@ export function AddressAutocomplete({
     <Box sx={{ width: '100%', display: 'flex', alignItems: 'flex-start', gap: 1, flexWrap: 'wrap', ...containerSx }}>
       <Box sx={{ flex: 1, minWidth: '250px' }}>
         {label && (
-          <FormLabel error={!!error} sx={{ fontWeight: 400, color: error ? undefined : labelColor }}>
+          <FormLabel error={!!error}
+            sx={{ fontWeight: 400, color: error ? undefined : labelColor, fontSize:{ sm: '0.85rem', md: '0.9rem' }
+             }}>
             {label}
           </FormLabel>
         )}

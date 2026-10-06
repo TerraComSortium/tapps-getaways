@@ -4,6 +4,7 @@ import { useNavigate, useLocation, useParams, Link as RouterLink } from 'react-r
 import {
   Container, Box, Stack, Modal, Paper, Chip,
   Typography, Divider, Button, IconButton,
+  Radio, RadioGroup, FormControlLabel, FormControl,
   CircularProgress, Alert
 } from '@mui/material';
 import Grid from '@mui/material/Grid2';
@@ -50,30 +51,26 @@ import type { Tournament } from '../services/tournament';
 import type { Ladder } from '../services/ladder';
 import { useTranslation } from 'react-i18next';
 
-/** Bloque con cabecera (icono + título) para agrupar el contenido del detalle. */
 const Section = ({
   icon, title, children,
-}: { icon: React.ReactNode; title: string; children: React.ReactNode }) => (
+}: { icon?: React.ReactNode; title: string; children: React.ReactNode }) => (
   <Paper
     elevation={0}
-    sx={{ p: { xs: 2, sm: 3 }, mb: 2.5, borderRadius: '12px', bgcolor: 'background.paper' }}
+    sx={{ p: { xs: 2, sm: 2 }, mb: 1.5, borderRadius: '12px', bgcolor: 'background.paper' }}
   >
-    <Stack direction="row" spacing={1} sx={{ alignItems: 'center', mb: 1 }}>
-      <Box sx={{ color: BRAND.primary, display: 'flex' }}>{icon}</Box>
+    <Stack direction="row" spacing={1} sx={{ alignItems: 'center', mb: 0.5 }}>
+      {icon && (
+        <Box sx={{ color: BRAND.primary, display: 'flex' }}>{icon}</Box>
+      )}
       <Typography sx={{ fontSize: 16, fontWeight: 'bold', color: BRAND.primary }}>
         {title}
       </Typography>
     </Stack>
-    <Divider aria-hidden="true" sx={{ bgcolor: BRAND.primary, mb: 2 }} />
+    <Divider aria-hidden="true" sx={{ bgcolor: BRAND.primary, mb: 1 }} />
     {children}
   </Paper>
 );
 
-/** Texto de "aquí todavía no hay nada", que se repetía en cada bloque. */
-/**
- * Acción principal del detalle: si el jugador ya pagó este getaway no tiene
- * sentido volver a cobrarle, así que se le ofrece su factura.
- */
 const PrimaryAction = ({
   isPaid, onBook, onInvoice, downloading, label, invoiceLabel, sx,
 }: {
@@ -114,7 +111,7 @@ const EmptyText = ({ children }: { children: React.ReactNode }) => (
 );
 
 function GetawayDetail() {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   // const { role, isLoading: isAuthLoading } = useAuth();
@@ -134,11 +131,6 @@ function GetawayDetail() {
   const academyClasses = (getaway?.academyClasses as AcademyClass[] | undefined) ?? [];
   const tournaments = (getaway?.tournaments as Tournament[] | undefined) ?? [];
   const ladders = (getaway?.ladders as Ladder[] | undefined) ?? [];
-
-  // Precio "desde" que el backend guardó al crear el getaway (alojamiento más
-  // barato + actividades incluidas). Viene también en el listado, así que se ve
-  // al instante. Los getaways creados antes no lo tienen: no se muestra.
-  const storedPrice = Number(getaway?.price) || 0;
   const owner = getaway?.owner ?? null;
   // El enlace se guarda tal cual lo pega el admin (watch?v=…, youtu.be/…), que
   // YouTube no permite embeber. Se normaliza a /embed/ antes de usarlo.
@@ -158,6 +150,7 @@ function GetawayDetail() {
 
   const [mainImage, setMainImage] = useState<string | "video">(prevPhoto);
   const [galleryImages, setGalleryImages] = useState<(string | "video")[]>([]);
+  const [selectedLodging, setSelectedLodging] = useState<string>("");
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [copied, setCopied] = useState(false);
@@ -183,6 +176,9 @@ function GetawayDetail() {
       setGalleryImages(allMedia);
       setMainImage(allMedia[0] || prevPhoto);
 
+      if (getaway.lodgingOptions && getaway.lodgingOptions.length > 0) {
+        setSelectedLodging(getaway.lodgingOptions[0].name);
+      }
       // console.log('july', JSON.stringify(getaway, null, 2));
     }
   }, [getaway]);
@@ -385,20 +381,20 @@ function GetawayDetail() {
               <h3 className='title4' style={{ marginBottom: 8 }}>{getaway.title}</h3>
 
               <Stack direction="row" spacing={1} sx={{ mb: 1.5, flexWrap: 'wrap' }} useFlexGap>
-                {getaway.sport && (
-                  <Chip
-                    size="small"
-                    icon={<SportsTennisIcon />}
-                    label={getSportLabel(getaway.sport)}
-                    sx={{ bgcolor: BRAND.green, color: BRAND.navy, fontWeight: 'bold' }}
-                  />
-                )}
                 {(getaway.startDate || getaway.endDate) && (
                   <Chip
                     size="small" variant="outlined"
                     icon={<CalendarMonthIcon />}
                     label={`${getaway.startDate} - ${getaway.endDate}`}
                     sx={{ borderColor: BRAND.primary, color: BRAND.primary, fontWeight: 500 }}
+                  />
+                )}
+                {getaway.sport && (
+                  <Chip
+                    size="small"
+                    icon={<SportsTennisIcon />}
+                    label={getSportLabel(getaway.sport)}
+                    sx={{ bgcolor: BRAND.green, color: BRAND.navy, fontWeight: 'bold' }}
                   />
                 )}
               </Stack>
@@ -456,20 +452,29 @@ function GetawayDetail() {
 
               {getaway.overview && <p className='paragraph' style={{ marginTop: 0 }}>{getaway.overview}</p>}
 
-              {storedPrice > 0 && (
-                <Box>
-                  <h4 className='title4'>{t('detail.ratesStartAt')}</h4>
-                  <Typography sx={{ fontSize: 28, fontWeight: 'bold', color: BRAND.primary, lineHeight: 1.2 }}>
-                    ${storedPrice.toLocaleString(i18n.language, { maximumFractionDigits: 2 })}
-                    <Typography component="span" variant="body2" color="text.secondary" sx={{ ml: 0.75 }}>
-                      {t('detail.plusTax')}
-                    </Typography>
-                  </Typography>
-                  <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5, mb: 1 }}>
-                    {t('detail.priceNote')}
-                  </Typography>
-                </Box>
-              )}
+              <FormControl>
+                <h4 className='title4'>{t('detail.ratesStartAt')}</h4>
+                <RadioGroup
+                  aria-labelledby="demo-controlled-radio-buttons-group"
+                  name="controlled-radio-buttons-group"
+                  value={selectedLodging}
+                  onChange={(e) => setSelectedLodging(e.target.value)}
+                >
+                  {getaway.lodgingOptions && getaway.lodgingOptions.length > 0 ? (
+                    getaway.lodgingOptions.map((option, index) => (
+                      <FormControlLabel
+                        sx={{mt:0}}
+                        key={index}
+                        value={option.name}
+                        control={<Radio />}
+                        label={`${option.name} - $${option.price} ` }
+                      />
+                    ))
+                  ) : (
+                    <Typography variant="subtitle2" sx={{ fontStyle: 'italic', color: 'text.secondary' }}>{t('detail.unavailableLodging')}</Typography>
+                  )}
+                </RadioGroup>
+              </FormControl>
 
               {expired ? (
                 <Typography sx={{ mt: 1, mb: 3, fontStyle: 'italic', color: 'text.secondary' }}>
@@ -498,7 +503,7 @@ function GetawayDetail() {
                       color: copied ? BRAND.primary : BRAND.white,
                       transition: 'all 0.3s ease',
                       ':hover': {
-                        bgcolor: copied ? '#00c77f' : BRAND.white, 
+                        bgcolor: copied ? '#00c77f' : BRAND.white,
                         color: copied ? BRAND.primary : BRAND.primary,
                       }
                     }}
@@ -581,7 +586,9 @@ function GetawayDetail() {
         </Modal>
       </Container>
       <Container sx={{ display: 'flex', flexDirection: 'column', mt: 3, mb: 3 }}>
-        <Section icon={<NotesIcon />} title={t('detail.description')}>
+        <Section
+          // icon={<NotesIcon />}
+          title={t('detail.description')}>
           {getaway.mainDescription ? (
             <p className='paragraph' style={{ margin: 0 }}>{getaway.mainDescription}</p>
           ) : (
@@ -595,34 +602,33 @@ function GetawayDetail() {
           <GetawaySchedule schedule={getaway.schedule || []} address={getaway.getawayAddress?.address} />
           <AcademySchedule
             mode="readonly"
-            showPrice={false}
             schedules={academyClasses}
             loading={false}
             selectedIds={getaway.academyIds || []}
           />
           <TournamentsSchedule
             mode="readonly"
-            showPrice={false}
             selectedIds={getaway.tournamentIds || []}
             items={tournaments}
           />
           <LaddersSchedule
             mode="readonly"
-            showPrice={false}
             selectedIds={getaway.ladderIds || []}
             items={ladders}
           />
         </Section>
 
-        <Section icon={<CheckCircleOutlineIcon />} title={t('detail.includes')}>
+        <Section
+          // icon={<CheckCircleOutlineIcon />}
+          title={t('detail.includes')}>
           {getaway.amenities && getaway.amenities.length > 0 ? (
-            <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap' }} useFlexGap>
+            <Stack direction="row" spacing={0.5} sx={{ flexWrap: 'wrap' }} useFlexGap>
               {getaway.amenities
                 .filter((item) => item.name?.trim())
                 .map((item, index) => (
                   <Chip
                     key={index}
-                    icon={<CheckCircleOutlineIcon />}
+                    // icon={<CheckCircleOutlineIcon />}
                     label={item.name}
                     sx={{ bgcolor: BRAND.green, color: BRAND.navy, fontWeight: 500 }}
                   />
@@ -672,7 +678,9 @@ function GetawayDetail() {
           )}
         </Section>
 
-        <Section icon={<ContactSupportIcon />} title={t('detail.moreInfo')}>
+        <Section 
+          // icon={<ContactSupportIcon />} 
+          title={t('detail.moreInfo')}>
           <Stack
             direction="row" spacing={1.5}
             sx={{ flexWrap: 'wrap', justifyContent: { xs: 'center', sm: 'flex-start' } }}

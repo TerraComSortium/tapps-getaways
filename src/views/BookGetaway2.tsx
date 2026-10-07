@@ -24,6 +24,8 @@ import { createPurchase, Reservation } from '../services/purchase/purchase';
 import { paymentPath } from '../constants/routes';
 import { BRAND } from '../theme/colors';
 
+import EmailChecker from '../components/EmailChecker';
+import { EmailVerifyResult } from '../hooks/useEmailVerify';
 import AcademySchedule from '../components/AcademySchedule';
 import LaddersSchedule from '../components/LaddersSchedule';
 import TournamentsSchedule from '../components/TournamentsSchedule';
@@ -36,10 +38,9 @@ import type { Ladder } from '../services/ladder';
 const TAX_RATE = 0.0654;
 const CURRENCY = 'USD';
 
-/** Formato del payload: debe coincidir con el que reconstruye el backend. */
 const formatAmount = (value: number) => `${(value || 0).toFixed(2)} ${CURRENCY}`;
 
-/** Formato de pantalla: con separador de miles y sin repetir símbolo + código. */
+/** Formato pantalla: con separador de miles y sin repetir símbolo + código. */
 const displayAmount = (value: number) =>
   (value || 0).toLocaleString(undefined, {
     style: 'currency',
@@ -60,6 +61,11 @@ interface AddOnOption {
   price: number;
 }
 
+interface AddedPartner {
+  email: string;
+  uid?: string;
+}
+
 interface FormData {
   // payment user info....?
   lodgingOption: string;
@@ -72,12 +78,11 @@ interface FormData {
   // };
   agreePolicies: boolean;
   agreeTerms: boolean;
-  /** Firebase no guarda estos datos, así que se piden aquí. */
+  /** Firebase no guarda estos datos, se piden aquí. */
   cellphone: string;
   address: string;
 }
 
-/** Fila del resumen: concepto a la izquierda, importe alineado a la derecha. */
 const SummaryRow = ({
   label, amount, highlight = false,
 }: { label: string; amount: string; highlight?: boolean }) => (
@@ -91,8 +96,7 @@ const SummaryRow = ({
     <Typography
       variant="body2"
       sx={{ fontWeight: highlight ? 'bold' : 500, color: highlight ? BRAND.primary : 'inherit' }}
-    >
-      {amount}
+    >{amount}
     </Typography>
   </Stack>
 );
@@ -103,6 +107,30 @@ export default function BookGetaway() {
   const { id } = useParams<{ id: string }>();
   const location = useLocation();
   const searchParams = new URLSearchParams(location.search);
+  const [partners, setPartners] = useState<AddedPartner[]>([]);
+
+  //Callback para recibir partner validado desde EmailChecker
+  const handlePartnerAdded = (verifiedResult: EmailVerifyResult, emailEntered: string) => {
+    const emailToAdd = emailEntered.toLowerCase().trim();
+
+    setPartners((prev) => {
+      //Evitar duplicados
+      const exists = prev.some((p) => p.email.toLowerCase() === emailToAdd);
+      if (exists) return prev;
+
+      return [
+        ...prev,
+        {
+          email: emailToAdd,
+          uid: verifiedResult.uid,
+        },
+      ];
+    });
+  };
+  const handleRemovePartner = (emailToRemove: string) => {
+    setPartners((prev) => prev.filter((p) => p.email !== emailToRemove));
+  };
+
   const stateCouponId = (location.state as { couponId?: string } | null)?.couponId;
   const couponId = searchParams.get('couponId') || stateCouponId;
   const { data: getaway, loading, error } = useGetawayById(id || '');
@@ -150,6 +178,7 @@ export default function BookGetaway() {
       agreeTerms: false,
       cellphone: '',
       address: '',
+      // partners: [],
     }
   });
 
@@ -282,11 +311,11 @@ export default function BookGetaway() {
           //   zipCode: "string || '',
           // }
         },
+        partners: partners.map((p) => ({
+          email: p.email,
+          ...(p.uid ? { uid: p.uid } : {}),
+        })),
         lodgingOption: originalLodging ? {
-        //   selectedLodging, //before
-        //   "option": "string" || '',
-        //   "price": 0,
-        //   "occupancy": "string || '',
             option: originalLodging.name,
             price: originalLodging.price,
             occupancy: (originalLodging as LodgingOption).occupancy,
@@ -323,8 +352,7 @@ export default function BookGetaway() {
       // Cancelar con Escape no es un error: el botón vuelve a estar disponible.
       if (axios.isCancel(err) || (err as Error)?.name === 'CanceledError') return;
 
-      // Antes solo se logueaba: el botón se rehabilitaba y el usuario no sabía
-      // por qué no avanzaba al pago.
+      //Antes solo se logueaba: el botón se rehabilitaba y usuario no sabía por qué no avanzaba al pago.
       console.error('[BOOKING] Error al crear la reserva:', err);
       setSubmitError(err instanceof Error ? err.message : t('book.submitError'));
     } finally {
@@ -338,7 +366,6 @@ export default function BookGetaway() {
   if (error) return <Alert severity="error">{error}</Alert>;
   if (!getaway) return <Alert severity="info">{t('book.unavailable')}</Alert>;
   return (
-
     <Box sx={{ width: '100%', maxWidth: 1000, mx: 'auto', boxSizing: 'border-box' }}>
       <Box sx={{ textAlign: 'center', mb: 2 }}>
         <Typography variant="h5" className='title' sx={{ fontWeight: 'bold' }}>
@@ -362,7 +389,7 @@ export default function BookGetaway() {
           <TextField label={t('book.email')} fullWidth margin="dense" disabled
             defaultValue={user?.email || ''}
           />
-        
+
           <Controller
             name="cellphone" control={control}
             rules={{
@@ -380,8 +407,7 @@ export default function BookGetaway() {
               />
             )}
           />
-          <Controller
-            name="address" control={control}
+          <Controller name="address" control={control}
             render={({ field }) => (
               <TextField {...field} label={t('book.address')} fullWidth margin="dense" />
             )}
@@ -389,8 +415,7 @@ export default function BookGetaway() {
           <Typography variant="h6" className='purpleLabel' sx={{ mt: 2, mb: 0.5, fontSize: '14px', fontWeight: 'bold' }}>{t('book.lodgingOptions')}</Typography>
           <Divider aria-hidden="true" sx={{ bgcolor: BRAND.green }} />
 
-          <Controller name="lodgingOption"
-            control={control}
+          <Controller name="lodgingOption" control={control}
             rules={{ required: t('book.selectLodging') }}
             render={({ field }) => (
               <RadioGroup {...field} aria-labelledby="demo-radio-buttons-group-label" name="radio-buttons-group"
@@ -413,6 +438,20 @@ export default function BookGetaway() {
             )}
           />
           {errors.lodgingOption && <Typography variant="caption" color="error">{errors.lodgingOption.message}</Typography>}
+          <EmailChecker onPartnerAdded={handlePartnerAdded} />
+          {partners.length > 0 && (
+            <Box sx={{ mt: 1, mb: 2, display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+              <Typography variant="subtitle2">{t('book.addedPartner')}</Typography>
+              {partners.map((partner) => (
+                <Chip key={partner.email}
+                label={partner.email || `${t('book.addedPartner')}`
+                }
+                onDelete={() => handleRemovePartner(partner.email)}
+                color="primary" variant="outlined"
+                sx={{ mr: 1, mt: 1 }} />
+              ))}
+            </Box>
+          )}
 
           <Typography variant="h6" className='purpleLabel' sx={{ mt: 2, mb: 0.5, fontSize: '14px', fontWeight: 'bold' }}>{t('book.addOns')}</Typography>
           <Divider aria-hidden="true" sx={{ bgcolor: BRAND.green }} />
@@ -462,15 +501,13 @@ export default function BookGetaway() {
             selectedIds={getaway.ladderIds || []}
             items={(getaway.ladders as Ladder[] | undefined) ?? []}
           />
-          {/* Resumen de pago: tarjeta aparte para que destaque sobre el formulario */}
-          <Paper
-            elevation={0}
+          {/* Resumen de pago*/}
+          <Paper elevation={0}
             sx={{
               mt: 3, p: { xs: 2, sm: 2.5 },
               borderRadius: '12px',
               bgcolor: 'background.paper',
-              border: '1px solid',
-              borderColor: 'divider',
+              border: '1px solid', borderColor: 'divider',
             }}
           >
             <Stack direction="row" spacing={1} sx={{ alignItems: 'center', mb: 1 }}>
@@ -505,7 +542,7 @@ export default function BookGetaway() {
               </Box>
             )}
 
-            {/* El cupón existe pero no se pudo apartar cupo */}
+            {/*cupón existe pero no se pudo apartar cupo */}
             {coupon && !couponHold.held && !couponHold.loading && (
               <Alert severity="warning" sx={{ my: 1 }}>
                 {couponHold.reason === 'expired'

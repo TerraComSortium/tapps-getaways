@@ -25,6 +25,11 @@ interface OptionalAddOn {
   price: number;
 }
 
+export interface ReservationPartner {
+  email: string;
+  uid?: string;
+}
+
 interface PaymentDetails {
   Subtotal: string;
   /** Solo presente si el backend aplicó un cupón. */
@@ -39,6 +44,7 @@ export interface Reservation {
   user: ReservationUser;
   lodgingOption?: LodgingOption;
   optionalAddOns?: OptionalAddOn[];
+  partners?: ReservationPartner[];
   paymentDetails: PaymentDetails;
 }
 

@@ -175,12 +175,18 @@ export interface OrderPaymentDetails {
   Total: string;
 }
 
+export interface ReservationPartner {
+  email: string;
+  uid?: string;
+}
+
 export interface OrderReservation {
   getawayId: string;
   couponId?: string;
   user: OrderUser;
   lodgingOption?: OrderLodgingOption;
   optionalAddOns?: OrderAddOn[];
+  partners?: ReservationPartner[];
   paymentDetails: OrderPaymentDetails;
 }
 

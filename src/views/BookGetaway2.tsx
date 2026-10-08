@@ -15,25 +15,26 @@ import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import LocalOfferIcon from '@mui/icons-material/LocalOffer';
 import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
+import { BRAND } from '../theme/colors';
 
 import { useAuth } from '../contexts/AuthContext';
 import { useGetawayById } from '../hooks/useGetawayById';
+import type { AcademyClass } from '../hooks/useGetAcademy';
 import { useCouponById } from '../hooks/useCoupon';
 import { useCouponHold } from '../hooks/useCouponHold';
-import { createPurchase, Reservation } from '../services/purchase/purchase';
 import { paymentPath } from '../constants/routes';
-import { BRAND } from '../theme/colors';
 
-import EmailChecker from '../components/EmailChecker';
-import { EmailVerifyResult } from '../hooks/useEmailVerify';
 import AcademySchedule from '../components/AcademySchedule';
 import LaddersSchedule from '../components/LaddersSchedule';
 import TournamentsSchedule from '../components/TournamentsSchedule';
+import EmailChecker from '../components/EmailChecker';
+
+import { EmailVerifyResult } from '../hooks/useEmailVerify';
 import { getCouponLabel, getCouponValue } from '../utils/couponHelpers';
 import { getScheduleFeeLines, sumAmenities } from '../utils/scheduleFees';
-import type { AcademyClass } from '../hooks/useGetAcademy';
 import type { Tournament } from '../services/tournament';
 import type { Ladder } from '../services/ladder';
+import { createPurchase, Reservation } from '../services/purchase/purchase';
 
 const TAX_RATE = 0.0654;
 const CURRENCY = 'USD';
@@ -112,19 +113,24 @@ export default function BookGetaway() {
   //Callback para recibir partner validado desde EmailChecker
   const handlePartnerAdded = (verifiedResult: EmailVerifyResult, emailEntered: string) => {
     const emailToAdd = emailEntered.toLowerCase().trim();
-
     setPartners((prev) => {
-      //Evitar duplicados
-      const exists = prev.some((p) => p.email.toLowerCase() === emailToAdd);
-      if (exists) return prev;
+      //temporal: Máx 1 email
+      if (prev.length >= 1) {
+        return prev;
+      }
 
-      return [
-        ...prev,
-        {
-          email: emailToAdd,
-          uid: verifiedResult.uid,
-        },
-      ];
+      // setPartners((prev) => { //Evitar duplicados mas de 1 partner
+        const exists = prev.some((p) => p.email.toLowerCase() === emailToAdd);
+        if (exists) return prev;
+
+        return [
+          // ...prev,
+          {
+            email: emailToAdd,
+            uid: verifiedResult.uid,
+          },
+        ];
+      // });
     });
   };
   const handleRemovePartner = (emailToRemove: string) => {
@@ -438,7 +444,7 @@ export default function BookGetaway() {
             )}
           />
           {errors.lodgingOption && <Typography variant="caption" color="error">{errors.lodgingOption.message}</Typography>}
-          <EmailChecker onPartnerAdded={handlePartnerAdded} />
+          <EmailChecker onPartnerAdded={handlePartnerAdded} disabled={partners.length >= 1}/>
           {partners.length > 0 && (
             <Box sx={{ mt: 1, mb: 2, display: 'flex', flexWrap: 'wrap', gap: 1 }}>
               <Typography variant="subtitle2">{t('book.addedPartner')}</Typography>

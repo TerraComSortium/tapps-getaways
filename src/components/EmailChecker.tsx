@@ -21,10 +21,10 @@ interface CheckInput {
   email: string;
 }
 interface EmailCheckerProps {
-  onPartnerAdded?: (partner: EmailVerifyResult, email: string) => void;
+  onPartnerAdded?: (result: EmailVerifyResult, email: string) => void;
+  disabled?: boolean; //control limit
 }
-
-const EmailChecker: React.FC<EmailCheckerProps> = ({ onPartnerAdded }) => {
+const EmailChecker: React.FC<EmailCheckerProps> = ({ onPartnerAdded, disabled = false }) => {
   const { t } = useTranslation();
   const { execute: verifyEmail, loading } = useEmailVerify();
   const { control, handleSubmit, setError, reset, formState: { errors } } = useForm<CheckInput>({
@@ -32,9 +32,10 @@ const EmailChecker: React.FC<EmailCheckerProps> = ({ onPartnerAdded }) => {
   });
 
   const handleVerifyAndAdd = async (data: CheckInput) => {
+    if (disabled) return;
     try {
       const result = await verifyEmail(data.email);
-      if (result && (result.verified || result.exists)) {
+      if (result && result.exists) {
         if (onPartnerAdded) {
           onPartnerAdded(result, data.email);
         }
@@ -45,10 +46,11 @@ const EmailChecker: React.FC<EmailCheckerProps> = ({ onPartnerAdded }) => {
           message: result?.message || `${t('book.nullEmailPartner')}`,
         });
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : `${t('book.failedEmailPartner')}`;
       setError('email', {
         type: 'manual',
-        message: err?.message || `${t('book.failedEmailPartner')}`,
+        message: errorMessage,
       });
     }
   };
@@ -63,25 +65,26 @@ const EmailChecker: React.FC<EmailCheckerProps> = ({ onPartnerAdded }) => {
           render={({ field }) => (
             <TextField
               {...field}
-              margin="normal" fullWidth
               id="email-partner"
-              label="Email"
+              margin="normal" fullWidth
+              autoComplete="email"
+              label={disabled ? "Maximum 1 partner reached" : "Email"}
+              disabled={loading || disabled}
+              autoFocus
+              error={!!errors.email}
+              helperText={errors.email ? errors.email.message : ''}
               sx={{
                 minWidth:{ xs:'100px', sm:'200px', md:'300px'},
                 maxWidth:{ xs:'80%', sm:'240px', md:'320px' },
                 mr:{ xs:0, sm:'10px'},
-                }}
-              autoComplete="email"
-              disabled={loading}
-              autoFocus
-              error={!!errors.email}
-              helperText={errors.email ? errors.email.message : ''}
+              }}
             />
           )}
         />
         <Button
-          type="button" disabled={loading}
+          type="button"
           onClick={handleSubmit(handleVerifyAndAdd)}
+          disabled={loading || disabled}
           startIcon={
             loading ? (
               <CircularProgress size={20} color="inherit" />

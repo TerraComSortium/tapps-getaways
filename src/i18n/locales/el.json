@@ -211,6 +211,8 @@
   "book.paymentDetails": "Λεπτομέρειες πληρωμής",
   "book.subtotal": "Υποσύνολο",
   "book.partnerSelf": "Δεν μπορείτε να προσθέσετε τον εαυτό σας ως συνοδό",
+  "book.partnerLimitReached_one": "Συμπληρώθηκε το μέγιστο των {{count}} συνοδού",
+  "book.partnerLimitReached_other": "Συμπληρώθηκε το μέγιστο των {{count}} συνοδών",
   "book.perPerson": "Τιμή ανά άτομο",
   "book.subtotalGuests_one": "Μερικό σύνολο ({{count}} άτομο)",
   "book.subtotalGuests_other": "Μερικό σύνολο ({{count}} άτομα)",

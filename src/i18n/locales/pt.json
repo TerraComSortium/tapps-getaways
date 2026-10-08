@@ -211,6 +211,8 @@
   "book.paymentDetails": "Detalhes do pagamento",
   "book.subtotal": "Subtotal",
   "book.partnerSelf": "Você não pode adicionar a si mesmo como parceiro",
+  "book.partnerLimitReached_one": "Máximo de {{count}} parceiro atingido",
+  "book.partnerLimitReached_other": "Máximo de {{count}} parceiros atingido",
   "book.perPerson": "Preço por pessoa",
   "book.subtotalGuests_one": "Subtotal ({{count}} pessoa)",
   "book.subtotalGuests_other": "Subtotal ({{count}} pessoas)",

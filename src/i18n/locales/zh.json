@@ -211,6 +211,8 @@
   "book.paymentDetails": "支付详情",
   "book.subtotal": "小计",
   "book.partnerSelf": "不能将自己添加为同伴",
+  "book.partnerLimitReached_one": "已达到同伴上限（{{count}} 人）",
+  "book.partnerLimitReached_other": "已达到同伴上限（{{count}} 人）",
   "book.perPerson": "每人价格",
   "book.subtotalGuests_one": "小计（{{count}} 人）",
   "book.subtotalGuests_other": "小计（{{count}} 人）",

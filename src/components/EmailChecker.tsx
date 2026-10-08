@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
@@ -7,15 +7,7 @@ import { Box, Typography, TextField, Button, CircularProgress } from '@mui/mater
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import { useEmailVerify, EmailVerifyResult } from '../hooks/useEmailVerify';
 import { useTranslation } from 'react-i18next';
-const schema = yup.object().shape({
-  email: yup
-    .string()
-    .required('Email is required')
-    .matches(
-      /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/,
-      'Invalid email address'
-    ),
-});
+import { MAX_PARTNERS } from '../utils/scheduleFees';
 
 interface CheckInput {
   email: string;
@@ -25,7 +17,18 @@ interface EmailCheckerProps {
   disabled?: boolean; //control limit
 }
 const EmailChecker: React.FC<EmailCheckerProps> = ({ onPartnerAdded, disabled = false }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  // Dentro del componente para que los mensajes sigan el idioma activo.
+  const schema = useMemo(() => yup.object().shape({
+    email: yup
+      .string()
+      .required(t('validation.emailRequired'))
+      .matches(
+        /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/,
+        t('validation.emailInvalid')
+      ),
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }), [t, i18n.language]);
   const { execute: verifyEmail, loading } = useEmailVerify();
   const { control, handleSubmit, setError, reset, formState: { errors } } = useForm<CheckInput>({
     resolver: yupResolver(schema),
@@ -68,7 +71,7 @@ const EmailChecker: React.FC<EmailCheckerProps> = ({ onPartnerAdded, disabled = 
               id="email-partner"
               margin="normal" fullWidth
               autoComplete="email"
-              label={disabled ? "Maximum 1 partner reached" : "Email"}
+              label={disabled ? t('book.partnerLimitReached', { count: MAX_PARTNERS }) : t('book.email')}
               disabled={loading || disabled}
               autoFocus
               error={!!errors.email}

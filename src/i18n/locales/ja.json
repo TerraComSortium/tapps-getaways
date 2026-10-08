@@ -211,6 +211,8 @@
   "book.paymentDetails": "支払いの詳細",
   "book.subtotal": "小計",
   "book.partnerSelf": "自分自身を同伴者として追加することはできません",
+  "book.partnerLimitReached_one": "同伴者の上限（{{count}}名）に達しました",
+  "book.partnerLimitReached_other": "同伴者の上限（{{count}}名）に達しました",
   "book.perPerson": "1人あたりの料金",
   "book.subtotalGuests_one": "小計（{{count}}名）",
   "book.subtotalGuests_other": "小計（{{count}}名）",

@@ -211,6 +211,8 @@
   "book.paymentDetails": "भुगतान विवरण",
   "book.subtotal": "उप-योग",
   "book.partnerSelf": "आप स्वयं को साथी के रूप में नहीं जोड़ सकते",
+  "book.partnerLimitReached_one": "अधिकतम {{count}} साथी की सीमा पूरी हो गई",
+  "book.partnerLimitReached_other": "अधिकतम {{count}} साथियों की सीमा पूरी हो गई",
   "book.perPerson": "प्रति व्यक्ति मूल्य",
   "book.subtotalGuests_one": "उप-योग ({{count}} व्यक्ति)",
   "book.subtotalGuests_other": "उप-योग ({{count}} व्यक्ति)",

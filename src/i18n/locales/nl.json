@@ -211,6 +211,8 @@
   "book.paymentDetails": "Betaalgegevens",
   "book.subtotal": "Subtotaal",
   "book.partnerSelf": "Je kunt jezelf niet als partner toevoegen",
+  "book.partnerLimitReached_one": "Maximum van {{count}} partner bereikt",
+  "book.partnerLimitReached_other": "Maximum van {{count}} partners bereikt",
   "book.perPerson": "Prijs per persoon",
   "book.subtotalGuests_one": "Subtotaal ({{count}} persoon)",
   "book.subtotalGuests_other": "Subtotaal ({{count}} personen)",

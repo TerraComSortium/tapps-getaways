@@ -62,6 +62,11 @@ interface GetawayItemProps {
    */
   totalPaid?: string;
   lodgingName?: string;
+  /**
+   * El usuario va de acompañante: otro jugador le pagó el cupo. Se muestra quién
+   * en lugar del total pagado (los importes son del titular).
+   */
+  giftedBy?: string;
   /** Precio "desde" guardado en el getaway. Si es 0 o no viene, no se muestra. */
   price?: number;
   onDelete?: () => void;
@@ -71,7 +76,7 @@ interface GetawayItemProps {
 export const GetawayItem = memo(
   ({
     name, dates, sport, galleryPhotos, bookedDate, paymentStatus,
-    address, totalPaid, lodgingName, price,
+    address, totalPaid, lodgingName, giftedBy, price,
     isLoading = false, onViewDetails, onBookNow, onOrderDetails, onViewBookings,
     // badgeCount = 0,
     onAddCoupon, onEdit, coupon,
@@ -197,7 +202,22 @@ export const GetawayItem = memo(
                       )}
                     </>
                   )}
-                  {!totalPaid && !!price && price > 0 && (
+                  {giftedBy && (
+                    <>
+                      <Typography variant="subtitle2" sx={{ color: 'text.secondary', fontWeight: 'normal' }}>
+                        {t('getawayItem.giftedBy')}
+                      </Typography>
+                      <Typography variant="body1" sx={{ color: BRAND.primary, fontWeight: 'bold' }}>
+                        {giftedBy}
+                      </Typography>
+                      {lodgingName && (
+                        <Typography variant="body2" sx={{ color: 'text.primary' }}>
+                          {lodgingName}
+                        </Typography>
+                      )}
+                    </>
+                  )}
+                  {!totalPaid && !giftedBy && !!price && price > 0 && (
                     <>
                       <Typography variant="subtitle2" sx={{ color: 'text.secondary', fontWeight: 'normal' }}>
                         {t('getawayItem.pricingStartsAt')}

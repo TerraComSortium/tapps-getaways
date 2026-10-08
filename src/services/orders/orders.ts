@@ -4,7 +4,7 @@ export interface OrderReservation {
   user?: { id?: string; name?: string; email?: string };
   lodgingOption?: { option?: string; price?: number };
   optionalAddOns?: { addonName?: string; price?: number }[];
-  paymentDetails?: { Subtotal?: string; Taxes?: string; Total?: string };
+  paymentDetails?: { Subtotal?: string; Taxes?: string; TaxRate?: number; Fees?: string; Total?: string };
   getawayId?: string;
 }
 

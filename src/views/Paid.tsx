@@ -2,21 +2,24 @@ import { useEffect } from 'react';
 import { useLocation, useNavigate, Link as RouterLink } from 'react-router-dom';
 import { ROUTES } from '../constants/routes';
 import { BRAND } from '../theme/colors';
-import { Container, Divider, Stack, Box, Typography, Button } from '@mui/material';
+import { Container, Divider, Stack, Box, Typography, Button, Alert, CircularProgress } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import TaskAltIcon from '@mui/icons-material/TaskAlt';
 
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import ShoppingBagIcon from '@mui/icons-material/ShoppingBag';
+import DownloadIcon from '@mui/icons-material/Download';
 import LoopIcon from '@mui/icons-material/Loop';
 
 import { useTranslation } from 'react-i18next';
+import { useInvoice } from '../hooks/useInvoice';
 import '../App.css';
 function Paid() {
   const { t } = useTranslation();
   const location = useLocation();
   const navigate = useNavigate();
   const paymentResult = location.state?.paymentResult;
+  const { download: downloadInvoice, loading: downloadingInvoice, error: invoiceError } = useInvoice();
   useEffect(() => {
     //route filter
     if (!paymentResult) {
@@ -71,9 +74,22 @@ function Paid() {
                 <Typography variant='subtitle2' sx={{ pb:3, textDecoration: 'none' }}
                 > {t('paid.receiptNote')} </Typography>
               </Box>
+              {/* La factura ya existe: confirmPayment la numera al marcar la orden como pagada. */}
+              <Button
+                startIcon={downloadingInvoice ? <CircularProgress size={18} color="inherit" /> : <DownloadIcon />}
+                variant="contained" disabled={downloadingInvoice || !orderId}
+                onClick={() => downloadInvoice(orderId)}
+                sx={{ mt: 3, bgcolor: BRAND.green, color: BRAND.navy, fontWeight: 'bold', textTransform: 'none', borderRadius: '8px', px: 4,
+                  ':hover': { bgcolor: BRAND.white, color: BRAND.primary },
+                }}
+              > {t('paid.downloadInvoice')}
+              </Button>
+              {invoiceError && (
+                <Alert severity="warning" sx={{ mt: 1 }}>{t('paid.invoiceError')}</Alert>
+              )}
               <Button startIcon={<ShoppingBagIcon />} variant="contained"
                 onClick={() => navigate(ROUTES.MY_ORDERS)}
-                sx={{ mt:10, mb:5, bgcolor: BRAND.primary, borderColor: 'primary.main', border: 1,  textTransform: 'none', borderRadius: '8px', px: 4, 
+                sx={{ mt:4, mb:5, bgcolor: BRAND.primary, borderColor: 'primary.main', border: 1,  textTransform: 'none', borderRadius: '8px', px: 4, 
                   ':hover': { bgcolor: BRAND.white, color: BRAND.primary},  
                 }}
               > {t('paid.viewBookings')}

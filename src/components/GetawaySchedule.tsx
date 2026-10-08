@@ -4,6 +4,7 @@ import PlaceIcon from '@mui/icons-material/Place';
 import { useTranslation } from 'react-i18next';
 import { BRAND } from '../theme/colors';
 import type { ScheduleService } from '../types/getaway';
+import { formatTimeText12 } from '../utils/dataMappers';
 import '../App.css';
 
 interface ScheduleItem {
@@ -23,7 +24,7 @@ interface GetawayScheduleProps {
   address?: string;
 }
 
-/** La fecha puede venir como string ISO o como Timestamp serializado de Firestore. */
+/** La fecha puede venir como string ISO, como texto ya normalizado o como Timestamp serializado de Firestore. */
 const toDate = (value: unknown): Date | null => {
   if (!value) return null;
 
@@ -33,8 +34,15 @@ const toDate = (value: unknown): Date | null => {
     if (typeof seconds === 'number') return new Date(seconds * 1000);
   }
 
-  const parsed = new Date(String(value));
-  return Number.isNaN(parsed.getTime()) ? null : parsed;
+  const text = String(value);
+  const parsed = new Date(text);
+  if (Number.isNaN(parsed.getTime())) return null;
+  // Texto ya normalizado ("Oct 1, 2026"): se lee en local, así que se pasa a
+  // medianoche UTC de ese mismo día para que `dayKey` no lo corra en zonas positivas.
+  if (!/^\d{4}-\d{2}-\d{2}/.test(text)) {
+    return new Date(Date.UTC(parsed.getFullYear(), parsed.getMonth(), parsed.getDate()));
+  }
+  return parsed;
 };
 
 /** Clave del día en UTC. El backend guarda la fecha "YYYY-MM-DD" como
@@ -150,13 +158,14 @@ export default function GetawaySchedule({ schedule, address }: GetawaySchedulePr
             return (
               <Stack key={index} direction="row" spacing={2} sx={{ alignItems: 'stretch' }}>
                 {/* Horas */}
-                <Box sx={{ minWidth: { xs: 52, sm: 68 }, textAlign: 'right', pt: 0.2, flexShrink: 0 }}>
+                {/* Se muestran en 12h (AM/PM); el API las guarda en 24h "HH:mm". */}
+                <Box sx={{ minWidth: { xs: 64, sm: 76 }, textAlign: 'right', pt: 0.2, flexShrink: 0, whiteSpace: 'nowrap' }}>
                   <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
-                    {item.startTime}
+                    {formatTimeText12(item.startTime || '')}
                   </Typography>
                   {item.endTime && (
                     <Typography variant="caption" color="text.secondary">
-                      {item.endTime}
+                      {formatTimeText12(item.endTime)}
                     </Typography>
                   )}
                 </Box>

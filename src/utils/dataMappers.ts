@@ -5,6 +5,18 @@ export function formatTime24(hour: string, minute: string): string {
   return `${hour.padStart(2, "0")}:${minute}`;
 }
 
+/** "HH" (24h) + minutos → "h:mm AM/PM" para mostrar. Lo guardado sigue en 24h. */
+export function formatTime12(hour24: string, minute: string): string {
+  const hour = Number(hour24);
+  return `${hour % 12 || 12}:${minute} ${hour >= 12 ? 'PM' : 'AM'}`;
+}
+
+/** "HH:mm" (24h, como lo guarda el API) → "h:mm AM/PM". Otro formato se deja tal cual. */
+export function formatTimeText12(time: string): string {
+  const match = /^(\d{1,2}):(\d{2})$/.exec(time.trim());
+  return match ? formatTime12(match[1], match[2]) : time;
+}
+
 /** true si el rango start→end es válido (end estrictamente después de start).
     Comparación de texto: funciona porque "HH:mm" siempre va con cero a la izquierda. */
 export function compareTimes(

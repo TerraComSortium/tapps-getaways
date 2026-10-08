@@ -9,6 +9,9 @@ export interface MyGetawayOrder {
   invoiceNumber?: string;
   paidAt?: string;
   createdAt?: string;
+  /** 'partner': la pagó otro jugador y este va de acompañante (sin factura). */
+  role?: 'buyer' | 'partner';
+  purchasedBy?: { name?: string; email?: string };
 }
 
 /**
@@ -37,5 +40,9 @@ export const useMyOrderForGetaway = (getawayId?: string, enabled = true) => {
 
   const isPaid = data?.status === 'paid' || data?.paymentStatus === 'succeeded';
 
-  return { order: data, isPaid, loading, refetch: fetchOrder };
+  const giftedBy = data?.role === 'partner'
+    ? data.purchasedBy?.name || data.purchasedBy?.email || ''
+    : null;
+
+  return { order: data, isPaid, giftedBy, loading, refetch: fetchOrder };
 };

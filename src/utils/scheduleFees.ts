@@ -110,3 +110,52 @@ export const lineTotal = (unitPrice: unknown, days: unknown): number => {
   const wholeDays = Math.max(Math.floor(Number(days) || 0), 0);
   return Math.round(price * wholeDays * 100) / 100;
 };
+
+/**
+ * Acompañantes: el subtotal se paga por persona, así que va × personas
+ * (titular + acompañantes). Sin acompañante → × 1. El cargo fijo (`serviceFee`)
+ * es por reserva y NO se multiplica.
+ *
+ * IMPORTANTE: el backend repite esta regla en `src/getaways/libs/pricing.ts`
+ * (`partySize`, y el redondeo en `Payment.createPurchase`).
+ */
+export const MAX_PARTNERS = 1;
+
+export const partySize = (partnersCount: number): number =>
+  1 + Math.min(Math.max(Math.floor(Number(partnersCount) || 0), 0), MAX_PARTNERS);
+
+/**
+ * Impuestos y cargos ("Taxes & fees") de cada getaway:
+ * - `taxRate`: % de impuestos sobre el subtotal ya descontado (p.ej. 6.54).
+ * - `serviceFee`: cargo fijo en USD por reserva, sin impuestos encima.
+ * Getaways creados antes no los tienen: 6.54% y $0.
+ *
+ * IMPORTANTE: el backend repite este cálculo en `src/getaways/libs/pricing.ts`
+ * (`taxesAndFees`). Si divergen, el pago se rechaza por amount_mismatch.
+ */
+export const DEFAULT_TAX_RATE = 6.54;
+
+/** % válido (0–100) o undefined. */
+export const parseTaxRate = (value: unknown): number | undefined => {
+  if (value === null || value === undefined || value === '') return undefined;
+  const rate = Number(value);
+  return Number.isFinite(rate) && rate >= 0 && rate <= 100 ? rate : undefined;
+};
+
+/** Monto válido (>= 0), redondeado a centavos, o undefined. */
+export const parseServiceFee = (value: unknown): number | undefined => {
+  if (value === null || value === undefined || value === '') return undefined;
+  const fee = Number(value);
+  return Number.isFinite(fee) && fee >= 0 ? Math.round(fee * 100) / 100 : undefined;
+};
+
+/** Impuestos, cargo y total a partir del subtotal ya descontado. */
+export const taxesAndFees = (
+  discountedSubtotal: number,
+  getaway: { taxRate?: unknown; serviceFee?: unknown } | null | undefined
+) => {
+  const taxRate = parseTaxRate(getaway?.taxRate) ?? DEFAULT_TAX_RATE;
+  const taxes = discountedSubtotal * (taxRate / 100);
+  const serviceFee = parseServiceFee(getaway?.serviceFee) ?? 0;
+  return { taxRate, taxes, serviceFee, total: discountedSubtotal + taxes + serviceFee };
+};

@@ -425,7 +425,15 @@ export const Reservations = () => {
 
               <DetailSection title={t('reservations.paymentDetails')}>
                 <DetailRow label={t('book.subtotal')} value={selectedReservation?.paymentDetails?.Subtotal} />
-                <DetailRow label={t('reservations.taxes')} value={selectedReservation?.paymentDetails?.Taxes} />
+                <DetailRow
+                  label={selectedReservation?.paymentDetails?.TaxRate != null
+                    ? t('book.taxesRate', { rate: selectedReservation.paymentDetails.TaxRate })
+                    : t('reservations.taxes')}
+                  value={selectedReservation?.paymentDetails?.Taxes}
+                />
+                {selectedReservation?.paymentDetails?.Fees && (
+                  <DetailRow label={t('book.fees')} value={selectedReservation.paymentDetails.Fees} />
+                )}
                 <Divider sx={{ my: 0.5 }} />
                 <Stack
                   direction="row" spacing={2}

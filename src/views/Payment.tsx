@@ -42,7 +42,10 @@ const SAFE_BACKEND_CODES = new Set([
   'amount_mismatch',
   'order_not_found',
   'order_already_paid',
+  'order_forbidden',
   'invalid_order_amount',
+  'getaway_ended',
+  'getaway_not_found',
 ]);
 
 function getFriendlyPaymentError(e: any, t: TFunction): string {
@@ -399,7 +402,9 @@ function Payment() {
     const dates = getaway && (getaway.startDate || getaway.endDate)
       ? [getaway.startDate, getaway.endDate]
           .filter(Boolean)
-          .map((value) => new Date(value as string).toLocaleDateString())
+          // Son días del calendario guardados como medianoche UTC: en local (-04)
+          // salían un día antes. Ver parseFirestoreDate en utils/getawayHelpers.
+          .map((value) => new Date(value as string).toLocaleDateString(undefined, { timeZone: 'UTC' }))
           .join(' - ')
       : undefined;
 
@@ -416,6 +421,8 @@ function Payment() {
   const paymentDetails = orderData?.paymentDetails || {};
   const lodgingOption = orderData?.lodgingOption || {};
   const optionalAddOns = orderData?.optionalAddOns || [];
+  // Titular + acompañantes: el subtotal de la orden ya viene × personas.
+  const guests = Math.max(Number(orderData?.guests) || 1, 1);
   // Actividades incluidas (academia, torneos, ladders): el backend guarda el
   // desglose en la orden para que aquí se vea lo mismo que en la reserva.
   // Cupón aplicado por el backend (no el que pidió el cliente).
@@ -556,7 +563,9 @@ function Payment() {
               {/* Desglose de precios */}
               <Stack spacing={0.75}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <Typography variant="body2" sx={{ opacity: 0.85 }}>{t('payment.subtotal')}</Typography>
+                  <Typography variant="body2" sx={{ opacity: 0.85 }}>
+                    {guests > 1 ? t('book.subtotalGuests', { count: guests }) : t('payment.subtotal')}
+                  </Typography>
                   <Typography variant="body2">{paymentDetails.Subtotal}</Typography>
                 </Box>
                 {paymentDetails.Discount && (
@@ -573,9 +582,19 @@ function Payment() {
                   </Box>
                 )}
                 <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <Typography variant="body2" sx={{ opacity: 0.85 }}>{t('payment.taxes')}</Typography>
+                  <Typography variant="body2" sx={{ opacity: 0.85 }}>
+                    {paymentDetails.TaxRate != null
+                      ? t('book.taxesRate', { rate: paymentDetails.TaxRate })
+                      : t('payment.taxes')}
+                  </Typography>
                   <Typography variant="body2">{paymentDetails.Taxes}</Typography>
                 </Box>
+                {paymentDetails.Fees && (
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <Typography variant="body2" sx={{ opacity: 0.85 }}>{t('book.fees')}</Typography>
+                    <Typography variant="body2">{paymentDetails.Fees}</Typography>
+                  </Box>
+                )}
                 <Box
                   sx={{
                     display: 'flex', justifyContent: 'space-between', alignItems: 'center',

@@ -27,6 +27,9 @@ export interface GetawaySummary {
   activities: { name: string; kind: 'academy' | 'tournament' | 'ladder'; price: number }[];
   /** Actividades cargadas en el calendario del getaway. */
   scheduleCount: number;
+  /** Taxes & fees: % de impuestos y cargo fijo por reserva. */
+  taxRate: number;
+  serviceFee: number;
 }
 
 interface GetawaySummaryDialogProps {
@@ -142,6 +145,11 @@ export function GetawaySummaryDialog({ open, summary, saving, onClose, onConfirm
             ))}
           </Section>
         )}
+
+        <Section title={t('summary.taxesFees')}>
+          <Row label={t('create.taxRate')} value={`${summary.taxRate}%`} />
+          <Row label={t('create.serviceFee')} value={money(summary.serviceFee)} />
+        </Section>
 
         {/* Precio real del getaway */}
         <Box sx={{ bgcolor: BRAND.primary, color: BRAND.white, borderRadius: 2, p: 2 }}>

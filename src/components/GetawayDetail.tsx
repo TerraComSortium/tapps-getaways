@@ -72,7 +72,7 @@ const Section = ({
 );
 
 const PrimaryAction = ({
-  isPaid, onBook, onInvoice, downloading, label, invoiceLabel, sx,
+  isPaid, onBook, onInvoice, downloading, label, invoiceLabel, giftedLabel, sx,
 }: {
   isPaid: boolean;
   onBook: () => void;
@@ -80,8 +80,16 @@ const PrimaryAction = ({
   downloading: boolean;
   label: string;
   invoiceLabel: string;
+  /** Va de acompañante: ni reservar ni factura (es del titular), solo quién pagó. */
+  giftedLabel?: string;
   sx?: object;
-}) => (
+}) => giftedLabel ? (
+  <Chip
+    icon={<CheckIcon />}
+    label={giftedLabel}
+    sx={{ px: 1, py: 2.5, borderRadius: '8px', fontWeight: 'bold', bgcolor: BRAND.green, color: BRAND.navy, ...sx }}
+  />
+) : (
   <Button
     variant="contained"
     onClick={isPaid ? onInvoice : onBook}
@@ -138,7 +146,8 @@ function GetawayDetail() {
 
   // Si el jugador ya pagó este getaway, en vez de reservar otra vez se le ofrece
   // su factura. Solo se consulta para PLAYER: al admin no le aplica.
-  const { order: myOrder, isPaid } = useMyOrderForGetaway(id, role === Role.PLAYER);
+  const { order: myOrder, isPaid, giftedBy } = useMyOrderForGetaway(id, role === Role.PLAYER);
+  const giftedLabel = giftedBy !== null ? t('detail.bookedByPartner', { name: giftedBy }) : undefined;
   const { download: downloadInvoice, loading: downloadingInvoice } = useInvoice();
 
 
@@ -492,6 +501,7 @@ function GetawayDetail() {
                       downloading={downloadingInvoice}
                       label={t('detail.bookNow')}
                       invoiceLabel={t('detail.downloadInvoice')}
+                      giftedLabel={giftedLabel}
                     />
                   )}
                   <Button variant="contained"
@@ -577,6 +587,7 @@ function GetawayDetail() {
                     downloading={downloadingInvoice}
                     label={t('detail.bookNow')}
                     invoiceLabel={t('detail.downloadInvoice')}
+                    giftedLabel={giftedLabel}
                     sx={{ mt: 1, mb: 3 }}
                   />
                 )

@@ -187,10 +187,10 @@ function App() {
                           <ProtectedRoute requiredRole={Role.ADMIN}>
                             <Reservations />
                           </ProtectedRoute>} />
-                        <Route path={ROUTES.CREATE_GETAWAY} element={<ProtectedRoute><CreateGetaway/></ProtectedRoute>} />
-                        <Route path={ROUTES.COUPONS} element={<ProtectedRoute><Coupons/></ProtectedRoute>} />
-                        <Route path={ROUTES.COUPON_NEW} element={<ProtectedRoute><CouponForm/></ProtectedRoute>} />
-                        <Route path={ROUTE_PATTERNS.COUPON_EDIT} element={<CouponForm />} />
+                        <Route path={ROUTES.CREATE_GETAWAY} element={<ProtectedRoute requiredRole={Role.ADMIN}><CreateGetaway/></ProtectedRoute>} />
+                        <Route path={ROUTES.COUPONS} element={<ProtectedRoute requiredRole={Role.ADMIN}><Coupons/></ProtectedRoute>} />
+                        <Route path={ROUTES.COUPON_NEW} element={<ProtectedRoute requiredRole={Role.ADMIN}><CouponForm/></ProtectedRoute>} />
+                        <Route path={ROUTE_PATTERNS.COUPON_EDIT} element={<ProtectedRoute requiredRole={Role.ADMIN}><CouponForm /></ProtectedRoute>} />
                       </Route>
                     </Routes>
                     <Footer/>

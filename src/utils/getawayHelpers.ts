@@ -18,8 +18,8 @@ export const normalizeGetawayData = (raw: any): Getaway => {
     _id: raw._id || raw.id || `temp_${Math.random()}`,
     title: raw.title || raw.getawayTitle || "Untitled Offer",
     overview: raw.overview || raw.getawayOverview || "",
-    startDate: parseFirestoreDate(raw.startDate),
-    endDate: parseFirestoreDate(raw.endDate),
+    startDate: parseFirestoreDate(raw.startDate, { calendarDay: true }),
+    endDate: parseFirestoreDate(raw.endDate, { calendarDay: true }),
     sport: raw.sport || "",
     // price: Number(raw.price) || 0,
     galleryPhotos: raw.galleryPhotos || raw.galleryPhoto || [],
@@ -29,7 +29,7 @@ export const normalizeGetawayData = (raw: any): Getaway => {
     amenities: raw.amenities || [],
     schedule: raw.schedule?.map((item: any) => ({
       ...item,
-      date: parseFirestoreDate(item.date)
+      date: parseFirestoreDate(item.date, { calendarDay: true })
     })) || [],
     caption: raw.caption || "",
     galleryVideo: raw.galleryVideo || "",
@@ -84,13 +84,17 @@ export const getValidImages = (photos: string[] | undefined): string[] => {
   return photos.filter(url => url && typeof url === 'string' && url.length > 5);
 };
 
-// True si el getaway ya terminó (endDate < hoy). Sin endDate válido → false (no se bloquea).
+// True si el getaway ya terminó: sigue activo todo el día de su endDate y vence
+// al día siguiente (mismo criterio que el backend, `libs/offerExpiry.ts`).
+// Sin endDate válido → false (no se bloquea).
 export const isGetawayExpired = (getaway: { endDate?: any } | null | undefined): boolean => {
   if (!getaway?.endDate) return false;
   const end = new Date(getaway.endDate);
   if (isNaN(end.getTime())) return false;
+  // endDate llega ya normalizado ("Oct 1, 2026"): se compara contra hoy por día, en local.
   const today = new Date();
   today.setHours(0, 0, 0, 0);
+  end.setHours(0, 0, 0, 0);
   return end < today;
 };
 
@@ -106,13 +110,27 @@ export const formatGetawayDates = (start: any, end: any): string => {
   return "No dates available";
 };
 
-export const parseFirestoreDate = (rawDate: unknown): string => {
+/**
+ * `calendarDay`: la fecha es un DÍA del calendario (inicio/fin del getaway, días
+ * del schedule), que el backend guarda como medianoche UTC. Se formatea en UTC
+ * para que en zonas horarias negativas no se muestre el día anterior.
+ * Sin la opción (p.ej. `subscribedAt`, un instante real) se formatea en local.
+ */
+export const parseFirestoreDate = (
+  rawDate: unknown,
+  { calendarDay = false }: { calendarDay?: boolean } = {}
+): string => {
   if (!rawDate) return "";
+  const timeZone = calendarDay ? 'UTC' : undefined;
   try {
     //if valid date is string, return
     if (typeof rawDate === 'string') {
       const date = new Date(rawDate);
-      return isNaN(date.getTime()) ? "" : formatDate(date);
+      if (isNaN(date.getTime())) return "";
+      // Un texto ya formateado ("Oct 1, 2026", p.ej. al normalizar dos veces) se
+      // interpreta en local: pasarlo a UTC lo correría un día en zonas positivas.
+      const isIsoDate = /^\d{4}-\d{2}-\d{2}/.test(rawDate);
+      return formatDate(date, isIsoDate ? timeZone : undefined);
     }
 
     //timestamp firestore
@@ -120,23 +138,24 @@ export const parseFirestoreDate = (rawDate: unknown): string => {
       const ts = rawDate as Record<string, unknown>;
       const secs = (ts.seconds ?? ts._seconds) as number | undefined;
       if (secs !== undefined) {
-        return formatDate(new Date(secs * 1000));
+        return formatDate(new Date(secs * 1000), timeZone);
       }
     }
     // Date native
     if (rawDate instanceof Date) {
-      return isNaN(rawDate.getTime()) ? "" : formatDate(rawDate);
+      return isNaN(rawDate.getTime()) ? "" : formatDate(rawDate, timeZone);
     }
     return "";
   } catch {
     return "";
   }
 }
-function formatDate(date: Date): string {
+function formatDate(date: Date, timeZone?: string): string {
   return date.toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'short',
     day: 'numeric',
+    timeZone,
   });
 }
 

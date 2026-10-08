@@ -15,14 +15,25 @@ import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import LocalOfferIcon from '@mui/icons-material/LocalOffer';
 import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
-import { BRAND } from '../theme/colors';
+// import { BRAND } from '../theme/colors';
 
 import { useAuth } from '../contexts/AuthContext';
 import { useGetawayById } from '../hooks/useGetawayById';
 import type { AcademyClass } from '../hooks/useGetAcademy';
 import { useCouponById } from '../hooks/useCoupon';
 import { useCouponHold } from '../hooks/useCouponHold';
-import { paymentPath } from '../constants/routes';
+// <<<<<<< Updated upstream
+// import { paymentPath } from '../constants/routes';
+// ||||||| Stash base
+// import { createPurchase, Reservation } from '../services/purchase/purchase';
+// import { paymentPath } from '../constants/routes';
+// import { BRAND } from '../theme/colors';
+// =======
+import { createPurchase, Reservation } from '../services/purchase/purchase';
+import { paymentPath, ROUTES } from '../constants/routes';
+import { isGetawayExpired } from '../utils/getawayHelpers';
+import { BRAND } from '../theme/colors';
+// >>>>>>> Stashed changes
 
 import AcademySchedule from '../components/AcademySchedule';
 import LaddersSchedule from '../components/LaddersSchedule';
@@ -31,12 +42,19 @@ import EmailChecker from '../components/EmailChecker';
 
 import { EmailVerifyResult } from '../hooks/useEmailVerify';
 import { getCouponLabel, getCouponValue } from '../utils/couponHelpers';
-import { getScheduleFeeLines, sumAmenities } from '../utils/scheduleFees';
+// <<<<<<< Updated upstream
+// import { getScheduleFeeLines, sumAmenities } from '../utils/scheduleFees';
+// ||||||| Stash base
+// import { getScheduleFeeLines, sumAmenities } from '../utils/scheduleFees';
+// import type { AcademyClass } from '../hooks/useGetAcademy';
+// =======
+import { getScheduleFeeLines, sumAmenities, taxesAndFees, partySize, MAX_PARTNERS } from '../utils/scheduleFees';
+// import type { AcademyClass } from '../hooks/useGetAcademy';
+// >>>>>>> Stashed changes
 import type { Tournament } from '../services/tournament';
 import type { Ladder } from '../services/ladder';
-import { createPurchase, Reservation } from '../services/purchase/purchase';
+// import { createPurchase, Reservation } from '../services/purchase/purchase';
 
-const TAX_RATE = 0.0654;
 const CURRENCY = 'USD';
 
 const formatAmount = (value: number) => `${(value || 0).toFixed(2)} ${CURRENCY}`;
@@ -108,14 +126,22 @@ export default function BookGetaway() {
   const { id } = useParams<{ id: string }>();
   const location = useLocation();
   const searchParams = new URLSearchParams(location.search);
+  const navigate = useNavigate();
+  const { user } = useAuth();
   const [partners, setPartners] = useState<AddedPartner[]>([]);
+  const [partnerError, setPartnerError] = useState<string | null>(null);
 
   //Callback para recibir partner validado desde EmailChecker
   const handlePartnerAdded = (verifiedResult: EmailVerifyResult, emailEntered: string) => {
     const emailToAdd = emailEntered.toLowerCase().trim();
+    // El titular ya cuenta como persona: agregarse a sí mismo cobraría doble.
+    if (emailToAdd === user?.email?.toLowerCase()) {
+      setPartnerError(t('book.partnerSelf'));
+      return;
+    }
+    setPartnerError(null);
     setPartners((prev) => {
-      //temporal: Máx 1 email
-      if (prev.length >= 1) {
+      if (prev.length >= MAX_PARTNERS) {
         return prev;
       }
 
@@ -163,8 +189,6 @@ export default function BookGetaway() {
     return () => clearInterval(timer);
   }, [couponHold.expiresAt]);
 
-  const navigate = useNavigate();
-  const { user } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   // Permite abortar la creación de la reserva si el usuario se cansa de esperar.
@@ -261,7 +285,11 @@ export default function BookGetaway() {
   );
 
   const totals = useMemo(() => {
-    const sub = summaryLines.reduce((total, line) => total + line.price, 0);
+    // Lo de arriba es el precio por persona; con acompañante se paga × personas.
+    // Mismo cálculo y redondeo que el backend (`Payment.createPurchase`).
+    const perPerson = summaryLines.reduce((total, line) => total + line.price, 0);
+    const guests = partySize(partners.length);
+    const sub = Math.round(perPerson * guests * 100) / 100;
 
     // Dos tipos de descuento: importe fijo se resta tal cual, porcentaje se
     // calcula sobre el subtotal ya formado (alojamiento + add-ons + actividades).
@@ -273,16 +301,12 @@ export default function BookGetaway() {
       : 0;
 
     const discountedSubtotal = Math.max(sub - discount, 0);
-    const tax = discountedSubtotal * TAX_RATE;
+    // % de impuestos y cargo fijo de este getaway (6.54% / $0 si no los tiene).
+    // Mismo cálculo que el backend (`libs/pricing.ts`) o el cobro da amount_mismatch.
+    const { taxRate, taxes, serviceFee, total } = taxesAndFees(discountedSubtotal, getaway);
 
-    return {
-      subtotal: sub,
-      discount,
-      discountedSubtotal,
-      taxes: tax,
-      total: discountedSubtotal + tax,
-    };
-  }, [summaryLines, activeCoupon]);
+    return { perPerson, guests, subtotal: sub, discount, discountedSubtotal, taxRate, taxes, serviceFee, total };
+  }, [summaryLines, partners.length, activeCoupon, getaway]);
 
   const couponLabel = getCouponLabel(activeCoupon);
 
@@ -334,6 +358,8 @@ export default function BookGetaway() {
         paymentDetails: {
           Subtotal: formatAmount(totals.subtotal),
           Taxes: formatAmount(totals.taxes),
+          TaxRate: totals.taxRate,
+          ...(totals.serviceFee > 0 ? { Fees: formatAmount(totals.serviceFee) } : {}),
           Total: formatAmount(totals.total),
         }
       };
@@ -360,7 +386,14 @@ export default function BookGetaway() {
 
       //Antes solo se logueaba: el botón se rehabilitaba y usuario no sabía por qué no avanzaba al pago.
       console.error('[BOOKING] Error al crear la reserva:', err);
-      setSubmitError(err instanceof Error ? err.message : t('book.submitError'));
+      // El backend explica el rechazo en `error` (p.ej. getaway vencido); el
+      // `message` de axios ("Request failed with status code 400") no dice nada.
+      const data = axios.isAxiosError(err) ? err.response?.data : undefined;
+      setSubmitError(
+        data?.code === 'getaway_ended' ? t('book.ended')
+          : typeof data?.error === 'string' ? data.error
+          : t('book.submitError')
+      );
     } finally {
       abortRef.current = null;
       setIsSubmitting(false);
@@ -371,6 +404,18 @@ export default function BookGetaway() {
   if (loading) return <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}><CircularProgress /></Box>;
   if (error) return <Alert severity="error">{error}</Alert>;
   if (!getaway) return <Alert severity="info">{t('book.unavailable')}</Alert>;
+  // Entrando directo por URL a un getaway vencido: no se muestra el formulario
+  // (el backend también rechaza la reserva y el cobro).
+  if (isGetawayExpired(getaway)) {
+    return (
+      <Box sx={{ maxWidth: 560, mx: 'auto', p: 3 }}>
+        <Alert severity="warning">{t('book.ended')}</Alert>
+        <Button variant="contained" onClick={() => navigate(ROUTES.GETAWAYS)}
+          sx={{ mt: 2, borderRadius: '8px', textTransform: 'none', bgcolor: BRAND.primary }}
+        >{t('book.seeGetaways')}</Button>
+      </Box>
+    );
+  }
   return (
     <Box sx={{ width: '100%', maxWidth: 1000, mx: 'auto', boxSizing: 'border-box' }}>
       <Box sx={{ textAlign: 'center', mb: 2 }}>
@@ -444,7 +489,10 @@ export default function BookGetaway() {
             )}
           />
           {errors.lodgingOption && <Typography variant="caption" color="error">{errors.lodgingOption.message}</Typography>}
-          <EmailChecker onPartnerAdded={handlePartnerAdded} disabled={partners.length >= 1}/>
+          <EmailChecker onPartnerAdded={handlePartnerAdded} disabled={partners.length >= MAX_PARTNERS}/>
+          {partnerError && (
+            <Typography variant="caption" color="error" sx={{ display: 'block' }}>{partnerError}</Typography>
+          )}
           {partners.length > 0 && (
             <Box sx={{ mt: 1, mb: 2, display: 'flex', flexWrap: 'wrap', gap: 1 }}>
               <Typography variant="subtitle2">{t('book.addedPartner')}</Typography>
@@ -569,7 +617,13 @@ export default function BookGetaway() {
 
             <Divider sx={{ my: 1 }} />
 
-            <SummaryRow label={t('book.subtotal')} amount={displayAmount(totals.subtotal)} />
+            {totals.guests > 1 && (
+              <SummaryRow label={t('book.perPerson')} amount={displayAmount(totals.perPerson)} />
+            )}
+            <SummaryRow
+              label={totals.guests > 1 ? t('book.subtotalGuests', { count: totals.guests }) : t('book.subtotal')}
+              amount={displayAmount(totals.subtotal)}
+            />
             {activeCoupon && (
               <SummaryRow
                 // Se distingue el tipo: "Descuento (20%)" vs "Descuento (importe fijo)"
@@ -582,7 +636,10 @@ export default function BookGetaway() {
                 highlight
               />
             )}
-            <SummaryRow label={t('book.taxes')} amount={displayAmount(totals.taxes)} />
+            <SummaryRow label={t('book.taxesRate', { rate: totals.taxRate })} amount={displayAmount(totals.taxes)} />
+            {totals.serviceFee > 0 && (
+              <SummaryRow label={t('book.fees')} amount={displayAmount(totals.serviceFee)} />
+            )}
 
             <Divider sx={{ my: 1 }} />
 

@@ -18,7 +18,7 @@ import { GalleryPhotoItem } from '../components/GalleryPhotoItem';
 import { ScheduleCalendar } from '../components/ScheduleCalendar';
 import { rowsOutsideRange } from '../utils/dataMappers';
 import { countGetawayDays } from '../utils/getawayHelpers';
-import { getScheduleFeeLines, lineTotal, sumAmenities } from '../utils/scheduleFees';
+import { DEFAULT_TAX_RATE, getScheduleFeeLines, lineTotal, sumAmenities } from '../utils/scheduleFees';
 import { GetawaySummaryDialog, type GetawaySummary } from '../components/GetawaySummaryDialog';
 import type { Tournament } from '../services/tournament';
 import type { Ladder } from '../services/ladder';
@@ -71,7 +71,10 @@ export const CreateGetaway =() => {
       optionalAddOns: [{ name: "", price: 0 }],
       amenities: [{ name: "", unitPrice: 0, days: 1 }],
       schedule: [],
-      discounts: []
+      discounts: [],
+      // Taxes & fees: el 6.54% de siempre como punto de partida; el admin lo cambia.
+      taxRate: DEFAULT_TAX_RATE,
+      serviceFee: 0,
     }
   });
 
@@ -215,7 +218,9 @@ export const CreateGetaway =() => {
         const line = normalizeLine(amenity);
         return { ...line, total: lineTotal(line.unitPrice, line.days) };
       });
-    const normalizedData: GetawayFormData = { ...data, lodgingOptions, amenities };
+    const taxRate = Number(data.taxRate) || 0;
+    const serviceFee = Number(data.serviceFee) || 0;
+    const normalizedData: GetawayFormData = { ...data, lodgingOptions, amenities, taxRate, serviceFee };
 
     // Actividades seleccionadas con su tarifa (misma función que la reserva y el cobro).
     const pick = <T extends { id?: string }>(items: T[], ids: string[]) => items.filter((item) => item.id && ids.includes(item.id));
@@ -241,6 +246,8 @@ export const CreateGetaway =() => {
         amenities: amenities.map(({ name, unitPrice, days, total }) => ({ name, unitPrice, days, total })),
         addOns: cleanedAddOns,
         activities: activityLines.map(({ name, kind, price }) => ({ name, kind, price })),
+        taxRate,
+        serviceFee,
         scheduleCount: scheduleRows.length,
       },
     });
@@ -630,6 +637,47 @@ export const CreateGetaway =() => {
               ':hover': { bgcolor: BRAND.primary, color: 'white' }
             }}
           > {t('create.addItem')} </Button>
+
+          {/* Taxes & fees: % de impuestos sobre el subtotal y cargo fijo por reserva */}
+          <Typography variant="h6" color={BRAND.primary} sx={{ m: '1 0', fontSize: '14px', fontWeight:"bold"  }}> {t('create.taxesFeesSection')} </Typography>
+          <Divider aria-hidden="true" sx={{ pt:0, mt: 0 }} />
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mb: 3 }}>
+            <Controller name="taxRate" control={control}
+              rules={{
+                required: t('create.taxRateRequired'),
+                validate: (value) => {
+                  const rate = Number(value);
+                  return (Number.isFinite(rate) && rate >= 0 && rate <= 100) || t('create.taxRateRange');
+                },
+              }}
+              render={({ field }) => (
+                <TextField {...field} id={field.name} value={field.value ?? ''}
+                  type="number" margin="normal" sx={{ width: { xs: '100%', sm: '220px' } }}
+                  label={t('create.taxRate')}
+                  inputProps={{ min: 0, max: 100, step: '0.01' }}
+                  error={!!errors.taxRate}
+                  helperText={errors.taxRate?.message || t('create.taxRateHelp')}
+                />
+              )}
+            />
+            <Controller name="serviceFee" control={control}
+              rules={{
+                validate: (value) => {
+                  const fee = Number(value ?? 0);
+                  return (Number.isFinite(fee) && fee >= 0) || t('create.pricePositive');
+                },
+              }}
+              render={({ field }) => (
+                <TextField {...field} id={field.name} value={field.value ?? ''}
+                  type="number" margin="normal" sx={{ width: { xs: '100%', sm: '220px' } }}
+                  label={t('create.serviceFee')}
+                  inputProps={{ min: 0, step: '0.01' }}
+                  error={!!errors.serviceFee}
+                  helperText={errors.serviceFee?.message || t('create.serviceFeeHelp')}
+                />
+              )}
+            />
+          </Box>
 
           {scheduleError && (
             <div style={{ color: "red", fontWeight: "bold", marginBottom: 8 }}> {scheduleError} </div>

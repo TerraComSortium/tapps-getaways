@@ -14,11 +14,18 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import CloseIcon from '@mui/icons-material/Close';
 
 import type { ScheduleRow, ScheduleService } from '../types/getaway';
-import { compareTimes, rowsOutsideRange } from '../utils/dataMappers';
+import { compareTimes, formatTime12, rowsOutsideRange } from '../utils/dataMappers';
 
-// 24h: "00".."23", sin AM/PM que interpretar.
-const hourOptions = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0'));
+// En pantalla, reloj de 12h ("1".."12" + AM/PM). Las filas y el API siguen en
+// 24h ("HH:mm"): se convierte al agregar la actividad.
+const hourOptions = Array.from({ length: 12 }, (_, i) => String(i + 1));
 const minuteOptions = ["00", "15", "30", "45"];
+const periodOptions = ["AM", "PM"] as const;
+type Period = typeof periodOptions[number];
+
+/** "1".."12" + AM/PM → "00".."23". 12 AM = 00, 12 PM = 12. */
+const to24Hour = (hour: string, period: Period): string =>
+  String((Number(hour) % 12) + (period === 'PM' ? 12 : 0)).padStart(2, '0');
 const generateId = () => Math.random().toString(36).substr(2, 9);
 
 type ServiceSource = { name?: string };
@@ -47,10 +54,12 @@ type DraftErrors = {
 };
 
 type ActivityDraft = {
-  startHour: string;
+  startHour: string; // "1".."12"
   startMinute: string;
-  endHour: string;
+  startPeriod: Period;
+  endHour: string; // "1".."12"
   endMinute: string;
+  endPeriod: Period;
   activity: string;
   location: string;
   services: ScheduleService[];
@@ -61,8 +70,8 @@ type ActivityDraft = {
 };
 
 const EMPTY_DRAFT: ActivityDraft = {
-  startHour: "", startMinute: "",
-  endHour: "", endMinute: "",
+  startHour: "", startMinute: "", startPeriod: "AM",
+  endHour: "", endMinute: "", endPeriod: "AM",
   activity: "", location: "", services: [], days: [],
 };
 
@@ -108,7 +117,8 @@ const serviceKey = (service: ScheduleService) => `${service.type}:${service.name
  */
 export function ScheduleCalendar({
   rows, setRows, startDate, endDate,
-  lodgingOptions = [], addOns = [], amenities = [],
+  // lodgingOptions / addOns solo alimentan el selector de servicios enlazados (comentado).
+  amenities = [],
 }: ScheduleCalendarProps) {
   const { t, i18n } = useTranslation();
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
@@ -126,11 +136,12 @@ export function ScheduleCalendar({
   );
   const isIncluded = (activity: string) => amenityNames.includes(activity.trim());
 
+  // Selector de "servicios enlazados" comentado por ahora (ver el JSX del diálogo).
   // Las amenities ya se eligen como actividad: aquí solo lodging y add-ons.
-  const serviceOptions = useMemo<ScheduleService[]>(() => [
-    ...cleanNames(lodgingOptions).map((name) => ({ type: 'lodging' as const, name })),
-    ...cleanNames(addOns).map((name) => ({ type: 'addOn' as const, name })),
-  ], [lodgingOptions, addOns]);
+  // const serviceOptions = useMemo<ScheduleService[]>(() => [
+  //   ...cleanNames(lodgingOptions).map((name) => ({ type: 'lodging' as const, name })),
+  //   ...cleanNames(addOns).map((name) => ({ type: 'addOn' as const, name })),
+  // ], [lodgingOptions, addOns]);
 
   const rowsByDay = useMemo(() => {
     const map = new Map<string, ScheduleRow[]>();
@@ -175,7 +186,10 @@ export function ScheduleCalendar({
     if (!form.endMinute) error.endMinute = t('sched.required');
     if (
       form.startHour && form.startMinute && form.endHour && form.endMinute &&
-      !compareTimes(form.startHour, form.startMinute, form.endHour, form.endMinute)
+      !compareTimes(
+        to24Hour(form.startHour, form.startPeriod), form.startMinute,
+        to24Hour(form.endHour, form.endPeriod), form.endMinute
+      )
     ) {
       error.timeOrder = t('sched.afterStart');
     }
@@ -192,15 +206,18 @@ export function ScheduleCalendar({
     setErrors(validation);
     if (Object.keys(validation).length > 0) return;
 
-    const { days: draftDays, ...activityFields } = draft;
-    const activity = activityFields.activity.trim();
+    const activity = draft.activity.trim();
     const services: ScheduleService[] = [
       ...(isIncluded(activity) ? [{ type: 'amenity' as const, name: activity }] : []),
-      ...activityFields.services.filter((service) => service.type !== 'amenity'),
+      ...draft.services.filter((service) => service.type !== 'amenity'),
     ];
     // Una fila independiente por día elegido: borrar/editar una no toca las demás.
-    const newRows = draftDays.map((day) => ({
-      id: generateId(), date: day, ...activityFields, activity, services,
+    // Las horas se guardan en 24h, como las espera el API.
+    const newRows: ScheduleRow[] = draft.days.map((day) => ({
+      id: generateId(), date: day,
+      startHour: to24Hour(draft.startHour, draft.startPeriod), startMinute: draft.startMinute,
+      endHour: to24Hour(draft.endHour, draft.endPeriod), endMinute: draft.endMinute,
+      activity, location: draft.location, services,
     }));
     setRows((prev) => [...prev, ...newRows]);
     setDraft({ ...EMPTY_DRAFT, days: [selectedDate] });
@@ -335,7 +352,7 @@ export function ScheduleCalendar({
                 >
                   <Box sx={{ minWidth: 0 }}>
                     <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
-                      {row.startHour}:{row.startMinute} – {row.endHour}:{row.endMinute}
+                      {formatTime12(row.startHour, row.startMinute)} – {formatTime12(row.endHour, row.endMinute)}
                     </Typography>
                     <Stack direction="row" spacing={0.75} sx={{ alignItems: 'center' }}>
                       <Typography variant="body2">{row.activity}</Typography>
@@ -371,7 +388,7 @@ export function ScheduleCalendar({
           </Typography>
 
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2.5 }}>
-            {/* Start time — reloj de 24h: "HH : MM", sin AM/PM que confundir */}
+            {/* Start time — reloj de 12h: "h : mm AM/PM" */}
             <Box>
               <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
                 {t('sched.startTime')}
@@ -386,12 +403,17 @@ export function ScheduleCalendar({
                   </Select>
                 </FormControl>
                 <Typography sx={{ px: 0.5, fontWeight: 'bold', color: 'text.secondary' }}>:</Typography>
-                <FormControl size="small" error={!!(touched && errors.startMinute)} sx={{ width: 72 }}>
+                <FormControl size="small" error={!!(touched && errors.startMinute)} sx={{ width: 84 }}>
                   <Select name="startMinute" displayEmpty sx={{ borderRadius: '0 4px 4px 0' }}
                     value={draft.startMinute} onChange={handleDraftChange}
                   >
                     <MenuItem value="">{t('sched.min')}</MenuItem>
                     {minuteOptions.map(min => <MenuItem key={min} value={min}>{min}</MenuItem>)}
+                  </Select>
+                </FormControl>
+                <FormControl size="small" sx={{ width: 80, ml: 1 }}>
+                  <Select name="startPeriod" value={draft.startPeriod} onChange={handleDraftChange}>
+                    {periodOptions.map(p => <MenuItem key={p} value={p}>{p}</MenuItem>)}
                   </Select>
                 </FormControl>
               </Box>
@@ -415,12 +437,17 @@ export function ScheduleCalendar({
                   </Select>
                 </FormControl>
                 <Typography sx={{ px: 0.5, fontWeight: 'bold', color: 'text.secondary' }}>:</Typography>
-                <FormControl size="small" error={!!(touched && (errors.endMinute || errors.timeOrder))} sx={{ width: 72 }}>
+                <FormControl size="small" error={!!(touched && (errors.endMinute || errors.timeOrder))} sx={{ width: 84 }}>
                   <Select name="endMinute" displayEmpty sx={{ borderRadius: '0 4px 4px 0' }}
                     value={draft.endMinute} onChange={handleDraftChange}
                   >
                     <MenuItem value="">{t('sched.min')}</MenuItem>
                     {minuteOptions.map(min => <MenuItem key={min} value={min}>{min}</MenuItem>)}
+                  </Select>
+                </FormControl>
+                <FormControl size="small" sx={{ width: 80, ml: 1 }}>
+                  <Select name="endPeriod" value={draft.endPeriod} onChange={handleDraftChange}>
+                    {periodOptions.map(p => <MenuItem key={p} value={p}>{p}</MenuItem>)}
                   </Select>
                 </FormControl>
               </Box>
@@ -504,6 +531,8 @@ export function ScheduleCalendar({
             helperText={touched && errors.location ? errors.location : ' '}
           />
 
+          {/* Servicios enlazados (lodging / add-on) a la actividad: comentado por ahora.
+              Para reactivarlo, descomentar esto y `serviceOptions` arriba.
           {serviceOptions.length > 0 && (
             <Autocomplete
               multiple size="small"
@@ -530,6 +559,7 @@ export function ScheduleCalendar({
               )}
             />
           )}
+          */}
         </DialogContent>
 
         <DialogActions sx={{ px: 3, pb: 2 }}>

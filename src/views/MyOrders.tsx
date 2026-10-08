@@ -86,6 +86,11 @@ export default function MyOrders() {
             bookedDate={parseFirestoreDate(getaway.subscribedAt)}
             address={getaway.getawayAddress?.address || getaway.address}
             totalPaid={getaway.order?.paymentDetails?.Total}
+            giftedBy={
+              getaway.order?.role === 'partner'
+                ? getaway.order?.purchasedBy?.name || getaway.order?.purchasedBy?.email
+                : undefined
+            }
             lodgingName={getaway.order?.reservation?.lodgingOption?.option}
             coupon={orderCoupon(getaway.order)}
             paymentStatus={

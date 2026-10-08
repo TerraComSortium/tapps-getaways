@@ -72,6 +72,9 @@ export interface GetawayBase {
   amenities: AmenityItem[];
   schedule: ApiScheduleEntry[];
   discounts?: Discount[];
+  /** Taxes & fees: % de impuestos y cargo fijo por reserva (USD). Ver utils/scheduleFees. */
+  taxRate?: number;
+  serviceFee?: number;
   tournamentIds?: string[];
   ladderIds?: string[];
   academyIds?: string[];
@@ -172,6 +175,9 @@ export interface OrderAddOn {
 export interface OrderPaymentDetails {
   Subtotal: string;
   Taxes: string;
+  /** % de impuestos aplicado y cargo fijo; órdenes viejas no los tienen. */
+  TaxRate?: number;
+  Fees?: string;
   Total: string;
 }
 

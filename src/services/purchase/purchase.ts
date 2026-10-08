@@ -35,6 +35,9 @@ interface PaymentDetails {
   /** Solo presente si el backend aplicó un cupón. */
   Discount?: string;
   Taxes: string;
+  TaxRate?: number;
+  /** Cargo fijo del getaway; solo si es mayor que 0. */
+  Fees?: string;
   Total: string;
 }
 

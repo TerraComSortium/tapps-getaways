@@ -9,31 +9,22 @@ import LoadingOverlay from '../components/LoadingOverlay';
 import { Box, TextField, Button, Typography, Divider, RadioGroup, Paper, Stack, Chip,
   FormGroup, FormControl,
   FormControlLabel,
-  // FormLabel, FormHelperText,
   Radio, Checkbox, CircularProgress, Alert } from '@mui/material';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import LocalOfferIcon from '@mui/icons-material/LocalOffer';
 import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
-// import { BRAND } from '../theme/colors';
 
 import { useAuth } from '../contexts/AuthContext';
 import { useGetawayById } from '../hooks/useGetawayById';
 import type { AcademyClass } from '../hooks/useGetAcademy';
 import { useCouponById } from '../hooks/useCoupon';
 import { useCouponHold } from '../hooks/useCouponHold';
-// <<<<<<< Updated upstream
-// import { paymentPath } from '../constants/routes';
-// ||||||| Stash base
-// import { createPurchase, Reservation } from '../services/purchase/purchase';
-// import { paymentPath } from '../constants/routes';
-// import { BRAND } from '../theme/colors';
-// =======
+
 import { createPurchase, Reservation } from '../services/purchase/purchase';
 import { paymentPath, ROUTES } from '../constants/routes';
 import { isGetawayExpired } from '../utils/getawayHelpers';
 import { BRAND } from '../theme/colors';
-// >>>>>>> Stashed changes
 
 import AcademySchedule from '../components/AcademySchedule';
 import LaddersSchedule from '../components/LaddersSchedule';
@@ -42,18 +33,11 @@ import EmailChecker from '../components/EmailChecker';
 
 import { EmailVerifyResult } from '../hooks/useEmailVerify';
 import { getCouponLabel, getCouponValue } from '../utils/couponHelpers';
-// <<<<<<< Updated upstream
-// import { getScheduleFeeLines, sumAmenities } from '../utils/scheduleFees';
-// ||||||| Stash base
-// import { getScheduleFeeLines, sumAmenities } from '../utils/scheduleFees';
-// import type { AcademyClass } from '../hooks/useGetAcademy';
-// =======
+
 import { getScheduleFeeLines, sumAmenities, taxesAndFees, partySize, MAX_PARTNERS } from '../utils/scheduleFees';
-// import type { AcademyClass } from '../hooks/useGetAcademy';
-// >>>>>>> Stashed changes
+
 import type { Tournament } from '../services/tournament';
 import type { Ladder } from '../services/ladder';
-// import { createPurchase, Reservation } from '../services/purchase/purchase';
 
 const CURRENCY = 'USD';
 

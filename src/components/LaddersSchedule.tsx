@@ -11,7 +11,7 @@ import TableCell, { tableCellClasses } from "@mui/material/TableCell";
 import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
-import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
+import VisibilityIcon from '@mui/icons-material/Visibility';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { useTranslation } from 'react-i18next';
 import laddersLogo from '../assets/RappsIcons/laddersLogo.png';
@@ -340,7 +340,7 @@ export default function LaddersTable(
             </Typography>
           </CardContent>
           <CardActions sx={{ justifyContent: 'center' }}>
-            <Button startIcon={<CheckCircleOutlineIcon />} variant="contained"  size="large"
+            <Button startIcon={<VisibilityIcon />} variant="contained"  size="large"
               onClick={handleFetch} disabled={loading}
               sx={{ px: 4, borderRadius: '20px', bgcolor: BRAND.primary, textTransform: 'none' }}
             >

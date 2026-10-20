@@ -10,6 +10,7 @@ api.interceptors.request.use(
   async (config:any) => {
     // Idioma activo → el backend responde sus errores en el mismo idioma.
     config.headers['Accept-Language'] = i18n.language || 'en';
+     config.headers['x-vercel-protection-bypass'] = 'TOKEN_SECRETO_DE_VERCEL';
     // const token = localStorage.getItem("token");
     const user = auth.currentUser;
     if(user){

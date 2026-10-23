@@ -5,7 +5,9 @@ import { ROUTES } from '../constants/routes';
 import { BRAND } from '../theme/colors';
 // import GetawaysLogo from '../components/GetawaysLogo/GetawaysLogo.jpg';
 // import background1 from '../assets/backgrounds/tenis.jpg';
-import background1 from '../assets/backgrounds/tenis2.jpg';
+// import background1 from '../assets/backgrounds/tenis2.jpg';
+import background1 from '../assets/backgrounds/tenis3.png';
+
 import clubView1 from '../assets/backgrounds/clubView1.png';
 import '../App.css';
 import '../index.css';

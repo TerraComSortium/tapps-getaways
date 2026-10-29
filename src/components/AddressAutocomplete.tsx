@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, useCallback } from "react";
 import { Button, Box, Typography, FormLabel, SxProps, Theme } from "@mui/material";
 import { BRAND } from "../theme/colors";
 import GpsFixedIcon from '@mui/icons-material/GpsFixed';
@@ -75,6 +75,12 @@ interface AddressAutocompleteProps {
   inputTextColor?: string;
 }
 
+type GeocodeResponse = {
+  results: Array<{
+    formatted_address: string;
+  }>;
+};
+
 export function AddressAutocomplete({
   onChange,
   value,
@@ -97,9 +103,30 @@ export function AddressAutocomplete({
 
   // useMapsLibrary hooks into the APIProvider from @vis.gl — no separate loader needed
   const placesLib = useMapsLibrary('places');
-  const geocodingLib = useMapsLibrary('geocoding')
+  const geocodingLib = useMapsLibrary('geocoding');
 
-  useEffect(() => { onChangeRef.current = onChange; });
+  const requestVersionRef = useRef(0);
+
+  useEffect(() => {
+    onChangeRef.current = onChange;
+  }, [onChange]);
+
+  const updateLocation = useCallback((location: LocationEntry) => {
+    requestVersionRef.current += 1;
+    setIsLoadingGeo(false);
+    // onChange(location);
+    onChangeRef.current(location);
+  }, []);
+
+  const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    updateLocation({
+      address: event.target.value,
+      lat: null,
+      lng: null,
+    });
+  };
+
+  // useEffect(() => { onChangeRef.current = onChange; });
 
   // Sync external value (e.g. GPS auto-fill) into the input
   const globalAddress = value?.address;
@@ -129,76 +156,83 @@ export function AddressAutocomplete({
 
     const listener = ac.addListener('place_changed', () => {
       const place = ac.getPlace();
-      if (!place?.geometry?.location) {
-        console.warn("Place selected has no coordinates");
-        return;
-      }
-      const address = place.formatted_address || place.name || "";
-      const lat = place.geometry.location.lat();
-      const lng = place.geometry.location.lng();
-      onChangeRef.current({ address, lat, lng });
-    });
 
-    return () => google.maps.event.removeListener(listener);
-  }, [placesLib]);
+      if (!place.geometry?.location) return;
+      //   if (!place?.geometry?.location) {
+      //     console.warn("Place selected has no coordinates");
+      //     return;
+      //   }
+
+      const name = place.name?.trim();
+      const formattedAddress = place.formatted_address?.trim() ?? '';
+      const address = name && !formattedAddress.includes(name)
+        ? `${name}, ${formattedAddress}`
+        : formattedAddress || name || '';
+
+      updateLocation({
+        address,
+        lat: place.geometry.location.lat(),
+        lng: place.geometry.location.lng(),
+      });
+    });
+    return () => listener.remove();
+
+  }, [placesLib, updateLocation]);
 
   const handleMyPositionClick = () => {
     if (!navigator.geolocation) {
       alert(t('address.geoUnsupported'));
       return;
     }
+
+    if (!geocodingLib) {
+      alert(t('address.loadingMaps'));
+      return;
+    }
+
+    const requestVersion = ++requestVersionRef.current;
     setIsLoadingGeo(true);
 
     navigator.geolocation.getCurrentPosition(
-      async (pos) => {
-        const { latitude: lat, longitude: lng } = pos.coords;
+      ({ coords: { latitude: lat, longitude: lng } }) => {
+        const geocoder = new geocodingLib.Geocoder();
 
-        // Si librería GoogleGeocoding no ha cargado aún, usa fallback numérico rápido
-        if (!geocodingLib) {
-          console.log('la libreria no esta cargada aun')
-          const fallbackAddress = `Lat: ${lat.toFixed(4)}, Lng: ${lng.toFixed(4)}`;
-          onChangeRef.current({ address: fallbackAddress, lat, lng });
-          if (inputRef.current) inputRef.current.value = fallbackAddress;
-          setIsLoadingGeo(false);
+        geocoder
+          .geocode({ location: { lat, lng } })
+          .then(({ results }: GeocodeResponse) => {
+            if (requestVersion !== requestVersionRef.current) return;
+
+            const address = results[0]?.formatted_address
+              ?? `Lat: ${lat.toFixed(6)}, Lng: ${lng.toFixed(6)}`;
+
+            updateLocation({ address, lat, lng });
+          })
+          .catch(() => {
+            if (requestVersion !== requestVersionRef.current) return;
+
+            updateLocation({
+              address: `Lat: ${lat.toFixed(6)}, Lng: ${lng.toFixed(6)}`,
+              lat,
+              lng,
+            });
+          });
+      },
+      (error) => {
+        if (requestVersion !== requestVersionRef.current) return;
+
+        setIsLoadingGeo(false);
+
+        if (error.code === error.PERMISSION_DENIED) {
+          alert(t('address.geoPositionForbidden'));
           return;
         }
 
-        try {
-          // Instanciamos el codificador nativo de Google (No consume requests fetch manuales)
-          const geocoder = new geocodingLib.Geocoder();
-
-          geocoder.geocode({ location: { lat, lng } }, (results, status) => {
-            let address = `Lat: ${lat.toFixed(4)}, Lng: ${lng.toFixed(4)}`;
-
-            if (status === "OK" && results?.[0]) {
-              address = results[0].formatted_address;
-            }
-            
-
-            onChangeRef.current({ address, lat, lng });
-            if (inputRef.current) inputRef.current.value = address;
-            setIsLoadingGeo(false);
-          });
-
-        } catch (err) {
-          console.error("Geocoding error:", err);
-          alert(t('address.geoFetchError'));
-          setIsLoadingGeo(false);
-        }
+        alert(`${t('address.geoUnavailable')} ${error.message}`);
       },
-      (err) => {
-        setIsLoadingGeo(false);
-        alert(t('address.geoUnavailable') + " " + err.message);
-      },
-      {
-        enableHighAccuracy: true, // Usa GPS si está disponible
-        timeout: 8000,            // Máximo 8 segundos de espera para evitar bloqueos infinitos
-        maximumAge: 10000         // Si se ubicó hace menos de 10 segundos, reutiliza la posición
-      }
-    )
-  }
-
-  if (!placesLib) return <Typography>{t('address.loadingMaps')}</Typography>;
+      { enableHighAccuracy: true, timeout: 8000, maximumAge: 10000 },
+    );
+  };
+  if (!placesLib) return <Typography>{t('address.loadingMaps')}</Typography>
 
   return (
     <Box sx={{ width: '100%', display: 'flex', alignItems: 'flex-start', gap: 1, flexWrap: 'wrap', ...containerSx }}>
@@ -210,11 +244,14 @@ export function AddressAutocomplete({
             {label}
           </FormLabel>
         )}
+
         <StyledAutocomplete
           ref={inputRef}
-          type="text"
-          placeholder={t('address.cityPlaceholder')}
-          defaultValue={value?.address || ""}
+          // type="text"
+          // placeholder={t('address.cityPlaceholder')}
+          // defaultValue={value?.address || ""}
+          value={value?.address ?? ''}
+          onChange={handleInputChange}
           $isError={error}
           $height={height}
           $transparent={transparentBackground}

@@ -162,10 +162,22 @@ export const CreateGetaway =() => {
   // });
 
   const onSubmit: SubmitHandler<GetawayFormData> = async (data) => {
-    if (!data.getawayAddress.lat || !data.getawayAddress.lng) {
-      showSnackbar(t('create.selectValidLocation'), "warning");
+    // if (!data.getawayAddress.lat || !data.getawayAddress.lng) {
+    //   showSnackbar(t('create.selectValidLocation'), "warning");
+    //   return;
+    // }
+    const { lat, lng } = data.getawayAddress;
+
+    if (
+      !Number.isFinite(lat) ||
+      !Number.isFinite(lng) ||
+      lat! < -90 || lat! > 90 ||
+      lng! < -180 || lng! > 180
+    ) {
+      showSnackbar(t('create.selectValidLocation'), 'warning');
       return;
     }
+    
     const validEntries = (data.galleryPhotos || []).filter(
       (item): item is { file: File; caption?: string } => item.file instanceof File
     );

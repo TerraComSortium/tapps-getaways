@@ -427,6 +427,7 @@
   "address.geoUnsupported": "Geolocation is not supported by your browser",
   "address.geoFetchError": "Error fetching address details.",
   "address.geoUnavailable": "Could not get location:",
+  "address.geoPositionForbidden": "Your location access is blocked, please grant permission ",
   "address.loadingMaps": "Loading Maps...",
   "address.cityPlaceholder": "City or RCnet",
   "address.locating": "Locating...",

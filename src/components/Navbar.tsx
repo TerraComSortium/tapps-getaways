@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { ROUTES } from '../constants/routes';
-import GetawaysLogo from './GetawaysLogo/GetawaysLogo.jpg';
+import GetawaysLogo from './GetawaysLogo/GetawaysLogo.png';
 // import RcnetIcon from '../assets/RappsIcons/RCnet icon.png';
 import playerIcon from '../assets/RappsIcons/PlayersProfile.png';
 

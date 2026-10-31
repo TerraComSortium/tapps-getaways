@@ -173,6 +173,8 @@ export default function SearchBar({ onSearch }: SearchBarProps) {
             }}
             label={t('search.nearestCity')}
             labelColor={BRAND.limeAlt}
+            showCurrentLocationBtn
+            currentLocationButtonVariant="inline"
           />
         </Grid>
 

@@ -1,7 +1,8 @@
 import { useRef, useState, useEffect, useCallback } from "react";
-import { Button, Box, Typography, FormLabel, SxProps, Theme } from "@mui/material";
+import { Button, Box, CircularProgress, IconButton, Typography, FormLabel, SxProps, Theme } from "@mui/material";
 import { BRAND } from "../theme/colors";
 import GpsFixedIcon from '@mui/icons-material/GpsFixed';
+import PlaceIcon from '@mui/icons-material/Place';
 import { styled } from "@mui/material/styles";
 import type { LocationEntry } from '../types/getaway';
 import { useMapsLibrary } from '@vis.gl/react-google-maps';
@@ -12,15 +13,17 @@ const StyledAutocomplete = styled('input', {
     prop !== '$isError' &&
     prop !== '$height' &&
     prop !== '$transparent' &&
-    prop !== '$textColor'
+    prop !== '$textColor' &&
+    prop !== '$hasInlineLocationButton'
 })<{
   $isError?: boolean;
   $height?: string | number;
   $transparent?: boolean;
   $textColor?: string;
-}>(({ theme, $isError, $height, $transparent, $textColor }) => ({
+  $hasInlineLocationButton?: boolean;
+}>(({ theme, $isError, $height, $transparent, $textColor, $hasInlineLocationButton }) => ({
   fontSize: '12px',
-  padding: '10px',
+  padding: $hasInlineLocationButton ? '10px 46px 10px 10px' : '10px',
   width: '100%',
   display: 'block',
   border: `1px solid ${$isError ? theme.palette.error.main : 'rgba(0, 0, 0, 0.23)'}`,
@@ -67,6 +70,7 @@ interface AddressAutocompleteProps {
   error?: boolean;
   errorMessage?: string;
   showCurrentLocationBtn?: boolean;
+  currentLocationButtonVariant?: 'standalone' | 'inline';
   inputStyle?: React.CSSProperties;
   containerSx?: SxProps<Theme>;
   height?: string | number;
@@ -88,6 +92,7 @@ export function AddressAutocomplete({
   error = false,
   errorMessage,
   showCurrentLocationBtn = false,
+  currentLocationButtonVariant = 'standalone',
   inputStyle,
   containerSx,
   height = '56px',
@@ -118,33 +123,13 @@ export function AddressAutocomplete({
     onChangeRef.current(location);
   }, []);
 
-  const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     updateLocation({
       address: event.target.value,
       lat: null,
       lng: null,
     });
-  };
-
-  // useEffect(() => { onChangeRef.current = onChange; });
-
-  // Sync external value (e.g. GPS auto-fill) into the input
-  const globalAddress = value?.address;
-
-  useEffect(() => {
-    if (inputRef.current && globalAddress) {
-      // Evita duplicar la coma si la dirección ya viene formateada o limpia
-      const cleanAddress = globalAddress.endsWith(', ') ? globalAddress : `${globalAddress}`;
-      inputRef.current.value = cleanAddress;
-
-      const isDesktop = window.innerWidth > 768;
-      if (isDesktop) {
-        inputRef.current.focus();
-        const length = cleanAddress.length;
-        inputRef.current.setSelectionRange(length, length);
-      }
-    }
-  }, [globalAddress]);
+  }, [updateLocation]);
 
   // Attach Google Places Autocomplete to our own styled input
   useEffect(() => {
@@ -158,10 +143,6 @@ export function AddressAutocomplete({
       const place = ac.getPlace();
 
       if (!place.geometry?.location) return;
-      //   if (!place?.geometry?.location) {
-      //     console.warn("Place selected has no coordinates");
-      //     return;
-      //   }
 
       const name = place.name?.trim();
       const formattedAddress = place.formatted_address?.trim() ?? '';
@@ -179,7 +160,7 @@ export function AddressAutocomplete({
 
   }, [placesLib, updateLocation]);
 
-  const handleMyPositionClick = () => {
+  const requestCurrentLocation = useCallback(() => {
     if (!navigator.geolocation) {
       alert(t('address.geoUnsupported'));
       return;
@@ -231,8 +212,12 @@ export function AddressAutocomplete({
       },
       { enableHighAccuracy: true, timeout: 8000, maximumAge: 10000 },
     );
-  };
-  if (!placesLib) return <Typography>{t('address.loadingMaps')}</Typography>
+  }, [geocodingLib, t, updateLocation]);
+
+  if (!placesLib) return <Typography>{t('address.loadingMaps')}</Typography>;
+
+  const showInlineLocationButton = showCurrentLocationBtn && currentLocationButtonVariant === 'inline';
+
 
   return (
     <Box sx={{ width: '100%', display: 'flex', alignItems: 'flex-start', gap: 1, flexWrap: 'wrap', ...containerSx }}>
@@ -245,19 +230,38 @@ export function AddressAutocomplete({
           </FormLabel>
         )}
 
-        <StyledAutocomplete
-          ref={inputRef}
-          // type="text"
-          // placeholder={t('address.cityPlaceholder')}
-          // defaultValue={value?.address || ""}
-          value={value?.address ?? ''}
-          onChange={handleInputChange}
-          $isError={error}
-          $height={height}
-          $transparent={transparentBackground}
-          $textColor={inputTextColor}
-          style={inputStyle}
-        />
+        <Box sx={{ position: 'relative' }}>
+          <StyledAutocomplete
+            ref={inputRef}
+            type="text"
+            placeholder={t('address.cityPlaceholder')}
+            value={value?.address ?? ''}
+            onChange={handleInputChange}
+            $isError={error}
+            $height={height}
+            $transparent={transparentBackground}
+            $textColor={inputTextColor}
+            $hasInlineLocationButton={showInlineLocationButton}
+            style={inputStyle}
+          />
+          {showInlineLocationButton && (
+            <IconButton
+              aria-label={t('address.myPosition')}
+              onClick={requestCurrentLocation}
+              disabled={isLoadingGeo}
+              size="small"
+              sx={{
+                position: 'absolute',
+                right: 6,
+                top: '50%',
+                transform: 'translateY(-50%)',
+                color: BRAND.primary,
+              }}
+            >
+              {isLoadingGeo ? <CircularProgress size={18} /> : <PlaceIcon fontSize="small" />}
+            </IconButton>
+          )}
+        </Box>
         {errorMessage && (
           <Typography variant="caption" color="error" sx={{ mt: 0.5, display: 'block' }}>
             {errorMessage}
@@ -265,9 +269,9 @@ export function AddressAutocomplete({
         )}
       </Box>
 
-      {showCurrentLocationBtn && (
+      {showCurrentLocationBtn && currentLocationButtonVariant === 'standalone' && (
         <LocationButton
-          onClick={handleMyPositionClick}
+          onClick={requestCurrentLocation}
           disabled={isLoadingGeo}
           startIcon={<GpsFixedIcon />}
           variant="contained"

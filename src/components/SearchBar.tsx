@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { ROUTES } from '../constants/routes';
 import { BRAND } from '../theme/colors';
 import {
@@ -29,11 +29,13 @@ interface SearchBarProps {
 export default function SearchBar({ onSearch }: SearchBarProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const routerLocation = useLocation();
   const userAddress = useUserStore((state) => state.userAddress);
   const userLocation = useUserStore((state) => state.userLocation);
   const geoError = useUserStore((state) => state.geoError);
 
   const [searchLocation, setSearchLocation] = useState<LocationEntry | null>(null);
+  const searchLocationRef = React.useRef<LocationEntry | null>(null);
   const [sport, setSport] = React.useState('');
   const [feedback, setFeedback] = React.useState({
     open: false,
@@ -41,6 +43,35 @@ export default function SearchBar({ onSearch }: SearchBarProps) {
     severity: 'error' as 'error' | 'warning'
   });
   const [loading, setLoading] = React.useState(false);
+
+  const updateSearchLocation = React.useCallback((location: LocationEntry | null) => {
+    searchLocationRef.current = location;
+    setSearchLocation(location);
+  }, []);
+
+  const searchFromUrl = React.useMemo(() => {
+    const params = new URLSearchParams(routerLocation.search);
+    const address = params.get('q') ?? '';
+    const parseCoordinate = (value: string | null): number | null => {
+      if (value === null || value.trim() === '') return null;
+
+      const coordinate = Number(value);
+      return Number.isFinite(coordinate) ? coordinate : null;
+    };
+    const lat = parseCoordinate(params.get('lat'));
+    const lng = parseCoordinate(params.get('lng'));
+    const hasLat = lat !== null;
+    const hasLng = lng !== null;
+
+    return {
+      location: address || hasLat || hasLng
+        ? { address, lat, lng }
+        : null,
+      sport: params.get('sport') ?? '',
+      arrival: params.get('startDate') ?? '',
+      departure: params.get('endDate') ?? '',
+    };
+  }, [routerLocation.search]);
 
   const formatLocalDate = (date: Date): string => {
     const year = date.getFullYear();
@@ -57,9 +88,20 @@ export default function SearchBar({ onSearch }: SearchBarProps) {
   const [departure, setDeparture] = React.useState('');
 
   const hasAutoFilled = React.useRef(false); //userLocation's coords filledFlag
+
   React.useEffect(() => {
-    if (userAddress && userLocation && !hasAutoFilled.current) {
-      setSearchLocation({
+    if (!searchFromUrl.location) return;
+
+    updateSearchLocation(searchFromUrl.location);
+    setSport(searchFromUrl.sport);
+    setArrival(searchFromUrl.arrival);
+    setDeparture(searchFromUrl.departure);
+    hasAutoFilled.current = true;
+  }, [searchFromUrl, updateSearchLocation]);
+
+  React.useEffect(() => {
+    if (!searchFromUrl.location && userAddress && userLocation && !hasAutoFilled.current) {
+      updateSearchLocation({
         address: userAddress,
         lat: userLocation.lat,
         lng: userLocation.lng
@@ -68,11 +110,13 @@ export default function SearchBar({ onSearch }: SearchBarProps) {
     }
   }, [
     userAddress,
-    userLocation
+    userLocation,
+    searchFromUrl.location,
+    updateSearchLocation,
   ]);
 
   const handleMapsSearch = (location: LocationEntry) => {
-    setSearchLocation(location);
+    updateSearchLocation(location);
     console.log("Selected Location:", location);
   };
 
@@ -97,9 +141,10 @@ export default function SearchBar({ onSearch }: SearchBarProps) {
     setLoading(true);
 
     try {
-      const safeQuery = sanitizeInput(searchLocation?.address || '');
-      const lat = searchLocation?.lat;
-      const lng = searchLocation?.lng;
+      const selectedLocation = searchLocationRef.current;
+      const safeQuery = sanitizeInput(selectedLocation?.address || '');
+      const lat = selectedLocation?.lat;
+      const lng = selectedLocation?.lng;
 
       if (onSearch) {
         onSearch({

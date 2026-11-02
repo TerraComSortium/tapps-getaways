@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Box, Stack, Pagination, Typography, CircularProgress, Alert } from '@mui/material';
 import { GetawayItem } from '../components/GetawayItem';
@@ -16,7 +16,6 @@ import { useCouponsForGetaways } from '../hooks/useCoupon';
 
 import {
   normalizeGetawayData,
-  performFallbackLocalSearch,
   getSportLabel,
   getValidImages,
   isGetawayExpired,
@@ -33,11 +32,11 @@ export default function Getaways() {
   const userLocation = useUserStore((state) => state.userLocation);
   const { role, isLoading: isAuthLoading } = useAuth();
   const navigate = useNavigate();
+  const routerLocation = useLocation();
   const { handleViewDetails } = useGetawayNavigation();
   const [getaways, setGetaways] = useState<Getaway[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [isOfflineMode, setIsOfflineMode] = useState<boolean>(false);
   const [page, setPage] = useState(1);
   const ITEMS_PER_PAGE = 10;
   const canViewCouponLabels = role === Role.ADMIN || role === Role.PLAYER;
@@ -57,44 +56,69 @@ export default function Getaways() {
     [coupons]
   );
 
-  // Track previous coordinates to avoid re-fetching when the location object
-  // changes reference but lat/lng values are identical (watchPosition fires repeatedly)
-  const prevCoordsKey = useRef<string>('');
+  const filtersFromUrl = useMemo(() => {
+    const params = new URLSearchParams(routerLocation.search);
+    const parseCoordinate = (value: string | null): number | null => {
+      if (value === null || value.trim() === '') return null;
+
+      const coordinate = Number(value);
+      return Number.isFinite(coordinate) ? coordinate : null;
+    };
+
+    return {
+      lat: parseCoordinate(params.get('lat')),
+      lng: parseCoordinate(params.get('lng')),
+      sport: params.get('sport') || undefined,
+      startDate: params.get('startDate') || undefined,
+      endDate: params.get('endDate') || undefined,
+    };
+  }, [routerLocation.search]);
+
+  // Evita consultas duplicadas por actualizaciones de referencia en userLocation.
+  const previousRequestKey = useRef<string>('');
 
   useEffect(() => {
-    const coordsKey = userLocation ? `${userLocation.lat},${userLocation.lng}` : '';
-    if (coordsKey && coordsKey === prevCoordsKey.current) return;
-    prevCoordsKey.current = coordsKey;
+    const hasLocationInUrl = filtersFromUrl.lat !== null && filtersFromUrl.lng !== null;
+    const searchLat = hasLocationInUrl ? filtersFromUrl.lat : userLocation?.lat;
+    const searchLng = hasLocationInUrl ? filtersFromUrl.lng : userLocation?.lng;
+    const requestKey = hasLocationInUrl
+      ? routerLocation.search
+      : searchLat !== undefined && searchLng !== undefined ? `${searchLat},${searchLng}` : 'all';
+
+    if (requestKey === previousRequestKey.current) return;
+    previousRequestKey.current = requestKey;
 
     const fetchInitialData = async () => {
       setLoading(true);
       setError(null);
       try {
-        let finalData: Getaway[] = [];
-
-        if (userLocation?.lat && userLocation?.lng) {
+        if (
+          typeof searchLat === 'number' &&
+          typeof searchLng === 'number' &&
+          Number.isFinite(searchLat) &&
+          Number.isFinite(searchLng)
+        ) {
           const rawData = await searchGetaways({
-            lat: userLocation.lat,
-            lng: userLocation.lng,
+            lat: searchLat,
+            lng: searchLng,
+            ...(hasLocationInUrl && { sport: filtersFromUrl.sport }),
+            ...(hasLocationInUrl && { startDate: filtersFromUrl.startDate }),
+            ...(hasLocationInUrl && { endDate: filtersFromUrl.endDate }),
           });
-          finalData = Array.isArray(rawData) ? rawData.map(normalizeGetawayData) : [];
+          setGetaways(rawData.map(normalizeGetawayData));
+        } else {
+          setGetaways(await getAllGetaways());
         }
-        // Fallback to all getaways if search returned nothing or there was no location
-        // (the search endpoint filters by date ≥ today, so test data with past dates returns [])
-        if (finalData.length === 0) {
-          finalData = await getAllGetaways();
-        }
-        setGetaways(finalData);
-      } catch (err: any) {
-        console.warn("Error fetching initial getaways:", err.message);
+      } catch (error: unknown) {
+        console.warn('Error fetching initial getaways:', error);
         setError(t('getaways.loadError'));
       } finally {
         setLoading(false);
       }
     };
     fetchInitialData();
-  }, [userLocation, t]);
-  const handleSearchFromBar = (filters: {
+  }, [filtersFromUrl, routerLocation.search, t, userLocation]);
+  const handleSearchFromBar = async (filters: {
     q?: string;
     lat?: number | null;
     lng?: number | null;
@@ -102,55 +126,36 @@ export default function Getaways() {
     startDate?: string | null;
     endDate?: string | null;
   }) => {
-    const searchLat = filters.lat || userLocation?.lat;
-    const searchLng = filters.lng || userLocation?.lng;
-    if (!searchLat || !searchLng) {
+    const searchLat = filters.lat ?? userLocation?.lat;
+    const searchLng = filters.lng ?? userLocation?.lng;
+    if (
+      typeof searchLat !== 'number' ||
+      typeof searchLng !== 'number' ||
+      !Number.isFinite(searchLat) ||
+      !Number.isFinite(searchLng)
+    ) {
       setError(t('getaways.locationRequired'));
       return;
     }
     setLoading(true);
     setError(null);
-    setIsOfflineMode(false);
 
-    searchGetaways({
-      lat: searchLat,
-      lng: searchLng,
-      sport: filters.sport,
-      startDate: filters.startDate || undefined,
-      endDate: filters.endDate || undefined,
-    })
-
-    .then(rawData => {
-      if (rawData.length === 0 && localStorage.getItem('getaways')) {
-        console.warn("API returned 0 results. Forcing a Fallback to view local data...");
-        throw new Error("Force LocalStorage"); //redirect to next .catch()
-      }
-      //API: success
+    try {
+      const rawData = await searchGetaways({
+        lat: searchLat,
+        lng: searchLng,
+        sport: filters.sport,
+        startDate: filters.startDate || undefined,
+        endDate: filters.endDate || undefined,
+      });
       setGetaways(rawData.map(normalizeGetawayData));
       setPage(1);
-    })
-    .catch(err => {
-      console.warn("Cargando desde LocalStorage...", err.message);
-      handleFallbackSearch(filters); //search on localStorage
-    })
-    .finally(() => setLoading(false));
-  };
-
-  //fallback controller
-  const handleFallbackSearch = (filters: any) => {
-    const localData = localStorage.getItem('getaways');
-    if (localData) {
-      try {
-        const parsedData = JSON.parse(localData);
-        const localFilteredResults = performFallbackLocalSearch(parsedData, filters);
-        setGetaways(localFilteredResults);
-        setIsOfflineMode(true);
-        setPage(1);
-      } catch (parseError) {
-        setError(t('getaways.localCorrupted'));
-      }
-    } else {
-      setError(t('getaways.noLocalData'));
+    } catch (error: unknown) {
+      console.warn('Error searching getaways:', error);
+      setGetaways([]);
+      setError(t('getaways.loadError'));
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -184,9 +189,6 @@ export default function Getaways() {
             <SearchBar onSearch={handleSearchFromBar} />
       <Box>
         <Box sx={{ mb: 3 }}>
-          {isOfflineMode && (
-            <Alert severity="warning" sx={{ mb: 2 }}>{t('getaways.offlineMode')}</Alert>
-          )}
           {!loading && error && getaways.length === 0 ? (
             <Alert severity="info" sx={{ mt: 2 }}>
               {t('getaways.emptyState')}
@@ -194,7 +196,7 @@ export default function Getaways() {
           ) : !loading && (
             <Typography variant="subtitle1" sx={{ mt: "20px" }}>
               {getaways.length > 0
-                ? `${isOfflineMode ? t('getaways.localMatches') : t('getaways.offers')}: ${getaways.length}`
+                ? `${t('getaways.offers')}: ${getaways.length}`
                 : t('getaways.noMatches')
               }
             </Typography>
@@ -234,7 +236,6 @@ export default function Getaways() {
           />
         </Stack>
       )}
-    
     </>
   );
 }

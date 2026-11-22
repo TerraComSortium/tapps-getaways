@@ -95,30 +95,28 @@ export default function Mygetaways() {
           <CircularProgress size={24}/>
         </Box>
       )}
-            <Box>
-        <Box sx={{ mb: 3 }}>
-          {/* <Typography variant="h6" sx={{ mb: 1, fontWeight: 'bold' }}>{t('mygetaways.title')}</Typography> */}
-          <h3>{t('mygetaways.title')}</h3>
-          {displayError && (
-            <Alert severity="info" sx={{ mb: 2 }}> {displayError} </Alert>
-          )}
-          {successDeleteMsg && (
-            <Alert severity="success" sx={{ mb: 2 }}>
-              {successDeleteMsg}
-            </Alert>
-          )}
-          <Typography color="text.secondary">
-            {getaways.length > 0
-              ? t('mygetaways.count', { count: getaways.length })
-              : t('mygetaways.none')
-            }
-            {/* {filteredGetaways.length > 0
-              ? `Nearest getaways offers at: ${filteredGetaways.length}`
-              : 'No offers match your search'
-            } */}
-          </Typography>
-        </Box>
 
+      <Box sx={{ mb: 2 }}>
+        {/* <Typography variant="h6" sx={{ mb: 1, fontWeight: 'bold' }}>{t('mygetaways.title')}</Typography> */}
+        <h3>{t('mygetaways.title')}</h3>
+        {displayError && (
+          <Alert severity="info" sx={{ mb: 2 }}> {displayError} </Alert>
+        )}
+        {successDeleteMsg && (
+          <Alert severity="success" sx={{ mb: 2 }}>
+            {successDeleteMsg}
+          </Alert>
+        )}
+        <Typography color="text.secondary">
+          {getaways.length > 0
+            ? t('mygetaways.count', { count: getaways.length })
+            : t('mygetaways.none')
+          }
+          {/* {filteredGetaways.length > 0
+            ? `Nearest getaways offers at: ${filteredGetaways.length}`
+            : 'No offers match your search'
+          } */}
+        </Typography>
       </Box>
       <Stack spacing={2}>
         {paginatedGetaways.map((getaway) => (
@@ -130,9 +128,9 @@ export default function Mygetaways() {
           <GetawayItem
             key={getaway._id || `fallback-key-${getaway._id}`}
             name={getaway.title || t('common.untitledGetaway')}
-            // dates={`${getaway.startDate} - ${getaway.endDate}`}
-            dates={formatGetawayDates(getaway.startDate, getaway.endDate)}
+            address={getaway.getawayAddress?.address || t('common.noAddress')}
             sport={getSportLabel(getaway.sport)}
+            dates={formatGetawayDates(getaway.startDate, getaway.endDate)}
             price={Number(getaway.price) || 0}
             galleryPhotos={getValidImages(getaway.galleryPhotos)}
             onViewDetails={() => handleViewDetails(getaway)}
@@ -163,7 +161,6 @@ export default function Mygetaways() {
           />
         </Stack>
       )}
-    
     </>
   );
 }

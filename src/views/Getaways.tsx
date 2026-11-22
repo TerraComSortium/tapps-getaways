@@ -186,7 +186,7 @@ export default function Getaways() {
   // console.log("structure getaway received API:", getaways[0]);
   return (
     <>
-            <SearchBar onSearch={handleSearchFromBar} />
+      <SearchBar onSearch={handleSearchFromBar} />
       <Box>
         <Box sx={{ mb: 3 }}>
           {!loading && error && getaways.length === 0 ? (
@@ -212,6 +212,7 @@ export default function Getaways() {
             <GetawayItem
               key={getaway._id || `fallback-key-${index}`}
               name={getaway.title || t('common.untitledGetaway')}
+              address={getaway.getawayAddress?.address || t('common.noAddress')}
               dates={`${getaway.startDate} - ${getaway.endDate}`}
               sport={getSportLabel(getaway.sport)}
               price={Number(getaway.price) || 0}

@@ -1,6 +1,6 @@
 import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Card, CardContent, CardMedia, Typography, Button, Box, CircularProgress, Chip } from '@mui/material';
+import { Card, CardContent, CardMedia, Typography, Button, Box, Stack, CircularProgress, Chip } from '@mui/material';
 import SportsTennisIcon from '@mui/icons-material/SportsTennis';
 import RoomServiceIcon from '@mui/icons-material/RoomService';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -54,7 +54,6 @@ interface GetawayItemProps {
   coupon?: Discount;
   /** Estado de cobro de la orden asociada; pinta un chip junto al deporte. */
   paymentStatus?: 'paid' | 'pending';
-  /** Dirección del getaway. */
   address?: string;
   /**
    * En una orden ya hay un precio cerrado: se muestra el total pagado y el
@@ -80,8 +79,7 @@ export const GetawayItem = memo(
     isLoading = false, onViewDetails, onBookNow, onOrderDetails, onViewBookings,
     // badgeCount = 0,
     onAddCoupon, onEdit, coupon,
-    onDelete,
-    isDeleting
+    onDelete, isDeleting
   }: GetawayItemProps ) =>
   {
     const { t, i18n } = useTranslation();
@@ -128,49 +126,48 @@ export const GetawayItem = memo(
                 // style={{ cursor: 'pointer' }}
               > {name} </Typography>
               {/* )} */}
-              <Typography variant="subtitle2" sx={{ color: 'text.secondary', fontWeight: 'normal'}}>
+
+              {address && (
+                <Typography variant="subtitle2"
+                  sx={{ display: 'flex', alignItems: 'start', gap: 0.2, color: 'text.secondary', fontWeight: 'normal' }}
+                >
+                  <PlaceIcon sx={{ fontSize: 16, mt:'1px', color: BRAND.primary }}/>
+                  {address}
+                </Typography>
+              )}
+
+              <Typography variant="subtitle2" sx={{ color: 'text.secondary', fontWeight: 'normal', mb:'0.3rem' }}>
                 {t('getawayItem.by')}
                 {/* {rcnet.name ||  */}
                 {` ${t('getawayItem.nameUnavailable')}`}
                 {/* } */}
               </Typography>
 
-              <Chip
-                label={sport}
-                icon={ <SportsTennisIcon sx={{ p:'0 2px' }} /> }
-                sx={{ padding:'0 0.5rem', m:'3px 0' }}
-              ></Chip>
-              {paymentStatus && (
-                <Chip
-                  size="small"
-                  label={paymentStatus === 'paid' ? t('reservations.paid') : t('reservations.unpaid')}
-                  sx={{
-                    ml: 1, px: 0.5, fontWeight: 'bold',
-                    bgcolor: paymentStatus === 'paid' ? BRAND.green : 'warning.light',
-                    color: paymentStatus === 'paid' ? BRAND.navy : 'warning.contrastText',
-                  }}
-                />
-              )}
-              {coupon && (
-                <Chip
-                  label={couponLabel} aria-label="coupon"
-                  icon={<LocalOfferIcon sx={{ color: `${BRAND.navy} !important`}} />}
-                  sx={{
-                    ml: 1, px: 0.5,
-                    color: BRAND.navy, bgcolor: BRAND.green, fontWeight: 'bold'
-                  }}
-                />
-              )}
-
-              {address && (
-                <Typography
-                  variant="subtitle2"
-                  sx={{ display: 'flex', alignItems: 'center', gap: 0.5, color: 'text.secondary', fontWeight: 'normal' }}
-                >
-                  <PlaceIcon sx={{ fontSize: 16, color: BRAND.primary }} />
-                  {address}
-                </Typography>
-              )}
+              <Stack direction="row" sx={{ flexWrap: 'wrap', mb:'0.3rem', alignItems: 'center' }}>
+                <Chip label={sport}
+                  icon={ <SportsTennisIcon sx={{ p:'0 2px' }} /> }
+                  sx={{ padding:'0 0.5rem', my:'3px', mx:'0' }}
+                ></Chip>
+                {paymentStatus && (
+                  <Chip size="small"
+                    label={paymentStatus === 'paid' ? t('reservations.paid') : t('reservations.unpaid')}
+                    sx={{
+                      ml: 1, px: 0.5, fontWeight: 'bold',
+                      bgcolor: paymentStatus === 'paid' ? BRAND.green : 'warning.light',
+                      color: paymentStatus === 'paid' ? BRAND.navy : 'warning.contrastText',
+                    }}
+                  />
+                )}
+                {coupon && (
+                  <Chip label={couponLabel} aria-label="coupon"
+                    icon={<LocalOfferIcon sx={{ color: `${BRAND.navy} !important`}} />}
+                    sx={{
+                      ml: 1, px: 0.5,
+                      color: BRAND.navy, bgcolor: BRAND.green, fontWeight: 'bold'
+                    }}
+                  />
+                )}
+              </Stack>
 
               <Typography variant="subtitle2" sx={{ color: 'text.secondary', fontWeight: 'normal'}}>
                 {t('getawayItem.dates')}: {dates}
@@ -204,12 +201,14 @@ export const GetawayItem = memo(
                   )}
                   {giftedBy && (
                     <>
-                      <Typography variant="subtitle2" sx={{ color: 'text.secondary', fontWeight: 'normal' }}>
-                        {t('getawayItem.giftedBy')}
-                      </Typography>
-                      <Typography variant="body1" sx={{ color: BRAND.primary, fontWeight: 'bold' }}>
-                        {giftedBy}
-                      </Typography>
+                      <Stack direction="row" spacing={1}>
+                        <Typography variant="subtitle2" sx={{ color: 'text.secondary', fontWeight: 'normal' }}>
+                          {t('getawayItem.giftedBy')}
+                        </Typography>
+                        <Typography variant="body1" sx={{ color: BRAND.primary, fontWeight: 'bold' }}>
+                          {giftedBy}
+                        </Typography>
+                      </Stack>
                       {lodgingName && (
                         <Typography variant="body2" sx={{ color: 'text.primary' }}>
                           {lodgingName}
@@ -219,6 +218,7 @@ export const GetawayItem = memo(
                   )}
                   {!totalPaid && !giftedBy && !!price && price > 0 && (
                     <>
+                    <Stack direction="row" spacing={1}>
                       <Typography variant="subtitle2" sx={{ color: 'text.secondary', fontWeight: 'normal' }}>
                         {t('getawayItem.pricingStartsAt')}
                       </Typography>
@@ -228,6 +228,7 @@ export const GetawayItem = memo(
                           {t('detail.plusTax')}
                         </Typography>
                       </Typography>
+                    </Stack>
                     </>
                   )}
                 </Box>

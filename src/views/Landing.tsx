@@ -1,5 +1,7 @@
 import { Link as RouterLink } from 'react-router-dom';
-import { Box, Button, Typography, Card, CardContent, CardMedia, List, ListItemText, Alert, CircularProgress} from '@mui/material';
+import { Box, Button, Typography, Card, CardContent, 
+  // CardMedia, 
+  List, ListItemText, Alert, CircularProgress} from '@mui/material';
 import Grid from '@mui/material/Grid2';
 import { ROUTES } from '../constants/routes';
 import { BRAND } from '../theme/colors';
@@ -8,7 +10,7 @@ import { BRAND } from '../theme/colors';
 // import background1 from '../assets/backgrounds/tenis2.jpg';
 import background1 from '../assets/backgrounds/tenis3.png';
 
-import clubView1 from '../assets/backgrounds/clubView1.png';
+// import clubView1 from '../assets/backgrounds/clubView1.png';
 import '../App.css';
 import '../index.css';
 import SearchBar from '../components/SearchBar';

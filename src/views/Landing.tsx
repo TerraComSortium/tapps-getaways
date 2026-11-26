@@ -1,5 +1,5 @@
 import { Link as RouterLink } from 'react-router-dom';
-import { Box, Button, Typography, Card, CardContent, CardMedia, List, ListItemText} from '@mui/material';
+import { Box, Button, Typography, Card, CardContent, CardMedia, List, ListItemText, Alert, CircularProgress} from '@mui/material';
 import Grid from '@mui/material/Grid2';
 import { ROUTES } from '../constants/routes';
 import { BRAND } from '../theme/colors';
@@ -12,11 +12,20 @@ import clubView1 from '../assets/backgrounds/clubView1.png';
 import '../App.css';
 import '../index.css';
 import SearchBar from '../components/SearchBar';
+import { GetawayItem } from '../components/GetawayItem';
+import { useGetAllGetaways } from '../hooks/useGetAllGetaways';
+import { useGetawayNavigation } from '../hooks/useGetawayNavigation';
+import { getSportLabel, getValidImages, formatGetawayDates } from '../utils/getawayHelpers';
+
 import MainMap from '../components/MainMap';
 import { useTranslation } from 'react-i18next';
 
 const LandingPage = () => {
   const { t } = useTranslation();
+  const { data: getaways, loading, error } = useGetAllGetaways();
+  const { handleViewDetails } = useGetawayNavigation();
+  // Tomamos únicamente los 6 primeros
+  const featuredGetaways = getaways.slice(0, 6);
   return (
     <Box sx={{ width: '100%', overflowX: 'hidden' }}>
       <Box sx={{ width: '100%', position: 'relative', minHeight: { xs: 260, sm: 'auto' } }}>
@@ -97,52 +106,79 @@ const LandingPage = () => {
               fontSize: { xs: '1.4rem', sm: '1.5rem', md: '1.8rem' },
               textAlign: 'center'
             }}>{t('landing.popularDestinations')} </Typography>
-            <Grid container className='cards'
-              spacing={3}
-              justifyContent="center" sx={{ maxWidth: '1200px', width: '100%' }}>
-                <Grid className='card1' size={{ xs: 12, sm: 6, md: 4 }} sx={{ display: 'flex', justifyContent: 'center' }}>
-                  <Card sx={{ width: { xs: '100%', sm: 260, md: 285 }, maxWidth: 285, minWidth:240, margin: '0 auto' }}>
-                    <CardMedia
-                      sx={{ height: 160 }}
-                      image={clubView1}
-                      title="getaway 1"
+            {loading && (
+              <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+                <CircularProgress />
+              </Box>
+            )}
+
+            {error && (
+              <Alert severity="error" sx={{ mb: 2 }}>
+                {error}
+              </Alert>
+            )}
+
+            {!loading && !error && (
+              <Grid container className='cards' spacing={3}
+                justifyContent="center" sx={{ maxWidth: '1200px', width: '100%' }}>
+                {featuredGetaways.map((getaway) => (
+                  <Grid size={{ xs: 12, sm: 6, md: 4 }} key={getaway._id}>
+                    <GetawayItem
+                      compact
+                      name={getaway.title  || t('common.untitledGetaway')}
+                      address={getaway.getawayAddress?.address}
+                      dates={formatGetawayDates(getaway.startDate, getaway.endDate)}
+                      sport={getSportLabel(getaway.sport)}
+                      price={Number(getaway.price) || 0}
+                      galleryPhotos={getValidImages(getaway.galleryPhotos)}
+                      onViewDetails={() => handleViewDetails(getaway)}
                     />
-                    <CardContent className='purpBtn2'>
-                      <Typography gutterBottom variant="body2" component="div" sx={{ textAlign: 'center', height:10 }}>
-                        Cañaveral Country Club
-                      </Typography>
-                    </CardContent>
-                  </Card>
-                </Grid>
-                <Grid className='card1' size={{ xs: 12, sm: 6, md: 4 }} sx={{ display: 'flex', justifyContent: 'center' }}>
-                  <Card sx={{ width: { xs: '100%', sm: 260 }, maxWidth: 285, minWidth:240, margin: '0 auto' }}>
-                    <CardMedia
-                      sx={{ height: 160 }}
-                      image={clubView1}
-                      title="getaway 2"
-                    />
-                    <CardContent className='purpBtn2'>
-                      <Typography gutterBottom variant="body2" component="div" sx={{ textAlign: 'center', height:10 }}>
-                        Cañaveral Country Club
-                      </Typography>
-                    </CardContent>
-                  </Card>
-                </Grid>
-                <Grid className='card1' size={{ xs: 12, sm: 6, md: 4 }} sx={{ display: 'flex', justifyContent: 'center' }}>
-                  <Card sx={{ width: { xs: '100%', sm: 260 }, maxWidth: 285, minWidth:240, margin: '0 auto' }}>
-                    <CardMedia
-                      sx={{ height: 160 }}
-                      image={clubView1}
-                      title="getaway 3"
-                    />
-                    <CardContent className='purpBtn2'>
-                      <Typography gutterBottom variant="body2" component="div" sx={{ textAlign: 'center', height:10 }}>
-                        Hato Grande Club
-                      </Typography>
-                    </CardContent>
-                  </Card>
-                </Grid>
-            </Grid>
+                  </Grid>
+                  // <Grid className='card1' size={{ xs: 12, sm: 6, md: 4 }} sx={{ display: 'flex', justifyContent: 'center' }}>
+                  //   <Card sx={{ width: { xs: '100%', sm: 260, md: 285 }, maxWidth: 285, minWidth:240, margin: '0 auto' }}>
+                  //     <CardMedia
+                  //       sx={{ height: 160 }}
+                  //       image={clubView1}
+                  //       title="getaway 1"
+                  //     />
+                  //     <CardContent className='purpBtn2'>
+                  //       <Typography gutterBottom variant="body2" component="div" sx={{ textAlign: 'center', height:10 }}>
+                  //         Cañaveral Country Club
+                  //       </Typography>
+                  //     </CardContent>
+                  //   </Card>
+                  // </Grid>
+                  // <Grid className='card1' size={{ xs: 12, sm: 6, md: 4 }} sx={{ display: 'flex', justifyContent: 'center' }}>
+                  //   <Card sx={{ width: { xs: '100%', sm: 260 }, maxWidth: 285, minWidth:240, margin: '0 auto' }}>
+                  //     <CardMedia
+                  //       sx={{ height: 160 }}
+                  //       image={clubView1}
+                  //       title="getaway 2"
+                  //     />
+                  //     <CardContent className='purpBtn2'>
+                  //       <Typography gutterBottom variant="body2" component="div" sx={{ textAlign: 'center', height:10 }}>
+                  //         Cañaveral Country Club
+                  //       </Typography>
+                  //     </CardContent>
+                  //   </Card>
+                  // </Grid>
+                  // <Grid className='card1' size={{ xs: 12, sm: 6, md: 4 }} sx={{ display: 'flex', justifyContent: 'center' }}>
+                  //   <Card sx={{ width: { xs: '100%', sm: 260 }, maxWidth: 285, minWidth:240, margin: '0 auto' }}>
+                  //     <CardMedia
+                  //       sx={{ height: 160 }}
+                  //       image={clubView1}
+                  //       title="getaway 3"
+                  //     />
+                  //     <CardContent className='purpBtn2'>
+                  //       <Typography gutterBottom variant="body2" component="div" sx={{ textAlign: 'center', height:10 }}>
+                  //         Hato Grande Club
+                  //       </Typography>
+                  //     </CardContent>
+                  //   </Card>
+                  // </Grid>
+                ))}
+              </Grid>
+            )}
           </Grid>
         </Grid>
       </Box>

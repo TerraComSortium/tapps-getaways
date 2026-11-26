@@ -44,6 +44,7 @@ interface GetawayItemProps {
   galleryPhotos: string[];
   bookedDate?: string;
   isLoading?: boolean;
+  compact?: boolean;
   onViewDetails?: () => void;
   onBookNow?: () => void;
   onOrderDetails?: () => void;
@@ -79,7 +80,8 @@ export const GetawayItem = memo(
     isLoading = false, onViewDetails, onBookNow, onOrderDetails, onViewBookings,
     // badgeCount = 0,
     onAddCoupon, onEdit, coupon,
-    onDelete, isDeleting
+    onDelete, isDeleting,
+    compact = false
   }: GetawayItemProps ) =>
   {
     const { t, i18n } = useTranslation();
@@ -116,14 +118,30 @@ export const GetawayItem = memo(
 
     return(
       <>
-        <Card elevation={0} sx={{ display: "flex", mb:2, borderRadius: "10px", backgroundColor: BRAND.bgPaper, boxShadow: "0 2px 8px 0 #c1c9d7, 0 -2px 8px 0 #cce1e9"}}>
-          <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', textAlign: 'left' }} >
+        <Card
+          elevation={0}
+          sx={{ display: "flex", mb:2,
+            // flexDirection:{
+            //   // xs:'column',
+            //   xs:'column-reverse', sm:'column-reverse',
+            //   md:'row'},
+            flexDirection: compact
+              ? 'column-reverse'
+              : { xs: 'column-reverse', sm:'column-reverse', md: 'row' },
+            borderRadius: "10px", backgroundColor: BRAND.bgPaper, boxShadow: "0 2px 8px 0 #c1c9d7, 0 -2px 8px 0 #cce1e9",
+            overflow: 'hidden',
+          }}>
+          <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', textAlign: 'left',
+            p: compact ? 1.5 : 2, '&:last-child': { pb: compact ? 1.5 : 2 }
+            }} >
             <Box>
               {/* { onViewDetails && ( */}
               <Typography
                 onClick={onViewDetails}
-                sx={{ fontSize: '16px', color:BRAND.primary, fontWeight: '600', cursor: onViewDetails ? 'pointer': 'default'}}
-                // style={{ cursor: 'pointer' }}
+                sx={{
+                  fontSize: compact ? '15px' : '16px',
+                  color:BRAND.primary, fontWeight: '600', cursor: onViewDetails ? 'pointer': 'default'}}
+                  //style={{ cursor: 'pointer' }}
               > {name} </Typography>
               {/* )} */}
 
@@ -135,7 +153,6 @@ export const GetawayItem = memo(
                   {address}
                 </Typography>
               )}
-
               <Typography variant="subtitle2" sx={{ color: 'text.secondary', fontWeight: 'normal', mb:'0.3rem' }}>
                 {t('getawayItem.by')}
                 {/* {rcnet.name ||  */}
@@ -172,67 +189,70 @@ export const GetawayItem = memo(
               <Typography variant="subtitle2" sx={{ color: 'text.secondary', fontWeight: 'normal'}}>
                 {t('getawayItem.dates')}: {dates}
               </Typography>
-
-              {bookedDate && (
-                <Chip
-                  label={`${t('getawayItem.booked')}: ${bookedDate}`}
-                  size="small"
-                  sx={{ width: 'fit-content', m: '3px 0', bgcolor: BRAND.green, color: BRAND.navy, fontWeight: 'bold' }}
-                />
-              )}
-
-              <Box sx={{ display: 'flex', alignItems: 'flex-start', mb:1 }}>
-                <Box>
-                  {totalPaid && (
-                    // Orden ya cerrada: el precio no es un "desde", es lo pagado.
-                    <>
-                      <Typography variant="subtitle2" sx={{ color: 'text.secondary', fontWeight: 'normal' }}>
-                        {t('getawayItem.totalPaid')}
-                      </Typography>
-                      <Typography variant="body1" sx={{ color: BRAND.primary, fontWeight: 'bold' }}>
-                        {totalPaid}
-                      </Typography>
-                      {lodgingName && (
-                        <Typography variant="body2" sx={{ color: 'text.primary' }}>
-                          {lodgingName}
-                        </Typography>
-                      )}
-                    </>
-                  )}
-                  {giftedBy && (
-                    <>
-                      <Stack direction="row" spacing={1}>
+              {/* --- BLOQUE SOLO PARA VISTA COMPLETA (!compact) --- */}
+              {!compact && (
+              <>
+                {bookedDate && (
+                  <Chip
+                    label={`${t('getawayItem.booked')}: ${bookedDate}`}
+                    size="small"
+                    sx={{ width: 'fit-content', m: '3px 0', bgcolor: BRAND.green, color: BRAND.navy, fontWeight: 'bold' }}
+                  />
+                )}
+                <Box sx={{ display: 'flex', alignItems: 'flex-start', mb:1 }}>
+                  <Box>
+                    {totalPaid && (
+                      // Orden ya cerrada: el precio no es un "desde", es lo pagado.
+                      <>
                         <Typography variant="subtitle2" sx={{ color: 'text.secondary', fontWeight: 'normal' }}>
-                          {t('getawayItem.giftedBy')}
+                          {t('getawayItem.totalPaid')}
                         </Typography>
                         <Typography variant="body1" sx={{ color: BRAND.primary, fontWeight: 'bold' }}>
-                          {giftedBy}
+                          {totalPaid}
+                        </Typography>
+                        {lodgingName && (
+                          <Typography variant="body2" sx={{ color: 'text.primary' }}>
+                            {lodgingName}
+                          </Typography>
+                        )}
+                      </>
+                    )}
+                    {giftedBy && (
+                      <>
+                        <Stack direction="row" spacing={1}>
+                          <Typography variant="subtitle2" sx={{ color: 'text.secondary', fontWeight: 'normal' }}>
+                            {t('getawayItem.giftedBy')}
+                          </Typography>
+                          <Typography variant="body1" sx={{ color: BRAND.primary, fontWeight: 'bold' }}>
+                            {giftedBy}
+                          </Typography>
+                        </Stack>
+                        {lodgingName && (
+                          <Typography variant="body2" sx={{ color: 'text.primary' }}>
+                            {lodgingName}
+                          </Typography>
+                        )}
+                      </>
+                    )}
+                    {!totalPaid && !giftedBy && !!price && price > 0 && (
+                      <>
+                      <Stack direction="row" spacing={1}>
+                        <Typography variant="subtitle2" sx={{ color: 'text.secondary', fontWeight: 'normal' }}>
+                          {t('getawayItem.pricingStartsAt')}
+                        </Typography>
+                        <Typography variant="body1" sx={{ color: 'text.primary', fontWeight: 'bold' }}>
+                          ${price.toLocaleString(i18n.language, { maximumFractionDigits: 2 })}
+                          <Typography component="span" variant="caption" color="text.secondary" sx={{ ml: 0.5 }}>
+                            {t('detail.plusTax')}
+                          </Typography>
                         </Typography>
                       </Stack>
-                      {lodgingName && (
-                        <Typography variant="body2" sx={{ color: 'text.primary' }}>
-                          {lodgingName}
-                        </Typography>
-                      )}
-                    </>
-                  )}
-                  {!totalPaid && !giftedBy && !!price && price > 0 && (
-                    <>
-                    <Stack direction="row" spacing={1}>
-                      <Typography variant="subtitle2" sx={{ color: 'text.secondary', fontWeight: 'normal' }}>
-                        {t('getawayItem.pricingStartsAt')}
-                      </Typography>
-                      <Typography variant="body1" sx={{ color: 'text.primary', fontWeight: 'bold' }}>
-                        ${price.toLocaleString(i18n.language, { maximumFractionDigits: 2 })}
-                        <Typography component="span" variant="caption" color="text.secondary" sx={{ ml: 0.5 }}>
-                          {t('detail.plusTax')}
-                        </Typography>
-                      </Typography>
-                    </Stack>
-                    </>
-                  )}
+                      </>
+                    )}
+                  </Box>
                 </Box>
-              </Box>
+              </>
+              )}
             </Box>
             {/* <Box component="p" sx={{ fontSize: 14, color: "black", m: '10px 0'}}> {description} </Box> */}
             <Box sx={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: 1 }}>
@@ -247,102 +267,116 @@ export const GetawayItem = memo(
                   onClick={onBookNow}
                 > {t('getawayItem.bookNow')} </Button>
               )}
-              {/* {role === 'player' && ( */}
-              { onOrderDetails && (
-                <Button disableElevation startIcon={<ReceiptIcon/>}
-                  sx={{
-                    minWidth: 160, whiteSpace: 'nowrap', px: 2,
-                    borderRadius: '30px',
-                    bgcolor:BRAND.primary, color: BRAND.white,
-                    fontVariantCaps: 'normal', textTransform: 'none',
-                  }}
-                  onClick={onOrderDetails}
-                > {t('getawayItem.orderDetails')} </Button>
-              )}
-              { onViewBookings && (
-                <Button aria-label="view offer's bookings"
-                  // onClick={ onViewBookings }
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onViewBookings?.();
-                  }}
-                  disableElevation
-                  startIcon={
-                    // <CartBadge
-                      // badgeContent={1}
-                      // // badgeContent={badgeCount}
-                      // overlap="circular">
-                      <RoomServiceIcon />
-                    // </CartBadge>
-                  }
-                  sx={{
-                    minWidth: 120, whiteSpace: 'nowrap', px: 2,
-                    borderRadius: '24px',
-                    bgcolor: BRAND.primary, color: BRAND.white,
-                    fontVariantCaps: 'normal', textTransform: 'none',
-                  }}
-                > {t('getawayItem.bookings')} </Button>
-              )}
-              { onAddCoupon && (
-                <Button startIcon={<AddIcon />} variant="contained" aria-label="Add discount"  disableElevation
-                  onClick={onAddCoupon}
-                  sx={{
-                    // mt: 2, mb: 3,
-                    bgcolor:BRAND.primary, color:  BRAND.white, borderRadius: '30px', fontWeight: 'bold', textTransform: 'none',
-                    ':hover': { bgcolor:BRAND.white, color:BRAND.primary }
-                  }}
-                >
-                {t('coupon.addCoupon') || "Add coupon" }
-                </Button>
-              )}
-              { onDelete && (
-                <Button startIcon={<DeleteIcon/>} disableElevation
-                  onClick={onDelete}
-                  disabled={isDeleting}
-                  size="medium"
-                  sx={{
-                    minWidth: 104, whiteSpace: 'nowrap', px: 2,
-                    borderRadius: '30px',
-                    bgcolor: BRAND.primary, color: BRAND.white,
-                    fontVariantCaps:'normal', textTransform: 'none',
-                    opacity: isDeleting ? 0.7 : 1,
-                    '&:hover': {
-                      bgcolor: BRAND.primaryDark
+              {!compact && (
+              <>
+                {/* {role === 'player' && ( */}
+                { onOrderDetails && (
+                  <Button disableElevation startIcon={<ReceiptIcon/>}
+                    sx={{
+                      minWidth: 160, whiteSpace: 'nowrap', px: 2,
+                      borderRadius: '30px',
+                      bgcolor:BRAND.primary, color: BRAND.white,
+                      fontVariantCaps: 'normal', textTransform: 'none',
+                    }}
+                    onClick={onOrderDetails}
+                  > {t('getawayItem.orderDetails')} </Button>
+                )}
+                { onViewBookings && (
+                  <Button aria-label="view offer's bookings"
+                    // onClick={ onViewBookings }
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onViewBookings?.();
+                    }}
+                    disableElevation
+                    startIcon={
+                      // <CartBadge
+                        // badgeContent={1}
+                        // // badgeContent={badgeCount}
+                        // overlap="circular">
+                        <RoomServiceIcon />
+                      // </CartBadge>
                     }
-                  }}
-                >
-                  {isDeleting ? t('getawayItem.wait') : t('getawayItem.delete')}
-                </Button>
-              )}
+                    sx={{
+                      minWidth: 120, whiteSpace: 'nowrap', px: 2,
+                      borderRadius: '24px',
+                      bgcolor: BRAND.primary, color: BRAND.white,
+                      fontVariantCaps: 'normal', textTransform: 'none',
+                    }}
+                  > {t('getawayItem.bookings')} </Button>
+                )}
+                { onAddCoupon && (
+                  <Button startIcon={<AddIcon />} variant="contained" aria-label="Add discount"  disableElevation
+                    onClick={onAddCoupon}
+                    sx={{
+                      // mt: 2, mb: 3,
+                      bgcolor:BRAND.primary, color:  BRAND.white, borderRadius: '30px', fontWeight: 'bold', textTransform: 'none',
+                      ':hover': { bgcolor:BRAND.white, color:BRAND.primary }
+                    }}
+                  >
+                  {t('coupon.addCoupon') || "Add coupon" }
+                  </Button>
+                )}
+                { onDelete && (
+                  <Button startIcon={<DeleteIcon/>} disableElevation
+                    onClick={onDelete}
+                    disabled={isDeleting}
+                    size="medium"
+                    sx={{
+                      minWidth: 104, whiteSpace: 'nowrap', px: 2,
+                      borderRadius: '30px',
+                      bgcolor: BRAND.primary, color: BRAND.white,
+                      fontVariantCaps:'normal', textTransform: 'none',
+                      opacity: isDeleting ? 0.7 : 1,
+                      '&:hover': {
+                        bgcolor: BRAND.primaryDark
+                      }
+                    }}
+                  >
+                    {isDeleting ? t('getawayItem.wait') : t('getawayItem.delete')}
+                  </Button>
+                )}
+              </>)}
             </Box>
           </CardContent>
-          <Box sx={{ width: 300, flexShrink: 0, position: 'relative'}}>
+          <Box sx={{
+            // width: { xs: '100%', md: 300 },
+            // height: { xs: 200, md: 'auto' },
+            width: compact ? '100%' : { xs: '100%', md: 300 },
+            height: compact ? 140 : { xs: 200, md: 'auto' },
+            flexShrink: 0, position: 'relative'}}>
             <CardMedia
               image={imageUrl}
+              onClick={onViewDetails}
               sx={{
                 position: 'absolute',
                 top: 0, left: 0,
                 width: '100%', height: '100%',
-                borderRadius: '0 10px 10px 0'
+                // borderRadius: '0 10px 10px 0'
+                borderRadius: { xs: '10px 10px 0 0', md: '0 10px 10px 0' },//quitar?
+                cursor: onViewDetails ? 'pointer' : 'default',
               }}
             />
-            <Box sx={{
-              display: 'flex', position: 'relative',
-              width: '100%', height: '100%',
-              justifyContent: 'center', alignItems: 'center'
-            }}>
-              { onEdit && (
-                <Button startIcon={<EditIcon />} onClick={onEdit} disableElevation size="medium"
-                  sx={{
-                    minWidth: 145, whiteSpace: 'nowrap', px: 2,
-                    color: BRAND.navy, bgcolor: BRAND.green,
-                    borderRadius: '30px',
-                    fontWeight: 'bold', textTransform: 'none',
-                  }}
-                > {t('getawayItem.editGetaway')}
-                </Button>
-              )}
-            </Box>
+            {!compact && (
+            // {!compact && onEdit && (
+              <Box sx={{
+                display: 'flex', position: 'relative',
+                width: '100%', height: '100%',
+                justifyContent: 'center', alignItems: 'center'
+              }}>
+                { onEdit && (
+                  <Button startIcon={<EditIcon />} onClick={onEdit} disableElevation size="medium"
+                    sx={{
+                      minWidth: 145, whiteSpace: 'nowrap', px: 2,
+                      color: BRAND.navy, bgcolor: BRAND.green,
+                      borderRadius: '30px',
+                      fontWeight: 'bold', textTransform: 'none',
+                    }}
+                  > {t('getawayItem.editGetaway')}
+                  </Button>
+                )}
+              </Box>
+            )}
           </Box>
         </Card>
       </>
